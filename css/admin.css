@@ -1,0 +1,32 @@
+/* 3.2+ wp-admin search form styles */
+
+
+/* Admin Page CSS */
+
+.instagram-importer p, .instagram-importer .form-table {
+	width: auto;
+	max-width: 660px;
+}
+.instagram-importer .form-table {
+	width: 660px;
+}
+.instagram-importer .form-table th {
+	/*border-right: 10px solid #fff;*/
+	width: 410px;
+}
+.instagram-importer .form-table tr {
+	background: #eee;
+	border: none;
+	border-bottom: 10px solid #fff;
+}
+
+.instagram-importer .form-table tr.info {
+	background: #FFF;
+	border: none;
+	border-bottom: 10px solid #fff;
+}
+
+.instagram-importer .form-table tr.info th {
+	padding: 0;
+}
+
