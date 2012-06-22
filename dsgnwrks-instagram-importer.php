@@ -197,14 +197,15 @@ function dsgnwrks_instagram_import() {
                 $messages = dsgnwrks_import_messages( $messages['next_url'], $settings, $messages['message'] );
             }
 
+
             super_var_dump($messages);
 
-            super_var_dump( $settings['instagram-date-filter'] );
+            // super_var_dump( $settings['instagram-date-filter'] );
             // die();
 
-            // foreach ( $messages['message'] as $message ) {
-            //     echo $message;
-            // }
+            foreach ( $messages['message'] as $key => $message ) {
+                echo $message;
+            }
             echo '</div>';
 
         }
@@ -249,6 +250,8 @@ function dsgnwrks_import_messages( $api_url = '', $settings = array(), $prevmess
     add_filter( 'jpeg_quality', 'dsgnwrks_max_quality' );
     $messages = dsgnwrks_pic_loop( $data, $settings );
     $messages = ( !empty( $prevmessages ) ) ? array_merge( $prevmessages, $messages ) : $messages;
+
+    // $messages = $prevmessages = null;
 
     remove_filter( 'jpeg_quality', 'dsgnwrks_max_quality' );
     if ( empty( $messages ) && empty( $prevmessages ) ) {
@@ -297,9 +300,9 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
             //         jts_instagram_img( $pics, $tags, $settings );
             //     }
             // } else {
-                // $messages[] = jts_instagram_img( $pics, $settings );
+                $messages[] = jts_instagram_img( $pics, $settings );
 
-                $messages[dsgnwrks_wp_trim_words( $pics->caption->text, 12 )] = $pics;
+                // $messages[dsgnwrks_wp_trim_words( $pics->caption->text, 12 )] = $pics;
                 // echo '<a href="'.  $pics->link .'" target="_blank"><img width="100px" src="'. $pics->images->thumbnail->url .'"/></a>';
                 // echo '<pre>'. print_r($pics, true) .'</pre>';
 
@@ -322,7 +325,7 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
 //     return $result;
 // }
 
-function jts_instagram_img( $pics, $tags='', $settings=array() ) {
+function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 
     global $user_ID;
 
