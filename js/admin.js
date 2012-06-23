@@ -11,7 +11,7 @@ jQuery(document).ready(function($) {
 		show_tax_blocks(curr_cpt,cpts);
 
 		$(select).change(function() {
-			$('.taxonomies-add').hide();
+			$('.taxonomies-add').hide('slow');
 			show_tax_blocks($(select).val(),cpts);
 		});
 
