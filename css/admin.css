@@ -3,13 +3,16 @@
 
 /* Admin Page CSS */
 
+/*.instagram-importer {
+	float: left;
+}*/
 .instagram-importer p, .instagram-importer .form-table {
 	width: auto;
 	max-width: 660px;
 }
-.instagram-importer .form-table {
+/*.instagram-importer .form-table {
 	width: 660px;
-}
+}*/
 .instagram-importer .form-table th {
 	/*border-right: 10px solid #fff;*/
 	width: 410px;
@@ -30,3 +33,50 @@
 	padding: 0;
 }
 
+
+#contextual-help-back {
+	right: 220px;
+}
+.contextual-help-sidebar {
+	width: 200px;
+}
+.contextual-help-tabs h2 {
+	padding-left: 12px;
+}
+
+#screen-options-link-wrap, #contextual-help-link-wrap, #screen-meta {
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-khtml-border-radius: 3px;
+	border-radius: 3px;
+}
+
+#screen-meta {
+	margin: 10px 15px 0 5px;
+	border-width: 1px;
+	border-style: solid;
+}
+
+
+/*.jtsocial {
+	float: right;
+}*/
+.jtsocial a {
+	display: block;
+	margin-bottom: 10px;
+	text-align: right;
+}
+.jtsocial a span {
+	background: url(../images/social.png) no-repeat top left;
+	display: inline-block;
+	width: 64px;
+	height: 64px;
+	vertical-align: middle;
+	margin: 0 8px 0 5px;
+}
+.jtsocial .jtemail span {
+	background-position: -64px 0;
+}
+.jtsocial .jttwitter span {
+	background-position: -128px 0;
+}
