@@ -121,6 +121,7 @@ add_action('admin_menu', 'dsgnwrks_instagram_settings');
 function dsgnwrks_instagram_settings() {
     $plugin_page = add_submenu_page( 'tools.php', 'DsgnWrks Instagram Import Settings', 'Instagram Importer', 'manage_options', 'dsgnwrks-instagram-importer-settings', 'dsgnwrks_instagram_importer_settings' );
     add_action('admin_print_styles-' . $plugin_page, 'dsgnwrks_instagram_importer_styles');
+    add_action('admin_print_scripts-' . $plugin_page, 'dsgnwrks_instagram_importer_scripts');
     add_action( 'admin_head-'. $plugin_page, 'dsgnwrks_instagram_fire_importer' );
 
 }
@@ -129,6 +130,24 @@ function dsgnwrks_instagram_importer_settings() { require_once('settings.php'); 
 
 function dsgnwrks_instagram_importer_styles() {
     wp_enqueue_style('dsgnwrks-instagram-importer-admin', plugins_url('css/admin.css', __FILE__));
+}
+function dsgnwrks_instagram_importer_scripts() {
+    wp_enqueue_script( 'dsgnwrks-instagram-importer-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ) );
+
+
+    $args = array(
+      'public'   => true,
+    );
+    $cpts = get_post_types( $args );
+    foreach ($cpts as $key => $cpt) {
+        $taxes = get_object_taxonomies( $cpt );
+        if ( !empty( $taxes ) ) $data['cpts'][$cpt][] = $taxes;
+    }
+
+    // echo '<pre>'. htmlentities( print_r( $data, true ) ) .'</pre>';
+
+    if ( !empty( $data ) ) wp_localize_script( 'dsgnwrks-instagram-importer-admin', 'dwinstagram', $data );
+
 }
 
 function dsgnwrks_instagram_fire_importer() {
@@ -176,7 +195,9 @@ function dsgnwrks_instagram_import() {
             // echo $body->access_token .'<br/>';
             // echo $body->user->id;
 
+            $body = apply_filters( 'dsgnwrks_instagram_body', $body );
             // echo '<pre>'. print_r($body, true) .'</pre>';
+            // die();
 
         } else {
            $response = null;
@@ -198,7 +219,7 @@ function dsgnwrks_instagram_import() {
             }
 
 
-            super_var_dump($messages);
+            // super_var_dump($messages);
 
             // super_var_dump( $settings['instagram-date-filter'] );
             // die();
@@ -246,10 +267,12 @@ function dsgnwrks_import_messages( $api_url = '', $settings = array(), $prevmess
     // $tags = check_array_with_array( $tags, $test );
     // print_r( $tags );
 
-    $next_url = isset( $data->pagination->next_url ) ? $data->pagination->next_url : '';
     add_filter( 'jpeg_quality', 'dsgnwrks_max_quality' );
     $messages = dsgnwrks_pic_loop( $data, $settings );
-    $messages = ( !empty( $prevmessages ) ) ? array_merge( $prevmessages, $messages ) : $messages;
+
+    $next_url = ( !isset( $data->pagination->next_url ) || $messages['nexturl'] == 'halt' ) ? '' : $data->pagination->next_url;
+
+    $messages = ( !empty( $prevmessages ) ) ? array_merge( $prevmessages, $messages['messages'] ) : $messages['messages'];
 
     // $messages = $prevmessages = null;
 
@@ -272,6 +295,7 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
     foreach ($data->data as $pics) {
 
         if ( $settings['instagram-date-filter'] > $pics->created_time ) {
+            $messages['nexturl'] = 'halt';
             break;
         }
 
@@ -288,7 +312,7 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
 
                 )
         );
-        if( $alreadyInSystem->have_posts() ) {
+        if ( $alreadyInSystem->have_posts() ) {
             continue;
         } else {
 
@@ -300,7 +324,7 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
             //         jts_instagram_img( $pics, $tags, $settings );
             //     }
             // } else {
-                $messages[] = jts_instagram_img( $pics, $settings );
+                $messages['messages'][] = jts_instagram_img( $pics, $settings );
 
                 // $messages[dsgnwrks_wp_trim_words( $pics->caption->text, 12 )] = $pics;
                 // echo '<a href="'.  $pics->link .'" target="_blank"><img width="100px" src="'. $pics->images->thumbnail->url .'"/></a>';
@@ -449,7 +473,7 @@ function dsgnwrks_instagram_upload_img( $imgurl='', $post_id='', $title='' ) {
         set_post_thumbnail( $post_id, $img_id );
     }
 
-    return '<p><strong>"<em>'. $title .'</em>" imported and created successfully.</strong></p>';
+    return '<p><strong><em>&ldquo;'. $title .'&rdquo; </em> imported and created successfully.</strong></p>';
 
 }
 

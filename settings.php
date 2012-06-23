@@ -247,7 +247,7 @@ if ( !empty( $settings['instagram-username'] ) && empty( $settings['instagram-us
                     if ( $settings['instagram-post_format'] && !in_array( $settings['instagram-post_format'], $post_formats[0] ) )
                         $post_formats[0][] = $settings['instagram-post_format'];
                     ?>
-                    <tr valign="top">
+                    <tr valign="top" class="taxonomies-add">
                     <th scope="row"><strong>Select Imported Posts Format:</strong></th>
                     <td>
 
@@ -284,7 +284,7 @@ if ( !empty( $settings['instagram-username'] ) && empty( $settings['instagram-us
 
                 if ( $tax->name == 'post_tag' )  $placeholder = 'e.g. beach, sunrise';
                 ?>
-                <tr valign="top">
+                <tr valign="top" class="taxonomies-add taxonomy-<?php echo $tax->name; ?>">
                 <th scope="row"><strong><?php echo $tax->label; ?> to apply to imported posts.</strong><br/>Please separate <?php echo strtolower( $tax->label ); ?> with commas.</th>
                 <td><input type="text" placeholder="<?php echo $placeholder; ?>" name="dsgnwrks_insta_options[instagram-<?php echo $tax->name; ?>]" value="<?php echo $settings['instagram-'. $tax->name]; ?>" />
                 </td>
@@ -317,8 +317,6 @@ if ( !empty( $settings['instagram-username'] ) && empty( $settings['instagram-us
                 </th>
                 </tr>
             <?php } ?>
-
-
 
         </table>
     <?php } else { $button = 'Authenticate'; } ?>
