@@ -60,12 +60,17 @@ $complete = ( !empty( $settings['instagram-mm'] ) && !empty( $settings['instagra
             <div id="contextual-help-back"></div>
             <div id="contextual-help-columns">
                 <div class="contextual-help-tabs">
+                    <?php
+                        $user = !empty( $settings['instagram-username'] ) ? $settings['instagram-username'] : 'Create User';
+                        $class = str_replace( ' ', '', strtolower( $user ) );
+                    ?>
+                    <?php if ( $user != 'Create User' ) { ?>
                     <h2>Users</h2>
+                    <?php } else { ?>
+                    <h2>Get Started</h2>
+                    <?php } ?>
+
                     <ul>
-                        <?php
-                            $user = !empty( $settings['instagram-username'] ) ? $settings['instagram-username'] : 'Create User';
-                            $class = str_replace( ' ', '', strtolower( $user ) );
-                        ?>
                         <li id="tab-instagram-user-<?php echo $class; ?>" class="active">
                             <a href="#instagram-user-<?php echo $class; ?>"><?php echo $user; ?></a>
                         </li>
