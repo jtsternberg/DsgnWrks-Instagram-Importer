@@ -25,10 +25,24 @@ jQuery(document).ready(function($) {
 			curr_taxes = curr_taxes.toString();
 			curr_taxes = curr_taxes.split(',');
 			$.each(curr_taxes, function(i, tax) {
-				console.log(tax);
 				$('.taxonomy-'+tax).show();
 			});
 		}
 	}
+
+	$('.delete-instagram-user').click(function(event) {
+		if ( !confirm('Are you sure you want to delete user, '+ $(this).attr('id').replace('delete-','') +'?') ) {
+			event.preventDefault();
+		}
+	});
+
+	$('.dw-pw-form').hide();
+	$('.import-button').click(function(event) {
+		$(this).hide();
+		$('.dw-pw-form').show();
+		$('.dw-pw-form input[type="password"]').focus();
+		event.preventDefault();
+	});
+
 
 });

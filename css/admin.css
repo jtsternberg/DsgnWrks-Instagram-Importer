@@ -10,6 +10,9 @@
 	width: auto;
 	max-width: 660px;
 }
+.instagram-importer .form-table {
+	margin-top: 0;
+}
 /*.instagram-importer .form-table {
 	width: 660px;
 }*/
@@ -34,11 +37,17 @@
 }
 
 
+#contextual-help-wrap {
+	min-height: 236px;
+}
 #contextual-help-back {
 	right: 220px;
 }
 .contextual-help-sidebar {
 	width: 200px;
+	position: absolute;
+	top: 0;
+	right: 0;
 }
 .contextual-help-tabs h2 {
 	padding-left: 12px;
@@ -55,6 +64,10 @@
 	margin: 10px 15px 0 5px;
 	border-width: 1px;
 	border-style: solid;
+}
+.contextual-help-tabs-wrap {
+	position: relative;
+	padding: 0 220px 0 20px;
 }
 
 
@@ -79,4 +92,10 @@
 }
 .jtsocial .jttwitter span {
 	background-position: -128px 0;
+}
+
+.dw-pw-form {
+	position: absolute;
+	bottom: 28px;
+	left: 85px;
 }
