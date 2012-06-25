@@ -117,7 +117,10 @@ function dsgnwrks_instagram_import() {
 	$settings = get_option( 'dsgnwrks_insta_options' );
 	$id = $_GET['instaimport'];
 
-	if ( !wp_check_password( $_POST['pwcheck'], $settings[$id]['pw'] ) ) return;
+	if ( !wp_check_password( $_POST['pwcheck'], $settings[$id]['pw'] ) ) {
+		echo '<div id="message" class="error"><p>That is the incorrect password</p></div>';
+		return;
+	}
 
 	$response = dsgnwrks_insta_authenticate( $id, $_POST['pwcheck'] );
 
