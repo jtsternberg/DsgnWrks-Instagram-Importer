@@ -132,7 +132,6 @@ function dsgnwrks_instagram_import() {
 	}
 
 	if ( isset( $body->user->id ) && isset( $body->access_token ) ) {
-		// echo '<pre style="background: #fff; padding: 100px; font-size: 14px; font-family: arial; font-weight: normal; color: #000;">';
 		echo '<div id="message" class="updated">';
 
 		$messages = dsgnwrks_import_messages( 'https://api.instagram.com/v1/users/'. $body->user->id .'/media/recent?access_token='. $body->access_token .'&count=80', $settings[$id] );
@@ -140,10 +139,6 @@ function dsgnwrks_instagram_import() {
 		while ( !empty( $messages['next_url'] ) ) {
 			$messages = dsgnwrks_import_messages( $messages['next_url'], $settings[$id], $messages['message'] );
 		}
-		// super_var_dump($messages);
-
-		// super_var_dump( $settings[$id]['date-filter'] );
-		// die();
 
 		foreach ( $messages['message'] as $key => $message ) {
 			echo $message;
@@ -159,33 +154,9 @@ function dsgnwrks_import_messages( $api_url, $settings, $prevmessages = array() 
 	$api = wp_remote_retrieve_body( wp_remote_get( $api_url ) );
 	$data = json_decode( $api );
 
-	// echo '<pre>'. print_r($data->pagination->next_url, true) .'</pre>';
-	// die();
-
 	require_once(ABSPATH . 'wp-admin/includes/file.php');
 	require_once(ABSPATH . 'wp-admin/includes/media.php');
 	set_time_limit(300);
-
-	// $tags = explode( ', ', $settings['tag-filter'] );
-	// print_r($tags);
-
-	// if ( $tags ) {
-	//     foreach ($tags as $tag) {
-	//         $tag = '#'. $tag;
-	//         echo $tag;
-	//         $title = str_replace( $tag, '', $title );
-	//         echo $title;
-	//     }
-	// }
-
-	// $test = array( 'bob', 'dog', 'cat' );
-	// print_r($test);
-
-
-	// if (in_array(array('cat', 'mouse'), $test)) { echo 'true'; }
-
-	// $tags = check_array_with_array( $tags, $test );
-	// print_r( $tags );
 
 	add_filter( 'jpeg_quality', 'dsgnwrks_max_quality' );
 	$messages = dsgnwrks_pic_loop( $data, $settings );
@@ -193,8 +164,6 @@ function dsgnwrks_import_messages( $api_url, $settings, $prevmessages = array() 
 	$next_url = ( !isset( $data->pagination->next_url ) || $messages['nexturl'] == 'halt' ) ? '' : $data->pagination->next_url;
 
 	$messages = ( isset( $messages['messages'] ) ) ? array_merge( $prevmessages, $messages['messages'] ) : $prevmessages;
-
-	// $messages = $prevmessages = null;
 
 	remove_filter( 'jpeg_quality', 'dsgnwrks_max_quality' );
 	if ( empty( $messages ) && empty( $prevmessages ) ) {
@@ -219,6 +188,19 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
 			break;
 		}
 
+		if ( !empty( $settings['tag-filter'] ) ) {
+			$tags = explode( ', ', $settings['tag-filter'] );
+			$in_title = false;
+			if ( $tags ) {
+			    foreach ($tags as $tag) {
+			        if ( strpos( $pics->caption->text, $tag ) ) $in_title = true;
+			    }
+			}
+
+			if ( !$in_title ) continue;
+		}
+
+
 		$alreadyInSystem = new WP_Query(
 			array(
 				'post_type' => $settings['post-type'],
@@ -232,40 +214,12 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
 		);
 		if ( $alreadyInSystem->have_posts() ) {
 			continue;
-		} else {
-
-			// // if ( $pics->created_time == '1319928937' || $pics->created_time == '1319928334' || $pics->created_time == '1319541753' ) {
-			// if ( $pics->created_time == '1314374559' ) {
-
-			// if ( $tags ) {
-			//     if ( in_array( $tags, $pics->tags ) ) {
-			//         jts_instagram_img( $pics, $tags, $settings );
-			//     }
-			// } else {
-				$messages['messages'][] = jts_instagram_img( $pics, $settings );
-
-				// $messages[dsgnwrks_wp_trim_words( $pics->caption->text, 12 )] = $pics;
-				// echo '<a href="'.  $pics->link .'" target="_blank"><img width="100px" src="'. $pics->images->thumbnail->url .'"/></a>';
-				// echo '<pre>'. print_r($pics, true) .'</pre>';
-
-			// }
-
 		}
+
+		$messages['messages'][] = jts_instagram_img( $pics, $settings );
 	}
 	return $messages;
 }
-
-// function check_array_with_array( $needlesarray='', $haystack='' ) {
-//     if ( $needlesarray ) {
-//         $result = '';
-//         foreach ($needlesarray as $needle) {
-//             if ( in_array( $needle, $haystack ) ) {
-//                 $result[] = $needle;
-//             }
-//         }
-//     }
-//     return $result;
-// }
 
 function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 
@@ -302,7 +256,6 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 	if ( !$settings['author'] ) $settings['author'] = $user_ID;
 
 	$post = array(
-	  // 'post_category' => array('Square'),
 	  'post_author' => $settings['author'],
 	  'post_content' => $content,
 	  'post_date' => date( 'Y-m-d H:i:s', $pics->created_time ),
@@ -310,9 +263,7 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 	  'post_excerpt' => $excerpt,
 	  'post_status' => $settings['draft'],
 	  'post_title' => $title,
-	  // 'post_title' => 'This is a test',
 	  'post_type' => $settings['post-type'],
-	  // 'tags_input' => 'instagram',
 	);
 	$new_post_id = wp_insert_post( $post, true );
 
@@ -351,53 +302,42 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 	update_post_meta( $new_post_id, 'instagram_link', esc_url( $pics->link ) );
 
 	return dsgnwrks_instagram_upload_img( $imgurl, $new_post_id, $title );
-
 }
 
 function dsgnwrks_instagram_upload_img( $imgurl='', $post_id='', $title='' ) {
 
 	if ( !empty( $imgurl ) ) {
-		// Download file to temp location
 		$tmp = download_url( $imgurl );
 
-		// Set variables for storage
-		// fix file filename for query strings
 		preg_match('/[^\?]+\.(jpg|JPG|jpe|JPE|jpeg|JPEG|gif|GIF|png|PNG)/', $imgurl, $matches);
 		$file_array['name'] = basename($matches[0]);
 		$file_array['tmp_name'] = $tmp;
-		// echo '<pre>'; print_r($file_array); echo '</pre>';
 
-		// If error storing temporarily, unlink
 		if ( is_wp_error( $tmp ) ) {
 			@unlink($file_array['tmp_name']);
 			$file_array['tmp_name'] = '';
 		}
 
-		// do the validation and storage stuff
 		$img_id = media_handle_sideload($file_array, $post_id, $title );
 
-		// If error storing permanently, unlink
 		if ( is_wp_error($img_id) ) {
 			@unlink($file_array['tmp_name']);
 			return $img_id;
 		}
-		// set image as featured image
+
 		set_post_thumbnail( $post_id, $img_id );
 	}
 
 	return '<p><strong><em>&ldquo;'. $title .'&rdquo; </em> imported and created successfully.</strong></p>';
-
 }
 
 add_action('current_screen','redirect_on_deleteuser');
 function redirect_on_deleteuser() {
-	// delete_option( 'dsgnwrks_insta_options' );
 
 	if ( isset( $_GET['deleteuser'] ) ) {
 		$users = get_option( 'dsgnwrks_insta_users' );
 		foreach ( $users as $key => $user ) {
 			if ( $user == $_GET['deleteuser'] ) $delete = $key;
-			// if ( !empty( $users[$_GET['deleteuser']] ) ) unset( $users[$_GET['deleteuser']] );
 		}
 		unset( $users[$delete] );
 		update_option( 'dsgnwrks_insta_users', $users );
@@ -406,9 +346,6 @@ function redirect_on_deleteuser() {
 		unset( $opts[$_GET['deleteuser']] );
 		update_option( 'dsgnwrks_insta_options', $opts );
 
-		// delete_option( 'dsgnwrks_insta_users' );
-		// delete_option( 'dsgnwrks_insta_registration' );
-		// delete_option( 'dsgnwrks_insta_options' );
 		wp_redirect( remove_query_arg( 'deleteuser' ), 307 );
 		exit;
 	}

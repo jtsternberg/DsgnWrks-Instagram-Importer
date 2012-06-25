@@ -11,7 +11,7 @@ jQuery(document).ready(function($) {
 		show_tax_blocks(curr_cpt,cpts);
 
 		$(select).change(function() {
-			$('.taxonomies-add').hide('slow');
+			$('.taxonomies-add').hide();
 			show_tax_blocks($(select).val(),cpts);
 		});
 
@@ -36,13 +36,31 @@ jQuery(document).ready(function($) {
 		}
 	});
 
+	$('.contextual-help-tabs a').click(function(event) {
+		$('.dw-pw-form').hide();
+		$('.import-button').show();
+	});
+
 	$('.dw-pw-form').hide();
 	$('.import-button').click(function(event) {
 		$(this).hide();
+		var id = $(this).attr('id').replace('import-',''),
+		action = $('.dw-pw-form').attr('action'),
+		replace = changeQueryVar(action,'instaimport',id);
 		$('.dw-pw-form').show();
+		$('.dw-pw-form').attr('action', replace);
 		$('.dw-pw-form input[type="password"]').focus();
 		event.preventDefault();
 	});
 
-
+	function changeQueryVar(url, keyString, replaceString) {
+		var vars = url.split('&');
+		for (var i = 0; i < vars.length; i++) {
+			var pair = vars[i].split('=');
+			if (pair[0] == keyString) {
+				vars[i] = pair[0] + '=' + replaceString;
+			}
+		}
+		return vars.join('&');
+	}
 });

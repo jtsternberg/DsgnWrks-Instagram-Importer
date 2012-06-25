@@ -5,8 +5,6 @@ if ( !current_user_can( 'manage_options' ) )  {
 	wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 }
 
-// delete_option( 'dsgnwrks_insta_users' );
-
 $opts = get_option( 'dsgnwrks_insta_options' );
 $reg = get_option( 'dsgnwrks_insta_registration' );
 $users = get_option( 'dsgnwrks_insta_users' );
@@ -16,7 +14,6 @@ $users = ( !empty( $users ) ) ? $users : array();
 if ( !empty( $reg ) && $reg['badauth'] == 'good' && !in_array( $reg['user'], $users ) ) {
 	$users[] = $reg['user'];
 	$opts[$reg['user']]['pw'] = wp_hash_password( $reg['pw'] );
-	// wp_die( '<pre>'. htmlentities( print_r( 'test', true ) ) .'</pre>' );
 
 	update_option( 'dsgnwrks_insta_users', $users );
 	update_option( 'dsgnwrks_insta_options', $opts );
@@ -247,7 +244,6 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								//         if ( $opts[$id]['image'] == 'both') $selected3 = 'selected="selected"';
 								//         echo '<option value="both" '. $selected3 .'>Both</option>';
 								//     echo '</select>
-
 								// </td>
 								// </tr>';
 								?>
@@ -321,8 +317,6 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 										</td>
 										</tr>
-
-
 										<?php
 									}
 								}
@@ -353,8 +347,6 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								}
 
 								echo '<input type="hidden" name="dsgnwrks_insta_options['.$id.'][pw]" value="'. $opts[$id]['pw'] .'" />';
-								if ( isset( $opts[$id]['hashed'] ) )
-								echo '<input type="hidden" name="dsgnwrks_insta_options['.$id.'][hashed]" value="'. $opts[$id]['hashed'] .'" />';
 
 								$trans = get_transient( $id .'-instaimportdone' );
 
@@ -371,7 +363,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 							<p class="submit">
 								<input type="submit"  name="save" class="button-primary" value="<?php _e( 'Save' ) ?>" />
 								<?php
-								$importlink = add_query_arg( 'instaimport', $id, add_query_arg( 'page', DSGNWRKSINSTA_ID, admin_url( $GLOBALS['pagenow'] ) ) );
+								$importlink = dsgnwrks_get_instimport_link( $id );
 								?>
 								<a href="<?php echo $importlink; ?>" class="button-secondary import-button" id="import-<?php echo $id; ?>">Import</a>
 							</p>
@@ -380,7 +372,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 					}
 					?>
 					</form>
-					<form method="post" action="<?php echo $importlink; ?>" class="dw-pw-form">
+					<form method="post" action="<?php echo dsgnwrks_get_instimport_link( $id ); ?>" class="dw-pw-form">
 						<label>Please enter your Instagram password again to import
 						<input type="password" name="pwcheck" value=""></label>
 						<input type="submit" value="Import" class="button-secondary">
@@ -413,7 +405,6 @@ if ( !empty( $users ) && is_array( $users ) ) {
 <?php
 function dsgnwrks_settings_user_form( $reg, $echo = true, $message = 'Enter the Instagram username and password of another user whose photos you would like to import.' ) {
 
-	// delete_option( 'dsgnwrks_insta_registration' );
 	$id = 'dsgnwrks_insta_registration[user]';
 	$id2 = 'dsgnwrks_insta_registration[pw]';
 
@@ -427,12 +418,10 @@ function dsgnwrks_settings_user_form( $reg, $echo = true, $message = 'Enter the 
 			<td><input type="text" id="<?php echo $id; ?>" name="<?php echo $id; ?>" value="<?php if ( $echo == true ) echo esc_attr( $reg['user'] ); ?>" /></td>
 			</tr>
 
-			<?php //if ( !empty( $reg['user'] ) ) { ?>
 			<tr valign="top">
 			<th scope="row"><label for="<?php echo $id2; ?>"><strong>Instagram Password:</strong></label></th>
 			<td><input type="password" id="<?php echo $id2; ?>" name="<?php echo $id2; ?>" value="<?php if ( $echo == true ) echo esc_attr( $reg['pw'] ); ?>" /></td>
 			</tr>
-			<?php //} ?>
 		</table>
 		<p class="submit">
 			<input type="submit" name="save" class="button-primary" value="<?php echo _e( 'Authenticate' ) ?>" />
@@ -440,4 +429,8 @@ function dsgnwrks_settings_user_form( $reg, $echo = true, $message = 'Enter the 
 	</form>
 
 	<?php
+}
+
+function dsgnwrks_get_instimport_link( $id ) {
+	return add_query_arg( 'instaimport', $id, add_query_arg( 'page', DSGNWRKSINSTA_ID, admin_url( $GLOBALS['pagenow'] ) ) );
 }
