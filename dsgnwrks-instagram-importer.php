@@ -44,7 +44,7 @@ function dsgnwrks_instagram_users_validate( $opts ) {
 		);
 
 		$opts['badauth'] = $response['badauth'];
-		$opts[$i.'noauth'] = $response['noauth'];
+		$opts['noauth'] = $response['noauth'];
 	}
 	return $opts;
 }
