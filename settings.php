@@ -24,7 +24,7 @@ if ( !empty( $reg ) && $reg['badauth'] == 'good' && !in_array( $reg['user'], $us
 if ( !empty( $users ) && is_array( $users ) ) {
 	foreach ( $users as $key => $user ) {
 
-		if ( $opts[$user]['remove-date-filter'] == 'yes' ) {
+		if ( isset( $opts[$user]['remove-date-filter'] ) && $opts[$user]['remove-date-filter'] == 'yes' ) {
 			$opts[$user]['mm'] = '';
 			$opts[$user]['dd'] = '';
 			$opts[$user]['yy'] = '';
@@ -149,7 +149,8 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 								<tr valign="top">
 								<th scope="row"><strong>Filter import by hashtag:</strong><br/>Will only import instagram shots with these hashtags.<br/>Please separate tags with commas.</th>
-								<td><input type="text" placeholder="e.g. keeper, fortheblog" name="dsgnwrks_insta_options[<?php echo $id; ?>][tag-filter]" value="<?php echo $opts[$id]['tag-filter']; ?>" />
+								<?php $tag_filter = isset( $opts[$id]['tag-filter'] ) ? $opts[$id]['tag-filter'] : ''; ?>
+								<td><input type="text" placeholder="e.g. keeper, fortheblog" name="dsgnwrks_insta_options[<?php echo $id; ?>][tag-filter]" value="<?php echo $tag_filter; ?>" />
 								<?php
 									if ( !empty( $opts[$id]['tag-filter'] ) ) {
 										echo '<p><label><input type="checkbox" name="dsgnwrks_insta_options['.$id.'][remove-tag-filter]" value="yes" /> <em> Remove filter</em></label></p>';
@@ -178,14 +179,15 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									}
 									else $date = 'No date selected';
 									$date = '<p style="padding-bottom: 2px; margin-bottom: 2px;" id="timestamp"> '. $date .'</p>';
-									$date .= '<input type="hidden" name="dsgnwrks_insta_options['.$id.'][date-filter]" value="'. $opts[$id]['date-filter'] .'" />';
+									$date_filter = isset( $opts[$id]['date-filter'] ) ? $opts[$id]['date-filter'] : '';
+									$date .= '<input type="hidden" name="dsgnwrks_insta_options['.$id.'][date-filter]" value="'. $date_filter .'" />';
 
 									$month = '<select id="instagram-mm" name="dsgnwrks_insta_options['.$id.'][mm]">\n';
 									$month .= '<option value="">Month</option>';
 									for ( $i = 1; $i < 13; $i = $i +1 ) {
 										$monthnum = zeroise($i, 2);
 										$month .= "\t\t\t" . '<option value="' . $monthnum . '"';
-										if ( $i == $opts[$id]['mm'] )
+										if ( isset( $opts[$id]['mm'] ) && $i == $opts[$id]['mm'] )
 											$month .= ' selected="selected"';
 										$month .= '>' . $monthnum . '-' . $wp_locale->get_month_abbrev( $wp_locale->get_month( $i ) ) . "</option>\n";
 									}
@@ -196,7 +198,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									for ( $i = 1; $i < 32; $i = $i +1 ) {
 										$daynum = zeroise($i, 2);
 										$day .= "\t\t\t" . '<option value="' . $daynum . '"';
-										if ( $i == $opts[$id]['dd'] )
+										if ( isset( $opts[$id]['dd'] ) && $i == $opts[$id]['dd'] )
 											$day .= ' selected="selected"';
 										$day .= '>' . $daynum;
 									}
@@ -207,7 +209,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									for ( $i = date( 'Y' ); $i >= 2010; $i = $i -1 ) {
 										$yearnum = zeroise($i, 4);
 										$year .= "\t\t\t" . '<option value="' . $yearnum . '"';
-										if ( $i == $opts[$id]['yy'] )
+										if ( isset( $opts[$id]['yy'] ) && $i == $opts[$id]['yy'] )
 											$year .= ' selected="selected"';
 										$year .= '>' . $yearnum;
 									}
@@ -258,8 +260,9 @@ if ( !empty( $users ) && is_array( $users ) ) {
 										);
 										$post_types=get_post_types( $args );
 										foreach ($post_types  as $post_type ) {
+											$cur_post_type = isset( $opts[$id]['post-type'] ) ? $opts[$id]['post-type'] : '';
 											?>
-											<option value="<?php echo $post_type; ?>" <?php selected( $opts[$id]['post-type'], $post_type ); ?>><?php echo $post_type; ?></option>
+											<option value="<?php echo $post_type; ?>" <?php selected( $cur_post_type, $post_type ); ?>><?php echo $post_type; ?></option>
 											<?php
 										}
 										?>
@@ -272,10 +275,13 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								<th scope="row"><strong>Imported posts status:</strong></th>
 								<td>
 									<select id="instagram-draft" name="dsgnwrks_insta_options[<?php echo $id; ?>][draft]">
-										<option value="draft" <?php selected( $opts[$id]['draft'], 'draft' ); ?>>Draft</option>
-										<option value="publish" <?php selected( $opts[$id]['draft'], 'publish' ); ?>>Published</option>
-										<option value="pending" <?php selected( $opts[$id]['draft'], 'pending' ); ?>>Pending</option>
-										<option value="private" <?php selected( $opts[$id]['draft'], 'private' ); ?>>Private</option>
+										<?php
+										$draft_status = isset( $opts[$id]['draft'] ) ? $opts[$id]['draft'] : '';
+										?>
+										<option value="draft" <?php selected( $draft_status, 'draft' ); ?>>Draft</option>
+										<option value="publish" <?php selected( $draft_status, 'publish' ); ?>>Published</option>
+										<option value="pending" <?php selected( $draft_status, 'pending' ); ?>>Pending</option>
+										<option value="private" <?php selected( $draft_status, 'private' ); ?>>Private</option>
 									</select>
 
 								</td>
@@ -285,7 +291,8 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								<th scope="row"><strong>Assign posts to an existing user:</strong></th>
 								<td>
 									<?php
-									wp_dropdown_users( array( 'name' => 'dsgnwrks_insta_options['.$id.'][author]', 'selected' => $opts[$id]['author'] ) );
+									$author = isset( $opts[$id]['author'] ) ? $opts[$id]['author'] : '';
+									wp_dropdown_users( array( 'name' => 'dsgnwrks_insta_options['.$id.'][author]', 'selected' => $author ) );
 									?>
 
 								</td>
