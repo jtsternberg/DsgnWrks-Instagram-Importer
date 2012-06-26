@@ -41,12 +41,17 @@ jQuery(document).ready(function($) {
 		$('.import-button').show();
 	});
 
+	var width = $('.help-tab-content').width();
+	$('.dw-pw-form').width(width-85);
+
+	$('.save-warning').hide();
 	$('.dw-pw-form').hide();
 	$('.import-button').click(function(event) {
 		$(this).hide();
 		var id = $(this).attr('id').replace('import-',''),
 		action = $('.dw-pw-form').attr('action'),
 		replace = changeQueryVar(action,'instaimport',id);
+		$('.save-warning').show();
 		$('.dw-pw-form').show();
 		$('.dw-pw-form').attr('action', replace);
 		$('.dw-pw-form input[type="password"]').focus();

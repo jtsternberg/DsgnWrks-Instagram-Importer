@@ -9,6 +9,11 @@ $opts = get_option( 'dsgnwrks_insta_options' );
 $reg = get_option( 'dsgnwrks_insta_registration' );
 $users = get_option( 'dsgnwrks_insta_users' );
 
+
+// echo '<pre>'. htmlentities( print_r( $opts, true ) ) .'</pre>';
+// echo '<pre>'. htmlentities( print_r( $reg, true ) ) .'</pre>';
+// echo '<pre>'. htmlentities( print_r( $users, true ) ) .'</pre>';
+
 $users = ( !empty( $users ) ) ? $users : array();
 
 if ( !empty( $reg ) && $reg['badauth'] == 'good' && !in_array( $reg['user'], $users ) ) {
@@ -36,6 +41,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 		if ( !empty( $opts[$user]['remove-tag-filter'] ) ) {
 			$opts[$user]['tag-filter'] = '';
 			$opts[$user]['remove-tag-filter'] = '';
+			update_option( 'dsgnwrks_insta_options', $opts );
 		}
 
 		if ( !empty( $opts[$user]['tag-filter'] ) ) {
@@ -168,18 +174,18 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									<?php
 									global $wp_locale;
 
+									$date_filter = 0;
 									if ( !empty( $opts[$id]['mm'] ) || !empty( $opts[$id]['dd'] ) || !empty( $opts[$id]['yy'] ) ) {
 										if ( $complete[$id] ) {
 											$date = '<strong>'. $wp_locale->get_month( $opts[$id]['mm'] ) .' '. $opts[$id]['dd'] .', '. $opts[$id]['yy'] .'</strong>';
 												$opts[$id]['remove-date-filter'] = 'false';
-												$opts[$id]['date-filter'] = strtotime( $opts[$id]['mm'] .'/'. $opts[$id]['dd'] .'/'. $opts[$id]['yy'] );
+												$date_filter = strtotime( $opts[$id]['mm'] .'/'. $opts[$id]['dd'] .'/'. $opts[$id]['yy'] );
 										} else {
 											$date = '<span style="color: red;">Please select full date</span>';
 										}
 									}
-									else $date = 'No date selected';
+									else { $date = 'No date selected'; }
 									$date = '<p style="padding-bottom: 2px; margin-bottom: 2px;" id="timestamp"> '. $date .'</p>';
-									$date_filter = isset( $opts[$id]['date-filter'] ) ? $opts[$id]['date-filter'] : '';
 									$date .= '<input type="hidden" name="dsgnwrks_insta_options['.$id.'][date-filter]" value="'. $date_filter .'" />';
 
 									$month = '<select id="instagram-mm" name="dsgnwrks_insta_options['.$id.'][mm]">\n';
@@ -366,7 +372,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									</tr>
 								<?php } ?>
 							</table>
-
+							<strong class="save-warning">If you changed any settings, please "Save" them before importing.</strong>
 							<p class="submit">
 								<input type="submit"  name="save" class="button-primary" value="<?php _e( 'Save' ) ?>" />
 								<?php

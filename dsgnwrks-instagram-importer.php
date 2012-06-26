@@ -55,7 +55,12 @@ function dsgnwrks_instagram_settings_validate( $opts ) {
 		foreach ( $useropts as $key => $opt ) {
 
 			if ( $key === 'date-filter' ) {
-				$opts[$user][$key] = dsgnwrks_filter( $opt, '', '0' );
+				if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
+					$opts[$user][$key] = 0;
+				}
+				else {
+					$opts[$user][$key] = strtotime( $opts[$user]['mm'] .'/'. $opts[$user]['dd'] .'/'. $opts[$user]['yy'] );
+				}
 			} elseif ( $key === 'pw' ) {
 				continue;
 			} elseif ( $key === 'post-type' ) {
@@ -63,14 +68,18 @@ function dsgnwrks_instagram_settings_validate( $opts ) {
 			} elseif ( $key === 'draft' ) {
 				$opts[$user][$key] = dsgnwrks_filter( $opt, '', 'draft' );
 			} elseif ( $key === 'yy' || $key === 'mm' || $key === 'dd' ) {
-				$opts[$user][$key] = dsgnwrks_filter( $opt, 'absint', '' );
+				if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
+					$opts[$user][$key] = '';
+				}
+				else {
+					$opts[$user][$key] = dsgnwrks_filter( $opt, 'absint', '' );
+				}
 			} else {
 				$opts[$user][$key] = dsgnwrks_filter( $opt );
 			}
 
 		}
 	}
-
 	return $opts;
 }
 
@@ -86,7 +95,7 @@ function dsgnwrks_instagram_settings() {
 function dsgnwrks_instagram_importer_settings() { require_once('settings.php'); }
 
 function dsgnwrks_instagram_importer_styles() {
-	wp_enqueue_style( 'dsgnwrks-instagram-importer-admin', plugins_url( 'css/admin.css', __FILE__ ) );
+	wp_enqueue_style( 'dsgnwrks-instagram-importer-admin', plugins_url( 'css/admin.css', __FILE__ ), false, '1.1' );
 }
 
 function dsgnwrks_instagram_importer_scripts() {
@@ -107,7 +116,7 @@ function dsgnwrks_instagram_importer_scripts() {
 
 function dsgnwrks_instagram_fire_importer() {
 
-	if ( isset( $_GET['instaimport'] ) ) {
+	if ( isset( $_GET['instaimport'] ) && isset( $_POST['pwcheck'] ) ) {
 		add_action('all_admin_notices','dsgnwrks_instagram_import');
 	}
 }
@@ -164,7 +173,7 @@ function dsgnwrks_import_messages( $api_url, $settings, $prevmessages = array() 
 	add_filter( 'jpeg_quality', 'dsgnwrks_max_quality' );
 	$messages = dsgnwrks_pic_loop( $data, $settings );
 
-	$next_url = ( !isset( $data->pagination->next_url ) || $messages['nexturl'] == 'halt' ) ? '' : $data->pagination->next_url;
+	$next_url = ( !isset( $data->pagination->next_url ) || isset( $messages['nexturl'] ) && $messages['nexturl'] == 'halt' ) ? '' : $data->pagination->next_url;
 
 	$messages = ( isset( $messages['messages'] ) ) ? array_merge( $prevmessages, $messages['messages'] ) : $prevmessages;
 
@@ -195,9 +204,9 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
 			$tags = explode( ', ', $settings['tag-filter'] );
 			$in_title = false;
 			if ( $tags ) {
-			    foreach ($tags as $tag) {
-			        if ( strpos( $pics->caption->text, $tag ) ) $in_title = true;
-			    }
+				foreach ($tags as $tag) {
+					if ( strpos( $pics->caption->text, $tag ) ) $in_title = true;
+				}
 			}
 
 			if ( !$in_title ) continue;
@@ -221,7 +230,7 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
 
 		$messages['messages'][] = jts_instagram_img( $pics, $settings );
 	}
-	return $messages;
+	return !empty( $messages ) ? $messages : array();
 }
 
 function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
@@ -233,7 +242,7 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 	$loc = ( isset( $pics->location->name ) ) ? $pics->location->name : null;
 
 	if ( $loc ) $loc = ' at '. $loc;
-	$title = dsgnwrks_wp_trim_words( $pics->caption->text, 12 );
+	$title = !empty( $pics->caption->text ) ? dsgnwrks_wp_trim_words( $pics->caption->text, 12 ) : '';
 	if ( $tags ) {
 		$tags = '#'. $tags;
 		$title = str_replace( $tags, '', $title );
@@ -241,7 +250,7 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 	$title = ($title) ? $title : 'Untitled';
 	$imgurl = $pics->images->standard_resolution->url;
 
-	$excerpt = $pics->caption->text;
+	$excerpt = !empty( $pics->caption->text ) ? $pics->caption->text : '';
 	if ( $tags ) {
 		$tags = '#'. $tags;
 		$excerpt = str_replace( $tags, '', $excerpt );
@@ -249,7 +258,8 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 	$excerpt .= ' (Taken with Instagram'. $loc .')';
 
 	$content = '';
-	if ( $settings['image'] == 'content' || $settings['image'] == 'both' )
+	$image_setting = isset( $settings['image'] ) ? $settings['image'] : '';
+	if ( !empty( $image_setting ) && $image_setting == 'content' || $image_setting == 'both' )
 		$content .= '<a href="'. $imgurl .'" ><img src="'. $imgurl .'"/></a>';
 	$content .= '<p>'. $excerpt .'</p>';
 	$content .= '<p>Instagram filter used: '. $pics->filter .'</p>';
