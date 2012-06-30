@@ -51,8 +51,8 @@ function dsgnwrks_instagram_users_validate( $opts ) {
 
 function dsgnwrks_instagram_settings_validate( $opts ) {
 
-	foreach ( $opts as $user => $useropts ) {
-		foreach ( $useropts as $key => $opt ) {
+	if ( !empty( $opts ) ) foreach ( $opts as $user => $useropts ) {
+		if ( !empty( $useropts ) ) foreach ( $useropts as $key => $opt ) {
 
 			if ( $key === 'date-filter' ) {
 				if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
