@@ -17,8 +17,10 @@ $users = get_option( 'dsgnwrks_insta_users' );
 $users = ( !empty( $users ) ) ? $users : array();
 
 if ( !empty( $reg ) && $reg['badauth'] == 'good' && !in_array( $reg['user'], $users ) ) {
-	$users[] = $reg['user'];
-	$opts[$reg['user']]['pw'] = wp_hash_password( $reg['pw'] );
+	$sanitized_user = sanitize_title( $reg['user'] );
+	$users[] = $sanitized_user;
+	$opts[$sanitized_user]['pw'] = wp_hash_password( $reg['pw'] );
+	$opts[$sanitized_user]['full_username'] = $reg['user'];
 
 	update_option( 'dsgnwrks_insta_users', $users );
 	update_option( 'dsgnwrks_insta_options', $opts );
@@ -96,10 +98,14 @@ if ( !empty( $users ) && is_array( $users ) ) {
 						if ( !empty( $users ) && is_array( $users ) ) {
 							foreach ( $users as $key => $user ) {
 								$id = str_replace( ' ', '', strtolower( $user ) );
-								$class = ( !empty( $class ) || $nofeed == true ) ? '' : 'class="active"';
+								$class = ( !empty( $class ) || $nofeed == true ) ? '' : ' active';
+								if ( isset( $opts['username'] ) ) {
+									$class = ( $opts['username'] == $id ) ? ' active' : '';
+								}
+
 								?>
-								<li id="tab-instagram-user-<?php echo $id; ?>" <?php echo $class; ?>>
-									<a href="#instagram-user-<?php echo $id; ?>"><?php echo $user; ?></a>
+								<li class="tab-instagram-user<?php echo $class; ?>" id="tab-instagram-user-<?php echo $id; ?>">
+									<a href="#instagram-user-<?php echo $id; ?>"><?php echo $opts[$id]['full_username']; ?></a>
 								</li>
 								<?php
 							}
@@ -107,7 +113,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 							$user = 'Create User';
 							$class = str_replace( ' ', '', strtolower( $user ) );
 							?>
-							<li id="tab-instagram-user-<?php echo $class; ?>" class="active">
+							<li class="tab-instagram-user" id="tab-instagram-user-<?php echo $class; ?>" class="active">
 								<a href="#instagram-user-<?php echo $class; ?>"><?php echo $user; ?></a>
 							</li>
 							<?php
@@ -132,6 +138,9 @@ if ( !empty( $users ) && is_array( $users ) ) {
 					foreach ( $users as $key => $user ) {
 						$id = str_replace( ' ', '', strtolower( $user ) );
 						$active = ( !empty( $active ) || $nofeed == true ) ? '' : ' active';
+						if ( isset( $opts['username'] ) ) {
+							$active = ( $opts['username'] == $id ) ? ' active' : '';
+						}
 						?>
 						<div id="instagram-user-<?php echo $id; ?>" class="help-tab-content<?php echo $active; ?>">
 
@@ -148,8 +157,8 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 								<tr valign="top" class="info">
 								<th colspan="2">
-									<p>Successfully connected to Instagram &mdash; <span><a id="delete-<?php echo $id; ?>" class="delete-instagram-user" href="<?php echo add_query_arg( 'deleteuser', $id ); ?>">Delete User?</a></span></p>
-									<p>Please select the import filter options below. If none of the options are selected, all photos for <strong><?php echo $id; ?></strong> will be imported. <em>(This could take a long time if you have a lot of shots)</em></p>
+									<p>Successfully connected to Instagram &mdash; <span><a id="delete-<?php echo $id; ?>" class="delete-instagram-user" href="<?php echo add_query_arg( 'delete-insta-user', urlencode( $opts[$id]['full_username'] ) ); ?>">Delete User?</a></span></p>
+									<p>Please select the import filter options below. If none of the options are selected, all photos for <strong id="full-username-<?php echo $id; ?>"><?php echo $opts[$id]['full_username']; ?></strong> will be imported. <em>(This could take a long time if you have a lot of shots)</em></p>
 								</th>
 								</tr>
 
@@ -181,7 +190,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 												$opts[$id]['remove-date-filter'] = 'false';
 												$date_filter = strtotime( $opts[$id]['mm'] .'/'. $opts[$id]['dd'] .'/'. $opts[$id]['yy'] );
 										} else {
-											$date = '<span style="color: red;">Please select full date</span>';
+											$date = '<span style="color: #E0522E;">Please select full date</span>';
 										}
 									}
 									else { $date = 'No date selected'; }
@@ -259,14 +268,14 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								<tr valign="top">
 								<th scope="row"><strong>Import to Post-Type:</strong></th>
 								<td>
-									<select id="instagram-post-type" name="dsgnwrks_insta_options[<?php echo $id; ?>][post-type]">
+									<select class="instagram-post-type" id="instagram-post-type-<?php echo $id; ?>" name="dsgnwrks_insta_options[<?php echo $id; ?>][post-type]">
 										<?php
-										$args=array(
-										  'public'   => true,
+										$args = array(
+										  'public' => true,
 										);
-										$post_types=get_post_types( $args );
+										$post_types = get_post_types( $args );
+										$cur_post_type = isset( $opts[$id]['post-type'] ) ? $opts[$id]['post-type'] : '';
 										foreach ($post_types  as $post_type ) {
-											$cur_post_type = isset( $opts[$id]['post-type'] ) ? $opts[$id]['post-type'] : '';
 											?>
 											<option value="<?php echo $post_type; ?>" <?php selected( $cur_post_type, $post_type ); ?>><?php echo $post_type; ?></option>
 											<?php
@@ -349,17 +358,26 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									$placeholder = 'e.g. Instagram, Life, dog, etc';
 
 									if ( $tax->name == 'post_tag' )  $placeholder = 'e.g. beach, sunrise';
+
+									$tax_section_label = '<strong>'.$tax->label.' to apply to imported posts.</strong><br/>Please separate '.strtolower( $tax->label ).' with commas'."\n";
+									$tax_section_input = '<input type="text" placeholder="'.$placeholder.'" name="dsgnwrks_insta_options['.$id.']['.$tax->name.']" value="'.$opts[$id][$tax->name].'" />'."\n";
+
 									?>
 									<tr valign="top" class="taxonomies-add taxonomy-<?php echo $tax->name; ?>">
-									<th scope="row"><strong><?php echo $tax->label; ?> to apply to imported posts.</strong><br/>Please separate <?php echo strtolower( $tax->label ); ?> with commas.</th>
-									<td><input type="text" placeholder="<?php echo $placeholder; ?>" name="dsgnwrks_insta_options[<?php echo $id; ?>][<?php echo $tax->name; ?>]" value="<?php echo $opts[$id][''. $tax->name]; ?>" />
+									<th scope="row">
+										<?php echo apply_filters( 'dsgnwrks_instagram_tax_section_label', $tax_section_label, $tax ); ?>
+									</th>
+									<td>
+										<?php echo apply_filters( 'dsgnwrks_instagram_tax_section_input', $tax_section_input, $tax, $id, $opts ); ?>
 									</td>
 									</tr>
 									<?php
 
 								}
 
+								echo '<input type="hidden" name="dsgnwrks_insta_options[username]" value="replaceme" />';
 								echo '<input type="hidden" name="dsgnwrks_insta_options['.$id.'][pw]" value="'. $opts[$id]['pw'] .'" />';
+								echo '<input type="hidden" name="dsgnwrks_insta_options['.$id.'][full_username]" value="'. $opts[$id]['full_username'] .'" />';
 
 								$trans = get_transient( $id .'-instaimportdone' );
 
@@ -374,9 +392,9 @@ if ( !empty( $users ) && is_array( $users ) ) {
 							</table>
 							<strong class="save-warning">If you changed any settings, please "Save" them before importing.</strong>
 							<p class="submit">
-								<input type="submit"  name="save" class="button-primary" value="<?php _e( 'Save' ) ?>" />
+								<input type="submit" id="save-<?php echo sanitize_title( $id ); ?>" name="save" class="button-primary" value="<?php _e( 'Save' ) ?>" />
 								<?php
-								$importlink = dsgnwrks_get_instimport_link( $id );
+								$importlink = dsgnwrks_get_instimport_link( $opts[$id]['full_username'] );
 								?>
 								<a href="<?php echo $importlink; ?>" class="button-secondary import-button" id="import-<?php echo $id; ?>">Import</a>
 							</p>
@@ -385,7 +403,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 					}
 					?>
 					</form>
-					<form method="post" action="<?php echo dsgnwrks_get_instimport_link( $id ); ?>" class="dw-pw-form">
+					<form method="post" action="<?php echo dsgnwrks_get_instimport_link( $opts[$id]['full_username'] ); ?>" class="dw-pw-form">
 						<label>Please enter your Instagram password again to import
 						<input type="password" name="pwcheck" value=""></label>
 						<input type="submit" value="Import" class="button-secondary">
@@ -445,5 +463,5 @@ function dsgnwrks_settings_user_form( $reg, $echo = true, $message = 'Enter the 
 }
 
 function dsgnwrks_get_instimport_link( $id ) {
-	return add_query_arg( 'instaimport', $id, add_query_arg( 'page', DSGNWRKSINSTA_ID, admin_url( $GLOBALS['pagenow'] ) ) );
+	return add_query_arg( array( 'page' => DSGNWRKSINSTA_ID, 'instaimport' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) );
 }

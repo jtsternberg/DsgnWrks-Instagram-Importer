@@ -40,6 +40,12 @@
 .contextual-help-tabs h2 {
 	padding-left: 12px;
 }
+.contextual-help-tabs a {
+	overflow: hidden;
+}
+.contextual-help-tabs a:hover {
+	overflow: visible;
+}
 #screen-options-link-wrap, #contextual-help-link-wrap, #screen-meta {
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;

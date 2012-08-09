@@ -16,7 +16,7 @@ add_action('admin_init','dsgnwrks_instagram_init');
 function dsgnwrks_instagram_init() {
 
 	if ( isset( $_GET['instaimport'] ) ) {
-		set_transient( $_GET['instaimport'] .'-instaimportdone', date_i18n( 'l F jS, Y @ h:i:s A', strtotime( current_time('mysql') ) ), 14400 );
+		set_transient( sanitize_title( urldecode( $_GET['instaimport'] ) ) .'-instaimportdone', date_i18n( 'l F jS, Y @ h:i:s A', strtotime( current_time('mysql') ) ), 14400 );
 	}
 
 	// delete_option( 'dsgnwrks_insta_options' );
@@ -42,6 +42,15 @@ function dsgnwrks_instagram_users_validate( $opts ) {
 			$opts['pw'],
 			false
 		);
+		// wp_die( '<pre>'. htmlentities( print_r( $opts, true ) ) .'</pre>' );
+
+		if ( $response['badauth'] != 'error' && $response['noauth'] != true ) {
+
+			$settings = get_option( 'dsgnwrks_insta_options' );
+			$settings['username'] = sanitize_title( $opts['user'] );
+			update_option( 'dsgnwrks_insta_options', $settings );
+
+		}
 
 		$opts['badauth'] = $response['badauth'];
 		$opts['noauth'] = $response['noauth'];
@@ -50,9 +59,8 @@ function dsgnwrks_instagram_users_validate( $opts ) {
 }
 
 function dsgnwrks_instagram_settings_validate( $opts ) {
-
-	if ( !empty( $opts ) ) foreach ( $opts as $user => $useropts ) {
-		if ( !empty( $useropts ) ) foreach ( $useropts as $key => $opt ) {
+	if ( !empty( $opts ) && is_array( $opts ) ) : foreach ( $opts as $user => $useropts ) {
+		if ( !empty( $useropts ) && is_array( $useropts ) ) : foreach ( $useropts as $key => $opt ) {
 
 			if ( $key === 'date-filter' ) {
 				if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
@@ -78,8 +86,8 @@ function dsgnwrks_instagram_settings_validate( $opts ) {
 				$opts[$user][$key] = dsgnwrks_filter( $opt );
 			}
 
-		}
-	}
+		} endif;
+	} endif;
 	return $opts;
 }
 
@@ -123,20 +131,20 @@ function dsgnwrks_instagram_fire_importer() {
 
 function dsgnwrks_instagram_import() {
 
-	$settings = get_option( 'dsgnwrks_insta_options' );
-	$id = $_GET['instaimport'];
+	$opts = get_option( 'dsgnwrks_insta_options' );
+	$id = sanitize_title( urldecode( $_GET['instaimport'] ) );
 
-	if ( !wp_check_password( $_POST['pwcheck'], $settings[$id]['pw'] ) ) {
+	if ( !wp_check_password( $_POST['pwcheck'], $opts[$id]['pw'] ) ) {
 		echo '<div id="message" class="error"><p>That is the incorrect password</p></div>';
 		return;
 	}
 
-	$response = dsgnwrks_insta_authenticate( $id, $_POST['pwcheck'] );
+	$response = dsgnwrks_insta_authenticate( $opts[$id]['full_username'], $_POST['pwcheck'] );
 
 	if ( empty( $response['response'] ) ) {
 		echo '<div id="message" class="error"><p>Couldn\'t find an instagram feed. Please check your username and password.</p></div>';
-		$settings[$id]['noauth'] = true;
-		update_option( 'dsgnwrks_insta_options', $settings );
+		$opts[$id]['noauth'] = true;
+		update_option( 'dsgnwrks_insta_options', $opts );
 		return;
 	} else {
 
@@ -146,10 +154,10 @@ function dsgnwrks_instagram_import() {
 	if ( isset( $body->user->id ) && isset( $body->access_token ) ) {
 		echo '<div id="message" class="updated">';
 
-		$messages = dsgnwrks_import_messages( 'https://api.instagram.com/v1/users/'. $body->user->id .'/media/recent?access_token='. $body->access_token .'&count=80', $settings[$id] );
+		$messages = dsgnwrks_import_messages( 'https://api.instagram.com/v1/users/'. $body->user->id .'/media/recent?access_token='. $body->access_token .'&count=80', $opts[$id] );
 
 		while ( !empty( $messages['next_url'] ) ) {
-			$messages = dsgnwrks_import_messages( $messages['next_url'], $settings[$id], $messages['message'] );
+			$messages = dsgnwrks_import_messages( $messages['next_url'], $opts[$id], $messages['message'] );
 		}
 
 		foreach ( $messages['message'] as $key => $message ) {
@@ -287,7 +295,7 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 		);
 	$taxs = get_taxonomies( $args, 'objects' );
 
-	foreach ( $taxs as $key => $tax ) {
+	foreach ( $taxs as $tax ) {
 
 		if ( $tax->label == 'Format' && !current_theme_supports( 'post-formats' ) ) continue;
 
@@ -347,19 +355,21 @@ function dsgnwrks_instagram_upload_img( $imgurl='', $post_id='', $title='' ) {
 add_action('current_screen','redirect_on_deleteuser');
 function redirect_on_deleteuser() {
 
-	if ( isset( $_GET['deleteuser'] ) ) {
+	if ( isset( $_GET['delete-insta-user'] ) ) {
 		$users = get_option( 'dsgnwrks_insta_users' );
 		foreach ( $users as $key => $user ) {
-			if ( $user == $_GET['deleteuser'] ) $delete = $key;
+			if ( $user == urldecode( $_GET['delete-insta-user'] ) ) $delete = $key;
 		}
 		unset( $users[$delete] );
 		update_option( 'dsgnwrks_insta_users', $users );
 
 		$opts = get_option( 'dsgnwrks_insta_options' );
-		unset( $opts[$_GET['deleteuser']] );
+		unset( $opts[urldecode( $_GET['delete-insta-user'] )] );
+		if ( isset( $opts['username'] ) && $opts['username'] == sanitize_title( urldecode( $_GET['delete-insta-user'] ) ) )
+		unset( $opts['username'] );
 		update_option( 'dsgnwrks_insta_options', $opts );
 
-		wp_redirect( remove_query_arg( 'deleteuser' ), 307 );
+		wp_redirect( remove_query_arg( 'delete-insta-user' ), 307 );
 		exit;
 	}
 }
