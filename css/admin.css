@@ -24,12 +24,18 @@
 	padding: 0;
 }
 
+.user-authenticate {
+	padding: 20px 0 0 0;
+	min-height: 220px;
+}
+
 
 #contextual-help-wrap {
 	min-height: 236px;
 }
 #contextual-help-back {
 	right: 220px;
+	left: 180px;
 }
 .contextual-help-sidebar {
 	width: 200px;
@@ -37,11 +43,15 @@
 	top: 0;
 	right: 0;
 }
+.contextual-help-tabs {
+	width: 180px;
+}
 .contextual-help-tabs h2 {
-	padding-left: 12px;
+	padding-left: 16px;
 }
 .contextual-help-tabs a {
 	overflow: hidden;
+	padding: 5px 5px 5px 16px
 }
 .contextual-help-tabs a:hover {
 	overflow: visible;
@@ -90,4 +100,12 @@
 	position: absolute;
 	bottom: 28px;
 	left: 85px;
+}
+
+.warning {
+	color: #E0522E;
+}
+
+img.alignleft {
+	margin: 0 14px 14px 0;
 }
