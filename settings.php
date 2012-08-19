@@ -12,6 +12,7 @@ $users = ( !empty( $users ) ) ? $users : array();
 // delete_option( 'dsgnwrks_insta_users' );
 
 // super_var_dump( $opts );
+// echo '<pre>'. htmlentities( print_r( $opts, true ) ) .'</pre>';
 // super_var_dump( $users );
 
 $has_notice = get_transient( 'instagram_notification' );
@@ -234,21 +235,48 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								</th>
 								</tr>
 
-								<?php
-								// echo '<tr valign="top">
-								// <th scope="row"><strong>Insert Instagram photo into:</strong></th>
-								// <td>
-								//     <select id="instagram-image" name="dsgnwrks_insta_options['.$id.'][image]">';
-								//         if ( $opts[$id]['image'] == 'feat-image') $selected1 = 'selected="selected"';
-								//         echo '<option value="feat-image" '. $selected1 .'>Featured Image</option>';
-								//         if ( $opts[$id]['image'] == 'content') $selected2 = 'selected="selected"';
-								//         echo '<option value="content" '. $selected2 .'>Content</option>';
-								//         if ( $opts[$id]['image'] == 'both') $selected3 = 'selected="selected"';
-								//         echo '<option value="both" '. $selected3 .'>Both</option>';
-								//     echo '</select>
-								// </td>
-								// </tr>';
-								?>
+
+								<tr valign="top">
+								<th scope="row"><strong>Save Instagram photo as post featured image:</strong></th>
+								<td>
+									<?php $feat_image = isset( $opts[$id]['feat_image'] ) ? (bool) $opts[$id]['feat_image'] : ''; ?>
+									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $id; ?>][feat_image]" <?php checked( $feat_image ); ?>/>&nbsp;&nbsp;<em>(recommended)</em>
+								</td>
+								</tr>
+
+								<tr valign="top">
+								<th scope="row">
+									<strong>Post Title:</strong><br/>Add the imported Instagram data using these custom tags:<br/><code>**insta-text**</code>, <code>**insta-location**</code>, <code>**insta-filter**</code>
+								</th>
+								<?php $post_title = isset( $opts[$id]['post-title'] ) ? $opts[$id]['post-title'] : '**insta-text**'; ?>
+								<td><input type="text" name="dsgnwrks_insta_options[<?php echo $id; ?>][post-title]" value="<?php echo $post_title; ?>" />
+								</td>
+								</tr>
+
+								<tr valign="top">
+								<td colspan="2">
+									<p><strong>Post Content:</strong><br/>Add the imported Instagram data using these custom tags:<br/><code>**insta-text**</code>, <code>**insta-image**</code>, <code>**insta-image-link**</code>, <code>**insta-link**</code>, <code>**insta-location**</code>, <code>**insta-filter**</code></p>
+									<?php
+									if ( isset( $opts[$id]['post_content'] ) ) {
+										$post_text = $opts[$id]['post_content'];
+									} else {
+										$post_text  = '<p><a href="**insta-image-link**" target="_blank">**insta-image**</a></p>'."\n";
+										$post_text .= '<p>**insta-text** (Taken with Instagram at **insta-location**)</p>'."\n";
+										$post_text .= '<p>Instagram filter used: **insta-filter**</p>'."\n";
+										$post_text .= '<p><a href="**insta-link**" target="_blank">View in Instagram &rArr;</a></p>'."\n";
+									}
+									add_filter( 'wp_default_editor', 'dsgnwrks_make_html_default' );
+									$args = array(
+										'textarea_name' => 'dsgnwrks_insta_options['.$id.'][post_content]',
+										'editor_class' => 'post_text',
+										'textarea_rows' => 6,
+										'wpautop' => false
+									);
+									wp_editor( $post_text, 'dsgnwrks_insta_options_'.$id.'_post_content', $args );
+									?>
+
+								</td>
+								</tr>
 
 								<tr valign="top">
 								<th scope="row"><strong>Import to Post-Type:</strong></th>
@@ -434,4 +462,10 @@ function dsgnwrks_settings_user_form( $users = array(), $message = '' ) {
 
 function dsgnwrks_get_instimport_link( $id ) {
 	return add_query_arg( array( 'page' => DSGNWRKSINSTA_ID, 'instaimport' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) );
+}
+
+function dsgnwrks_make_html_default( $default ) {
+	if ( get_current_screen()->id == 'tools_page_dsgnwrks-instagram-importer-settings' )
+		$default = 'html';
+	return $default;
 }

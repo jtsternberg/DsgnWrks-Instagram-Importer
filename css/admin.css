@@ -15,6 +15,9 @@
 	border: none;
 	border-bottom: 10px solid #fff;
 }
+.instagram-importer .form-table tr code {
+	background: #fff;
+}
 .instagram-importer .form-table tr.info {
 	background: #FFF;
 	border: none;
@@ -22,6 +25,9 @@
 }
 .instagram-importer .form-table tr.info th {
 	padding: 0;
+}
+.mceIframeContainer {
+	background: #fff;
 }
 
 .user-authenticate {
