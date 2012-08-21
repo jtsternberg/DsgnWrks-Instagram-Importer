@@ -157,7 +157,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 								<tr valign="top" class="info">
 								<th colspan="2">
-									<p>Successfully connected to Instagram &mdash; <span><a id="delete-<?php echo $id; ?>" class="delete-instagram-user" href="<?php echo add_query_arg( 'delete-insta-user', urlencode( $opts[$id]['full_username'] ) ); ?>">Delete User?</a></span></p>
+									<p>Successfully connected to Instagram &mdash; <span><a id="delete-<?php echo $id; ?>" class="delete-instagram-user" href="<?php echo add_query_arg( 'delete-insta-user', urlencode( $id ) ); ?>">Delete User?</a></span></p>
 									<p>Please select the import filter options below. If none of the options are selected, all photos for <strong id="full-username-<?php echo $id; ?>"><?php echo $opts[$id]['full_username']; ?></strong> will be imported. <em>(This could take a long time if you have a lot of shots)</em></p>
 								</th>
 								</tr>
