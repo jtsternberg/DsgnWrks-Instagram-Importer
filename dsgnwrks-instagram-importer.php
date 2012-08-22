@@ -2,7 +2,7 @@
 /*
 Plugin Name: DsgnWrks Instagram Importer
 Plugin URI: http://dsgnwrks.pro/instagram-importer/
-Description: Allows you to backup your instagram photos while allowing you to have a site to display your instagram archive.
+Description: Allows you to backup your instagram photos while allowing you to have a site to display your instagram archive. Allows you to import to custom post types and attach custom taxonomies.
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
@@ -179,7 +179,7 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
 
 	foreach ($data->data as $pics) {
 
-		if ( $settings['date-filter'] > $pics->created_time ) {
+		if ( isset( $settings['date-filter'] ) && $settings['date-filter'] > $pics->created_time ) {
 			$messages['nexturl'] = 'halt';
 			break;
 		}
@@ -196,10 +196,10 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
 			if ( !$in_title ) continue;
 		}
 
-
+		$pt = isset( $settings['post-type'] ) ? $settings['post-type'] : 'post';
 		$alreadyInSystem = new WP_Query(
 			array(
-				'post_type' => $settings['post-type'],
+				'post_type' => $pt,
 				'meta_query' => array(
 					array(
 						'key' => 'instagram_created_time',
@@ -234,41 +234,41 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 	// $title = ($title) ? $title : 'Untitled';
 
 	if ( !empty( $settings['post-title'] ) ) {
-		$title = $settings['post-title'];
-		$title = str_replace( '**insta-text**', $insta_title, $title );
-		$title = str_replace( '**insta-location**', $loc, $title );
-		$title = str_replace( '**insta-filter**', $pics->filter, $title );
+		$import['post_title'] = $settings['post-title'];
+		$import['post_title'] = str_replace( '**insta-text**', $insta_title, $import['post_title'] );
+		$import['post_title'] = str_replace( '**insta-location**', $loc, $import['post_title'] );
+		$import['post_title'] = str_replace( '**insta-filter**', $pics->filter, $import['post_title'] );
 	} else {
-		$title = $insta_title;
+		$import['post_title'] = $insta_title;
 	}
 
 	$imgurl = $pics->images->standard_resolution->url;
 	$insta_url = esc_url( $pics->link );
-	$featured = isset( $settings['feat_image'] ) ? $settings['feat_image'] : false;
+	$import['featured'] = isset( $settings['feat_image'] ) ? $settings['feat_image'] : true;
 
-	$excerpt = !empty( $pics->caption->text ) ? $pics->caption->text : '';
+	$import['post_excerpt'] = !empty( $pics->caption->text ) ? $pics->caption->text : '';
 	// if ( $tags ) {
 	// 	$tags = '#'. $tags;
-	// 	$excerpt = str_replace( $tags, '', $excerpt );
+	// 	$import['post_excerpt'] = str_replace( $tags, '', $import['post_excerpt'] );
 	// }
-	// $excerpt .= ' (Taken with Instagram'. $loc .')';
+	// $import['post_excerpt'] .= ' (Taken with Instagram'. $loc .')';
 
 	// $content = '';
 	// $image_setting = isset( $settings['image'] ) ? $settings['image'] : '';
 	// if ( !empty( $image_setting ) && $image_setting == 'content' || $image_setting == 'both' )
 	// 	$content .= '<a href="'. $imgurl .'" ><img src="'. $imgurl .'"/></a>';
-	// $content .= '<p>'. $excerpt .'</p>';
+	// $content .= '<p>'. $import['post_excerpt'] .'</p>';
 	// $content .= '<p>Instagram filter used: '. $pics->filter .'</p>';
 	// $content .= '<p><a href="'. esc_url( $pics->link ) .'" target="_blank">View in Instagram &rArr;</a></p>';
 
 	if ( empty( $settings['post_content'] ) ) {
 		$content  = '<p><a href="'. $imgurl .'" target="_blank"><img src="'. $imgurl .'"/></a></p>'."\n";
-		$content .= '<p>'. $excerpt .' (Taken with Instagram at '. $loc .')</p>'."\n";
+		$content .= '<p>'. $import['post_excerpt'] .' (Taken with Instagram at '. $loc .')</p>'."\n";
 		$content .= '<p>Instagram filter used: '. $pics->filter .'</p>'."\n";
 		$content .= '<p><a href="'. $insta_url .'" target="_blank">View in Instagram &rArr;</a></p>'."\n";
 	} else {
 		$content = $settings['post_content'];
-		$content = str_replace( '**insta-text**', $excerpt, $content );
+		$content = str_replace( '**insta-text**', $import['post_excerpt'], $content );
 		$content = str_replace( '**insta-image**', '<img src="'. $imgurl .'"/>', $content );
 		$content = str_replace( '**insta-image-link**', $imgurl, $content );
 		$content = str_replace( '**insta-link**', $insta_url, $content );
@@ -276,18 +276,24 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 		$content = str_replace( '**insta-filter**', $pics->filter, $content );
 	}
 
-	if ( !$settings['draft'] ) $settings['draft'] = 'draft';
-	if ( !$settings['author'] ) $settings['author'] = $user_ID;
+	$import['post_author'] = isset( $settings['author'] ) ? $settings['author'] : $user_ID;
+	$import['post_content'] = $content;
+	$import['post_date'] = date( 'Y-m-d H:i:s', $pics->created_time );
+	$import['post_date_gmt'] = $import['post_date'];
+	$import['post_status'] = isset( $settings['draft'] ) ? $settings['draft'] : 'draft';
+	$import['post_type'] = isset( $settings['post-type'] ) ? $settings['post-type'] : 'post';
+
+	apply_filters( 'dsgnwrks_instagram_pre_save', $import, $pics, $settings );
 
 	$post = array(
-	  'post_author' => $settings['author'],
-	  'post_content' => $content,
-	  'post_date' => date( 'Y-m-d H:i:s', $pics->created_time ),
-	  'post_date_gmt' => date( 'Y-m-d H:i:s', $pics->created_time ),
-	  'post_excerpt' => $excerpt,
-	  'post_status' => $settings['draft'],
-	  'post_title' => $title,
-	  'post_type' => $settings['post-type'],
+	  'post_author' => $import['post_author'],
+	  'post_content' => $import['post_content'],
+	  'post_date' => $import['post_date'],
+	  'post_date_gmt' => $import['post_date_gmt'],
+	  'post_excerpt' => $import['post_excerpt'],
+	  'post_status' => $import['post_status'],
+	  'post_title' => $import['post_title'],
+	  'post_type' => $import['post_type'],
 	);
 	$new_post_id = wp_insert_post( $post, true );
 
@@ -325,7 +331,7 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 	update_post_meta( $new_post_id, 'instagram_location', $pics->location );
 	update_post_meta( $new_post_id, 'instagram_link', esc_url( $pics->link ) );
 
-	return dsgnwrks_instagram_upload_img( $imgurl, $new_post_id, $title, $featured );
+	return dsgnwrks_instagram_upload_img( $imgurl, $new_post_id, $import['post_title'], $import['featured'] );
 }
 
 function dsgnwrks_instagram_upload_img( $imgurl='', $post_id='', $title='', $featured = false ) {
