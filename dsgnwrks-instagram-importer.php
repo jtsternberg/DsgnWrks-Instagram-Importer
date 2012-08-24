@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: DsgnWrks Instagram Importer
-Plugin URI: http://dsgnwrks.pro/instagram-importer/
+Plugin URI: http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer
 Description: Allows you to backup your instagram photos while allowing you to have a site to display your instagram archive. Allows you to import to custom post types and attach custom taxonomies.
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
