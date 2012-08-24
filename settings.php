@@ -1,32 +1,31 @@
 <?php
-global $user_ID;
-
 if ( !current_user_can( 'manage_options' ) )  {
 	wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 }
+add_thickbox();
 
 $opts = get_option( 'dsgnwrks_insta_options' );
-$reg = get_option( 'dsgnwrks_insta_registration' );
 $users = get_option( 'dsgnwrks_insta_users' );
-
-
-// echo '<pre>'. htmlentities( print_r( $opts, true ) ) .'</pre>';
-// echo '<pre>'. htmlentities( print_r( $reg, true ) ) .'</pre>';
-// echo '<pre>'. htmlentities( print_r( $users, true ) ) .'</pre>';
-
 $users = ( !empty( $users ) ) ? $users : array();
 
-if ( !empty( $reg ) && $reg['badauth'] == 'good' && !in_array( $reg['user'], $users ) ) {
-	$sanitized_user = sanitize_title( $reg['user'] );
-	$users[] = $sanitized_user;
-	$opts[$sanitized_user]['pw'] = wp_hash_password( $reg['pw'] );
-	$opts[$sanitized_user]['full_username'] = $reg['user'];
+// delete_option( 'dsgnwrks_insta_options' );
+// delete_option( 'dsgnwrks_insta_users' );
 
-	update_option( 'dsgnwrks_insta_users', $users );
-	update_option( 'dsgnwrks_insta_options', $opts );
-	delete_option( 'dsgnwrks_insta_registration' );
-	unset( $reg );
+// super_var_dump( $opts );
+// echo '<pre>'. htmlentities( print_r( $opts, true ) ) .'</pre>';
+// super_var_dump( $users );
+
+$has_notice = get_transient( 'instagram_notification' );
+$notice = '';
+if ( isset( $_GET['notice'] ) && $_GET['notice'] == 'success' && $has_notice ){
+	$notice = 'You\'ve successfully connected to Instagram!';
+} elseif ( isset( $_GET['class'] ) && $_GET['class'] == 'error' && $has_notice ) {
+	$notice = 'There was an authorization error. Try again?';
 }
+
+$class = isset( $_GET['class'] ) ? $_GET['class'] : 'updated';
+$nogo = false;
+$nofeed = ( $class == 'error' ) ? true : false;
 
 if ( !empty( $users ) && is_array( $users ) ) {
 	foreach ( $users as $key => $user ) {
@@ -53,6 +52,8 @@ if ( !empty( $users ) && is_array( $users ) ) {
 		$complete[$user] = ( !empty( $opts[$user]['mm'] ) && !empty( $opts[$user]['dd'] ) && !empty( $opts[$user]['yy'] ) ) ? true : false;
 	}
 
+} elseif ( empty( $users ) ) {
+	$nogo = true;
 }
 
 ?>
@@ -62,24 +63,9 @@ if ( !empty( $users ) && is_array( $users ) ) {
 	<h2>DsgnWrks Instagram Importer Options</h2>
 	<div id="screen-meta" style="display: block; ">
 	<?php
-
-	$nogo = $nofeed = false;
-	// Setup our notifications
-	if ( !empty( $reg['user'] ) && empty( $reg['pw'] ) ) {
-		echo '<div id="message" class="error"><p>Please enter your Instagram password.</p></div>';
-		$nofeed = true;
-	} elseif ( empty( $reg['user'] ) && !empty( $reg['pw'] ) ) {
-		echo '<div id="message" class="error"><p>Please enter your Instagram username.</p></div>';
-		$nofeed = true;
-	} elseif ( !empty( $reg['user'] ) && !empty( $reg['pw'] ) && !empty( $reg['badauth'] ) && $reg['badauth'] == 'error' ) {
-		echo '<div id="message" class="error"><p>Couldn\'t find an instagram feed. Please check your username and password.</p></div>';
-		$nofeed = true;
-	} elseif ( empty( $reg['user'] ) && empty( $reg['pw'] ) && empty( $users ) ) {
-		$nogo = true;
-	} elseif ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] == 'true' ) {
-		echo '<div id="message" class="updated"><p>Settings Updated</p></div>';
+	if ( !empty( $notice ) ) {
+		echo '<div id="message" class="'.$class.'"><p>'.$notice.'</p></div>';
 	}
-
 	?>
 	<div class="clear"></div>
 
@@ -87,7 +73,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 			<div id="contextual-help-back"></div>
 			<div id="contextual-help-columns">
 				<div class="contextual-help-tabs">
-					<?php if ( empty( $reg ) && empty( $opts ) ) { ?>
+					<?php if ( empty( $opts ) ) { ?>
 						<h2>Get Started</h2>
 					<?php } else { ?>
 						<h2>Users</h2>
@@ -113,7 +99,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 							$user = 'Create User';
 							$class = str_replace( ' ', '', strtolower( $user ) );
 							?>
-							<li class="tab-instagram-user" id="tab-instagram-user-<?php echo $class; ?>" class="active">
+							<li class="tab-instagram-user active" id="tab-instagram-user-<?php echo $class; ?>">
 								<a href="#instagram-user-<?php echo $class; ?>"><?php echo $user; ?></a>
 							</li>
 							<?php
@@ -132,7 +118,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 				<?php
 				if ( !empty( $users ) && is_array( $users ) ) {
 					?>
-					<form class="instagram-importer" method="post" action="options.php">
+					<form class="instagram-importer user-options" method="post" action="options.php">
 					<?php settings_fields('dsgnwrks_instagram_importer_settings');
 
 					foreach ( $users as $key => $user ) {
@@ -157,7 +143,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 								<tr valign="top" class="info">
 								<th colspan="2">
-									<p>Successfully connected to Instagram &mdash; <span><a id="delete-<?php echo $id; ?>" class="delete-instagram-user" href="<?php echo add_query_arg( 'delete-insta-user', urlencode( $id ) ); ?>">Delete User?</a></span></p>
+									<p><img class="alignleft" src="<?php echo $opts[$id]['profile_picture']; ?>" width="66" height="66"/>Successfully connected to Instagram &mdash; <span><a id="delete-<?php echo $id; ?>" class="delete-instagram-user" href="<?php echo add_query_arg( array( 'page' => DSGNWRKSINSTA_ID, 'delete-insta-user' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) ); ?>">Delete User?</a></span></p>
 									<p>Please select the import filter options below. If none of the options are selected, all photos for <strong id="full-username-<?php echo $id; ?>"><?php echo $opts[$id]['full_username']; ?></strong> will be imported. <em>(This could take a long time if you have a lot of shots)</em></p>
 								</th>
 								</tr>
@@ -190,7 +176,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 												$opts[$id]['remove-date-filter'] = 'false';
 												$date_filter = strtotime( $opts[$id]['mm'] .'/'. $opts[$id]['dd'] .'/'. $opts[$id]['yy'] );
 										} else {
-											$date = '<span style="color: #E0522E;">Please select full date</span>';
+											$date = '<span class="warning">Please select full date</span>';
 										}
 									}
 									else { $date = 'No date selected'; }
@@ -249,21 +235,48 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								</th>
 								</tr>
 
-								<?php
-								// echo '<tr valign="top">
-								// <th scope="row"><strong>Insert Instagram photo into:</strong></th>
-								// <td>
-								//     <select id="instagram-image" name="dsgnwrks_insta_options['.$id.'][image]">';
-								//         if ( $opts[$id]['image'] == 'feat-image') $selected1 = 'selected="selected"';
-								//         echo '<option value="feat-image" '. $selected1 .'>Featured Image</option>';
-								//         if ( $opts[$id]['image'] == 'content') $selected2 = 'selected="selected"';
-								//         echo '<option value="content" '. $selected2 .'>Content</option>';
-								//         if ( $opts[$id]['image'] == 'both') $selected3 = 'selected="selected"';
-								//         echo '<option value="both" '. $selected3 .'>Both</option>';
-								//     echo '</select>
-								// </td>
-								// </tr>';
-								?>
+
+								<tr valign="top">
+								<th scope="row"><strong>Save Instagram photo as post featured image:</strong><br/>If you uncheck this box, the instagram photos will not actually be downloaded and backed-up to your server.</th>
+								<td>
+									<?php $feat_image = isset( $opts[$id]['feat_image'] ) ? (bool) $opts[$id]['feat_image'] : 1; ?>
+									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $id; ?>][feat_image]" <?php checked( $feat_image ); ?>/>&nbsp;&nbsp;<em>(recommended)</em>
+								</td>
+								</tr>
+
+								<tr valign="top">
+								<th scope="row">
+									<strong>Post Title:</strong><br/>Add the imported Instagram data using these custom tags:<br/><code>**insta-text**</code>, <code>**insta-location**</code>, <code>**insta-filter**</code>
+								</th>
+								<?php $post_title = isset( $opts[$id]['post-title'] ) ? $opts[$id]['post-title'] : '**insta-text**'; ?>
+								<td><input type="text" name="dsgnwrks_insta_options[<?php echo $id; ?>][post-title]" value="<?php echo $post_title; ?>" />
+								</td>
+								</tr>
+
+								<tr valign="top">
+								<td colspan="2">
+									<p><strong>Post Content:</strong><br/>Add the imported Instagram data using these custom tags:<br/><code>**insta-text**</code>, <code>**insta-image**</code>, <code>**insta-image-link**</code>, <code>**insta-link**</code>, <code>**insta-location**</code>, <code>**insta-filter**</code></p>
+									<?php
+									if ( isset( $opts[$id]['post_content'] ) ) {
+										$post_text = $opts[$id]['post_content'];
+									} else {
+										$post_text  = '<p><a href="**insta-image-link**" target="_blank">**insta-image**</a></p>'."\n";
+										$post_text .= '<p>**insta-text** (Taken with Instagram at **insta-location**)</p>'."\n";
+										$post_text .= '<p>Instagram filter used: **insta-filter**</p>'."\n";
+										$post_text .= '<p><a href="**insta-link**" target="_blank">View in Instagram &rArr;</a></p>'."\n";
+									}
+									add_filter( 'wp_default_editor', 'dsgnwrks_make_html_default' );
+									$args = array(
+										'textarea_name' => 'dsgnwrks_insta_options['.$id.'][post_content]',
+										'editor_class' => 'post_text',
+										'textarea_rows' => 6,
+										'wpautop' => false
+									);
+									wp_editor( $post_text, 'dsgnwrks_insta_options_'.$id.'_post_content', $args );
+									?>
+
+								</td>
+								</tr>
 
 								<tr valign="top">
 								<th scope="row"><strong>Import to Post-Type:</strong></th>
@@ -376,9 +389,10 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								}
 
 								echo '<input type="hidden" name="dsgnwrks_insta_options[username]" value="replaceme" />';
-								echo '<input type="hidden" name="dsgnwrks_insta_options['.$id.'][pw]" value="'. $opts[$id]['pw'] .'" />';
-								echo '<input type="hidden" name="dsgnwrks_insta_options['.$id.'][full_username]" value="'. $opts[$id]['full_username'] .'" />';
-
+								$userdata = array( 'access_token', 'bio', 'website', 'profile_picture', 'full_name', 'id', 'full_username' ) ;
+								foreach ( $userdata as $data ) {
+									echo '<input type="hidden" name="dsgnwrks_insta_options['.$id.']['.$data.']" value="'. $opts[$id][$data] .'" />';
+								}
 								$trans = get_transient( $id .'-instaimportdone' );
 
 								if ( $trans ) { ?>
@@ -390,9 +404,9 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									</tr>
 								<?php } ?>
 							</table>
-							<strong class="save-warning">If you changed any settings, please "Save" them before importing.</strong>
+							<p class="save-warning warning user-<?php echo $id; ?>">You've changed settings. <strong>please "Save" them before importing.</strong></p>
 							<p class="submit">
-								<input type="submit" id="save-<?php echo sanitize_title( $id ); ?>" name="save" class="button-primary" value="<?php _e( 'Save' ) ?>" />
+								<input type="submit" id="save-<?php echo sanitize_title( $id ); ?>" name="save" class="button-primary save" value="<?php _e( 'Save' ) ?>" />
 								<?php
 								$importlink = dsgnwrks_get_instimport_link( $opts[$id]['full_username'] );
 								?>
@@ -403,20 +417,15 @@ if ( !empty( $users ) && is_array( $users ) ) {
 					}
 					?>
 					</form>
-					<form method="post" action="<?php echo dsgnwrks_get_instimport_link( $opts[$id]['full_username'] ); ?>" class="dw-pw-form">
-						<label>Please enter your Instagram password again to import
-						<input type="password" name="pwcheck" value=""></label>
-						<input type="submit" value="Import" class="button-secondary">
-					</form>
 					<?php
 				} else {
-					$message = 'Welcome to Instagram Importer! Enter your Instagram username and password to authenticate the plugin, and we\'ll get started.';
-					dsgnwrks_settings_user_form( $reg, true, $message );
+					$message = '<p>Welcome to the Instagram Importer! Click to be taken to Instagram\'s site to securely authorize this plugin for use with your account.</p>';
+					dsgnwrks_settings_user_form( $users, $message );
 				}
 
 				if ( !$nogo ) { ?>
 					<div id="add-another-user" class="help-tab-content <?php echo ( $nofeed == true ) ? ' active' : ''; ?>">
-						<?php dsgnwrks_settings_user_form( $reg ); ?>
+						<?php dsgnwrks_settings_user_form( $users ); ?>
 					</div>
 				<?php } ?>
 				</div>
@@ -434,28 +443,17 @@ if ( !empty( $users ) && is_array( $users ) ) {
 </div>
 
 <?php
-function dsgnwrks_settings_user_form( $reg, $echo = true, $message = 'Enter the Instagram username and password of another user whose photos you would like to import.' ) {
+function dsgnwrks_settings_user_form( $users = array(), $message = '' ) {
 
-	$id = 'dsgnwrks_insta_registration[user]';
-	$id2 = 'dsgnwrks_insta_registration[pw]';
-
-	?>
-	<form class="instagram-importer" method="post" action="options.php">
-		<?php settings_fields('dsgnwrks_instagram_importer_users'); ?>
-		<table class="form-table">
-			<p><?php echo $message; ?></p>
-			<tr valign="top">
-			<th scope="row"><label for="<?php echo $id; ?>"><strong>Instagram Username:</strong></label></th>
-			<td><input type="text" id="<?php echo $id; ?>" name="<?php echo $id; ?>" value="<?php if ( $echo == true ) echo esc_attr( $reg['user'] ); ?>" /></td>
-			</tr>
-
-			<tr valign="top">
-			<th scope="row"><label for="<?php echo $id2; ?>"><strong>Instagram Password:</strong></label></th>
-			<td><input type="password" id="<?php echo $id2; ?>" name="<?php echo $id2; ?>" value="<?php if ( $echo == true ) echo esc_attr( $reg['pw'] ); ?>" /></td>
-			</tr>
-		</table>
+	$message = $message ? $message : '<p>Click to be taken to Instagram\'s site to securely authorize this plugin for use with your account.</p><p><em>(If you have already authorized an account, You will first be logged out of Instagram.)</em></p>'; ?>
+	<form class="instagram-importer user-authenticate" method="post" action="options.php">
+		<?php
+		settings_fields('dsgnwrks_instagram_importer_users');
+		echo $message;
+		$class = !empty( $users ) ? 'logout' : '';
+		?>
 		<p class="submit">
-			<input type="submit" name="save" class="button-primary" value="<?php echo _e( 'Authenticate' ) ?>" />
+			<input type="submit" name="save" class="button-primary authenticate <?php echo $class; ?>" value="<?php _e( 'Secure Authentication with Instagram' ) ?>" />
 		</p>
 	</form>
 
@@ -464,4 +462,10 @@ function dsgnwrks_settings_user_form( $reg, $echo = true, $message = 'Enter the 
 
 function dsgnwrks_get_instimport_link( $id ) {
 	return add_query_arg( array( 'page' => DSGNWRKSINSTA_ID, 'instaimport' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) );
+}
+
+function dsgnwrks_make_html_default( $default ) {
+	if ( get_current_screen()->id == 'tools_page_dsgnwrks-instagram-importer-settings' )
+		$default = 'html';
+	return $default;
 }

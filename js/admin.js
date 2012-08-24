@@ -52,34 +52,31 @@ jQuery(document).ready(function($) {
 		}
 	});
 
-	$('.contextual-help-tabs a').click(function(event) {
-		$('.dw-pw-form').hide();
-		$('.import-button').show();
-	});
+	// var width = $('.help-tab-content').width();
+	// $('.dw-pw-form').width(width-85);
 
-	var width = $('.help-tab-content').width();
-	$('.dw-pw-form').width(width-85);
-
-	$('.button-primary').click(function(event) {
-		var id = $(this).attr('id').replace('save-','');
-		$('input[name="dsgnwrks_insta_options[username]"]').val(id);
+	$('.button-primary.save').click(function(event) {
+		var curr_user = $.trim($('.tab-instagram-user.active').text());
+		$('input[name="dsgnwrks_insta_options[username]"]').val(curr_user);
 		// event.preventDefault();
 	});
 
-
 	$('.save-warning').hide();
-	$('.dw-pw-form').hide();
-	$('.import-button').click(function(event) {
-		$(this).hide();
-		var id = $(this).attr('id').replace('import-',''),
-		action = $('.dw-pw-form').attr('action'),
-		replace = changeQueryVar(action,'instaimport',id);
-		$('.save-warning').show();
-		$('.dw-pw-form').show();
-		$('.dw-pw-form').attr('action', replace);
-		$('.dw-pw-form input[type="password"]').focus();
-		event.preventDefault();
+	// $('.dw-pw-form').hide();
+	$('.user-options input, .user-options select').change(function() {
+		var curr_user = $.trim($('.tab-instagram-user.active').text());
+		$('.save-warning.user-'+curr_user).show();
 	});
+
+	$('.button-primary.authenticate.logout').click( function(event) {
+		tb_show('Logging out of Instagram', 'https://instagr.am/accounts/logout/?TB_iframe=true');
+		setTimeout(function(){
+			tb_remove();
+			$('.user-authenticate').submit();
+		},1000);
+		return false;
+	});
+
 
 	function changeQueryVar(url, keyString, replaceString) {
 		var vars = url.split('&');

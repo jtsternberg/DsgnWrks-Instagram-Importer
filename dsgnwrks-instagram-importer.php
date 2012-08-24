@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: DsgnWrks Instagram Importer
-Plugin URI: http://dsgnwrks.pro/instagram-importer/
-Description: Allows you to backup your instagram photos while allowing you to have a site to display your instagram archive.
+Plugin URI: http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer
+Description: Allows you to backup your instagram photos while allowing you to have a site to display your instagram archive. Allows you to import to custom post types and attach custom taxonomies.
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
@@ -10,7 +10,7 @@ Version: 1.0
 */
 
 define( 'DSGNWRKSINSTA_ID', 'dsgnwrks-instagram-importer-settings');
-
+define( 'DSGNWRKSINSTA_PAGE', add_query_arg( 'page', DSGNWRKSINSTA_ID, admin_url( '/tools.php' ) ) );
 
 add_action('admin_init','dsgnwrks_instagram_init');
 function dsgnwrks_instagram_init() {
@@ -35,26 +35,16 @@ function dsgnwrks_instagram_init() {
 
 function dsgnwrks_instagram_users_validate( $opts ) {
 
-	if ( !empty( $opts['user'] ) && !empty( $opts['pw'] ) ) {
+	$dsgnwrks = 'http://dsgnwrks.pro/insta_oauth/';
+	$instagram = 'https://api.instagram.com/oauth/authorize/';
+	$return = add_query_arg( array( 'page' => DSGNWRKSINSTA_ID ), admin_url('/tools.php') );
 
-		$response = dsgnwrks_insta_authenticate(
-			$opts['user'],
-			$opts['pw'],
-			false
-		);
-		// wp_die( '<pre>'. htmlentities( print_r( $opts, true ) ) .'</pre>' );
+	$uri = add_query_arg( 'return_uri', urlencode( $return ), $dsgnwrks );
 
-		if ( $response['badauth'] != 'error' && $response['noauth'] != true ) {
+	wp_redirect( $uri, 307 );
+	exit;
 
-			$settings = get_option( 'dsgnwrks_insta_options' );
-			$settings['username'] = sanitize_title( $opts['user'] );
-			update_option( 'dsgnwrks_insta_options', $settings );
-
-		}
-
-		$opts['badauth'] = $response['badauth'];
-		$opts['noauth'] = $response['noauth'];
-	}
+	// wp_die( '<pre>'. print_r( $uri, true ) .'</pre>' );
 	return $opts;
 }
 
@@ -82,6 +72,10 @@ function dsgnwrks_instagram_settings_validate( $opts ) {
 				else {
 					$opts[$user][$key] = dsgnwrks_filter( $opt, 'absint', '' );
 				}
+			} elseif ( $key === 'post_content' ) {
+				$opts[$user][$key] = dsgnwrks_filter( $opt, 'wp_kses_post' );
+			} elseif ( $key === 'feat_image' ) {
+				$opts[$user][$key] = (bool)$opts[$user][$key];
 			} else {
 				$opts[$user][$key] = dsgnwrks_filter( $opt );
 			}
@@ -117,14 +111,13 @@ function dsgnwrks_instagram_importer_scripts() {
 		$taxes = get_object_taxonomies( $cpt );
 		if ( !empty( $taxes ) ) $data['cpts'][$cpt][] = $taxes;
 	}
-
 	if ( !empty( $data ) ) wp_localize_script( 'dsgnwrks-instagram-importer-admin', 'dwinstagram', $data );
 
 }
 
 function dsgnwrks_instagram_fire_importer() {
 
-	if ( isset( $_GET['instaimport'] ) && isset( $_POST['pwcheck'] ) ) {
+	if ( isset( $_GET['instaimport'] ) ) {
 		add_action('all_admin_notices','dsgnwrks_instagram_import');
 	}
 }
@@ -134,27 +127,10 @@ function dsgnwrks_instagram_import() {
 	$opts = get_option( 'dsgnwrks_insta_options' );
 	$id = sanitize_title( urldecode( $_GET['instaimport'] ) );
 
-	if ( !wp_check_password( $_POST['pwcheck'], $opts[$id]['pw'] ) ) {
-		echo '<div id="message" class="error"><p>That is the incorrect password</p></div>';
-		return;
-	}
-
-	$response = dsgnwrks_insta_authenticate( $opts[$id]['full_username'], $_POST['pwcheck'] );
-
-	if ( empty( $response['response'] ) ) {
-		echo '<div id="message" class="error"><p>Couldn\'t find an instagram feed. Please check your username and password.</p></div>';
-		$opts[$id]['noauth'] = true;
-		update_option( 'dsgnwrks_insta_options', $opts );
-		return;
-	} else {
-
-		$body = apply_filters( 'dsgnwrks_instagram_api', $response['response'] );
-	}
-
-	if ( isset( $body->user->id ) && isset( $body->access_token ) ) {
+	if ( isset( $opts[$id]['id'] ) && isset( $opts[$id]['access_token'] ) ) {
 		echo '<div id="message" class="updated">';
 
-		$messages = dsgnwrks_import_messages( 'https://api.instagram.com/v1/users/'. $body->user->id .'/media/recent?access_token='. $body->access_token .'&count=80', $opts[$id] );
+		$messages = dsgnwrks_import_messages( 'https://api.instagram.com/v1/users/'. $opts[$id]['id'] .'/media/recent?access_token='. $opts[$id]['access_token'] .'&count=80', $opts[$id] );
 
 		while ( !empty( $messages['next_url'] ) ) {
 			$messages = dsgnwrks_import_messages( $messages['next_url'], $opts[$id], $messages['message'] );
@@ -203,7 +179,7 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
 
 	foreach ($data->data as $pics) {
 
-		if ( $settings['date-filter'] > $pics->created_time ) {
+		if ( isset( $settings['date-filter'] ) && $settings['date-filter'] > $pics->created_time ) {
 			$messages['nexturl'] = 'halt';
 			break;
 		}
@@ -220,10 +196,10 @@ function dsgnwrks_pic_loop( $data = array(), $settings = array() ) {
 			if ( !$in_title ) continue;
 		}
 
-
+		$pt = isset( $settings['post-type'] ) ? $settings['post-type'] : 'post';
 		$alreadyInSystem = new WP_Query(
 			array(
-				'post_type' => $settings['post-type'],
+				'post_type' => $pt,
 				'meta_query' => array(
 					array(
 						'key' => 'instagram_created_time',
@@ -247,44 +223,77 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 
 	$settings = ( empty( $settings ) ) ? get_option( 'dsgnwrks_insta_options' ) : $settings;
 
-	$loc = ( isset( $pics->location->name ) ) ? $pics->location->name : null;
+	$loc = ( isset( $pics->location->name ) ) ? $pics->location->name : '';
 
-	if ( $loc ) $loc = ' at '. $loc;
-	$title = !empty( $pics->caption->text ) ? dsgnwrks_wp_trim_words( $pics->caption->text, 12 ) : '';
-	if ( $tags ) {
-		$tags = '#'. $tags;
-		$title = str_replace( $tags, '', $title );
+	// if ( $loc ) $loc = ' at '. $loc;
+	$insta_title = !empty( $pics->caption->text ) ? $pics->caption->text : 'Untitled';
+	// if ( $tags ) {
+	// 	$tags = '#'. $tags;
+	// 	$title = str_replace( $tags, '', $title );
+	// }
+	// $title = ($title) ? $title : 'Untitled';
+
+	if ( !empty( $settings['post-title'] ) ) {
+		$import['post_title'] = $settings['post-title'];
+		$import['post_title'] = str_replace( '**insta-text**', $insta_title, $import['post_title'] );
+		$import['post_title'] = str_replace( '**insta-location**', $loc, $import['post_title'] );
+		$import['post_title'] = str_replace( '**insta-filter**', $pics->filter, $import['post_title'] );
+	} else {
+		$import['post_title'] = $insta_title;
 	}
-	$title = ($title) ? $title : 'Untitled';
+
 	$imgurl = $pics->images->standard_resolution->url;
+	$insta_url = esc_url( $pics->link );
+	$import['featured'] = isset( $settings['feat_image'] ) ? $settings['feat_image'] : true;
 
-	$excerpt = !empty( $pics->caption->text ) ? $pics->caption->text : '';
-	if ( $tags ) {
-		$tags = '#'. $tags;
-		$excerpt = str_replace( $tags, '', $excerpt );
+	$import['post_excerpt'] = !empty( $pics->caption->text ) ? $pics->caption->text : '';
+	// if ( $tags ) {
+	// 	$tags = '#'. $tags;
+	// 	$import['post_excerpt'] = str_replace( $tags, '', $import['post_excerpt'] );
+	// }
+	// $import['post_excerpt'] .= ' (Taken with Instagram'. $loc .')';
+
+	// $content = '';
+	// $image_setting = isset( $settings['image'] ) ? $settings['image'] : '';
+	// if ( !empty( $image_setting ) && $image_setting == 'content' || $image_setting == 'both' )
+	// 	$content .= '<a href="'. $imgurl .'" ><img src="'. $imgurl .'"/></a>';
+	// $content .= '<p>'. $import['post_excerpt'] .'</p>';
+	// $content .= '<p>Instagram filter used: '. $pics->filter .'</p>';
+	// $content .= '<p><a href="'. esc_url( $pics->link ) .'" target="_blank">View in Instagram &rArr;</a></p>';
+
+	if ( empty( $settings['post_content'] ) ) {
+		$content  = '<p><a href="'. $imgurl .'" target="_blank"><img src="'. $imgurl .'"/></a></p>'."\n";
+		$content .= '<p>'. $import['post_excerpt'] .' (Taken with Instagram at '. $loc .')</p>'."\n";
+		$content .= '<p>Instagram filter used: '. $pics->filter .'</p>'."\n";
+		$content .= '<p><a href="'. $insta_url .'" target="_blank">View in Instagram &rArr;</a></p>'."\n";
+	} else {
+		$content = $settings['post_content'];
+		$content = str_replace( '**insta-text**', $import['post_excerpt'], $content );
+		$content = str_replace( '**insta-image**', '<img src="'. $imgurl .'"/>', $content );
+		$content = str_replace( '**insta-image-link**', $imgurl, $content );
+		$content = str_replace( '**insta-link**', $insta_url, $content );
+		$content = str_replace( '**insta-location**', $loc, $content );
+		$content = str_replace( '**insta-filter**', $pics->filter, $content );
 	}
-	$excerpt .= ' (Taken with Instagram'. $loc .')';
 
-	$content = '';
-	$image_setting = isset( $settings['image'] ) ? $settings['image'] : '';
-	if ( !empty( $image_setting ) && $image_setting == 'content' || $image_setting == 'both' )
-		$content .= '<a href="'. $imgurl .'" ><img src="'. $imgurl .'"/></a>';
-	$content .= '<p>'. $excerpt .'</p>';
-	$content .= '<p>Instagram filter used: '. $pics->filter .'</p>';
-	$content .= '<p><a href="'. esc_url( $pics->link ) .'" target="_blank">View in Instagram &rArr;</a></p>';
+	$import['post_author'] = isset( $settings['author'] ) ? $settings['author'] : $user_ID;
+	$import['post_content'] = $content;
+	$import['post_date'] = date( 'Y-m-d H:i:s', $pics->created_time );
+	$import['post_date_gmt'] = $import['post_date'];
+	$import['post_status'] = isset( $settings['draft'] ) ? $settings['draft'] : 'draft';
+	$import['post_type'] = isset( $settings['post-type'] ) ? $settings['post-type'] : 'post';
 
-	if ( !$settings['draft'] ) $settings['draft'] = 'draft';
-	if ( !$settings['author'] ) $settings['author'] = $user_ID;
+	apply_filters( 'dsgnwrks_instagram_pre_save', $import, $pics, $settings );
 
 	$post = array(
-	  'post_author' => $settings['author'],
-	  'post_content' => $content,
-	  'post_date' => date( 'Y-m-d H:i:s', $pics->created_time ),
-	  'post_date_gmt' => date( 'Y-m-d H:i:s', $pics->created_time ),
-	  'post_excerpt' => $excerpt,
-	  'post_status' => $settings['draft'],
-	  'post_title' => $title,
-	  'post_type' => $settings['post-type'],
+	  'post_author' => $import['post_author'],
+	  'post_content' => $import['post_content'],
+	  'post_date' => $import['post_date'],
+	  'post_date_gmt' => $import['post_date_gmt'],
+	  'post_excerpt' => $import['post_excerpt'],
+	  'post_status' => $import['post_status'],
+	  'post_title' => $import['post_title'],
+	  'post_type' => $import['post_type'],
 	);
 	$new_post_id = wp_insert_post( $post, true );
 
@@ -322,27 +331,27 @@ function jts_instagram_img( $pics, $settings = array(), $tags='' ) {
 	update_post_meta( $new_post_id, 'instagram_location', $pics->location );
 	update_post_meta( $new_post_id, 'instagram_link', esc_url( $pics->link ) );
 
-	return dsgnwrks_instagram_upload_img( $imgurl, $new_post_id, $title );
+	return dsgnwrks_instagram_upload_img( $imgurl, $new_post_id, $import['post_title'], $import['featured'] );
 }
 
-function dsgnwrks_instagram_upload_img( $imgurl='', $post_id='', $title='' ) {
+function dsgnwrks_instagram_upload_img( $imgurl='', $post_id='', $title='', $featured = false ) {
 
-	if ( !empty( $imgurl ) ) {
+	if ( !empty( $imgurl ) && $featured ) {
 		$tmp = download_url( $imgurl );
 
 		preg_match('/[^\?]+\.(jpg|JPG|jpe|JPE|jpeg|JPEG|gif|GIF|png|PNG)/', $imgurl, $matches);
-		$file_array['name'] = basename($matches[0]);
+		$file_array['name'] = basename( $matches[0] );
 		$file_array['tmp_name'] = $tmp;
 
 		if ( is_wp_error( $tmp ) ) {
-			@unlink($file_array['tmp_name']);
+			@unlink( $file_array['tmp_name'] );
 			$file_array['tmp_name'] = '';
 		}
 
-		$img_id = media_handle_sideload($file_array, $post_id, $title );
+		$img_id = media_handle_sideload( $file_array, $post_id, $title );
 
-		if ( is_wp_error($img_id) ) {
-			@unlink($file_array['tmp_name']);
+		if ( is_wp_error( $img_id ) ) {
+			@unlink( $file_array['tmp_name'] );
 			return $img_id;
 		}
 
@@ -354,6 +363,50 @@ function dsgnwrks_instagram_upload_img( $imgurl='', $post_id='', $title='' ) {
 
 add_action('current_screen','redirect_on_deleteuser');
 function redirect_on_deleteuser() {
+
+	if ( isset( $_GET['error'] ) || ( isset( $_GET['access_token'] ) ) )  {
+
+		$opts = get_option( 'dsgnwrks_insta_options' );
+
+		$users = get_option( 'dsgnwrks_insta_users' );
+		$users = ( !empty( $users ) ) ? $users : array();
+
+		$notice = array(
+			'notice' => false,
+			'class' => 'updated',
+		);
+
+		if ( isset( $_GET['error'] ) || isset( $_GET['error_reason'] ) || isset( $_GET['error_description'] ) ) {
+
+			$notice['class'] = 'error';
+
+		} else {
+			$notice['notice'] = 'success';
+
+
+			if ( isset( $_GET['username'] ) && !in_array( $_GET['username'], $users ) ) {
+				$sanitized_user = sanitize_title( $_GET['username'] );
+				$users[] = $sanitized_user;
+				$opts[$sanitized_user]['access_token'] = $_GET['access_token'];
+				$opts[$sanitized_user]['bio'] = isset( $_GET['bio'] ) ? $_GET['bio'] : '';
+				$opts[$sanitized_user]['website'] = isset( $_GET['website'] ) ? $_GET['website'] : '';
+				$opts[$sanitized_user]['profile_picture'] = isset( $_GET['profile_picture'] ) ? $_GET['profile_picture'] : '';
+				$opts[$sanitized_user]['full_name'] = isset( $_GET['full_name'] ) ? $_GET['full_name'] : '';
+				$opts[$sanitized_user]['id'] = isset( $_GET['id'] ) ? $_GET['id'] : '';
+				$opts[$sanitized_user]['full_username'] = $_GET['username'];
+				$opts['username'] = $sanitized_user;
+
+				update_option( 'dsgnwrks_insta_users', $users );
+				update_option( 'dsgnwrks_insta_options', $opts );
+				delete_option( 'dsgnwrks_insta_registration' );
+				// unset( $reg );
+			}
+
+		}
+		set_transient( 'instagram_notification', true, 60 );
+		wp_redirect( add_query_arg( $notice, DSGNWRKSINSTA_PAGE ), 307 );
+		exit;
+	}
 
 	if ( isset( $_GET['delete-insta-user'] ) ) {
 		$users = get_option( 'dsgnwrks_insta_users' );
@@ -395,52 +448,9 @@ function dsgnwrks_filter( $opt = '', $filter = '', $else = '' ) {
 	if ( empty( $opt ) ) return $else;
 
 	if ( $filter == 'absint' ) return absint( $opt );
+	if ( $filter == 'esc_textarea' ) return esc_textarea( $opt );
+	if ( $filter == 'wp_kses_post' ) return wp_kses_post( $opt );
 	else return esc_attr( $opt );
-}
-
-function dsgnwrks_insta_authenticate( $user, $pw, $return = true, $url = 'https://api.instagram.com/oauth/access_token', $get_or_post = 'post' ) {
-
-	$body = array(
-		'body' => array(
-			'username' => $user,
-			'password' => $pw,
-			'grant_type' => 'password',
-			'client_id' => '90740ae6e5bd4676ad62563e9a31ac75',
-			'client_secret' => '21a67881c8af4abeacbd826cf9bec45e'
-		)
-	);
-	if ( $get_or_post == 'post' )
-		$response = (array)wp_remote_post( $url, $body );
-	elseif ( $get_or_post == 'get' )
-		$response = (array)wp_remote_get( $url, $body );
-
-	$code = ( isset( $response['response']['code'] ) ) ? $response['response']['code'] : '';
-
-	if ( is_wp_error( $response ) ) {
-		$response = null;
-		$badauth = 'error';
-		$noauth = true;
-	} elseif ( isset( $code ) && $code < 400 && $code >= 200 ) {
-		if ( $return == false ) {
-			$response = null;
-		} else {
-			$body = wp_remote_retrieve_body( $response );
-			$response = json_decode( $body );
-		}
-		$noauth = '';
-		$badauth = 'good';
-	} else {
-		$response = null;
-		$badauth = 'error';
-		$noauth = true;
-	}
-
-	return array(
-		'response' => $response,
-		'badauth' => $badauth,
-		'noauth' => $noauth,
-	);
-
 }
 
 function dsgnwrks_max_quality($arg) {
