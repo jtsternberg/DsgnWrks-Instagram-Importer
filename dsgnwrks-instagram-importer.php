@@ -6,7 +6,7 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.0
+Version: 1.0.1
 */
 
 define( 'DSGNWRKSINSTA_ID', 'dsgnwrks-instagram-importer-settings');
@@ -130,6 +130,9 @@ function dsgnwrks_instagram_import() {
 	if ( isset( $opts[$id]['id'] ) && isset( $opts[$id]['access_token'] ) ) {
 		echo '<div id="message" class="updated">';
 
+		$pre = date('e');
+		date_default_timezone_set( get_option('timezone_string') );
+
 		$messages = dsgnwrks_import_messages( 'https://api.instagram.com/v1/users/'. $opts[$id]['id'] .'/media/recent?access_token='. $opts[$id]['access_token'] .'&count=80', $opts[$id] );
 
 		while ( !empty( $messages['next_url'] ) ) {
@@ -139,6 +142,9 @@ function dsgnwrks_instagram_import() {
 		foreach ( $messages['message'] as $key => $message ) {
 			echo $message;
 		}
+
+		date_default_timezone_set( $pre );
+
 		echo '</div>';
 
 	}
