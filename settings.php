@@ -258,10 +258,10 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								</tr> -->
 
 								<tr valign="top">
-								<th scope="row"><strong>Save Instagram photo as post featured image:</strong><br/>If you uncheck this box, the instagram photos will not actually be downloaded and backed-up to your server.</th>
+								<th scope="row"><strong>Save Instagram photo as post's featured image:</strong></th>
 								<td>
 									<?php $feat_image = isset( $opts[$id]['feat_image'] ) ? (bool) $opts[$id]['feat_image'] : 1; ?>
-									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $id; ?>][feat_image]" <?php checked( $feat_image ); ?>/>&nbsp;&nbsp;<em>(recommended)</em>
+									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $id; ?>][feat_image]" <?php checked( $feat_image ); ?>/>
 								</td>
 								</tr>
 
