@@ -156,8 +156,10 @@ class DsgnWrksInstagram {
 		if ( isset( $opts[$id]['id'] ) && isset( $opts[$id]['access_token'] ) ) {
 			echo '<div id="message" class="updated">';
 
-			$pre = date('e');
-			date_default_timezone_set( get_option('timezone_string') );
+			if ( $tz_string = get_option('timezone_string') ) {
+				$pre = date('e');
+				date_default_timezone_set( get_option('timezone_string') );
+			}
 
 			$messages = $this->import_messages( 'https://api.instagram.com/v1/users/'. $opts[$id]['id'] .'/media/recent?access_token='. $opts[$id]['access_token'] .'&count=80', $opts[$id] );
 
@@ -169,7 +171,8 @@ class DsgnWrksInstagram {
 				echo $message;
 			}
 
-			date_default_timezone_set( $pre );
+			if ( $tz_string )
+				date_default_timezone_set( $pre );
 
 			echo '</div>';
 
