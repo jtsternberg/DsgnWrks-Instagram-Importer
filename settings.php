@@ -143,7 +143,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 								<tr valign="top" class="info">
 								<th colspan="2">
-									<p><img class="alignleft" src="<?php echo esc_url( $opts[$id]['profile_picture'] ); ?>" width="66" height="66"/>Successfully connected to Instagram &mdash; <span><a id="delete-<?php echo $id; ?>" class="delete-instagram-user" href="<?php echo add_query_arg( array( 'page' => DSGNWRKSINSTA_ID, 'delete-insta-user' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) ); ?>">Delete User?</a></span></p>
+									<p><img class="alignleft" src="<?php echo esc_url( $opts[$id]['profile_picture'] ); ?>" width="66" height="66"/>Successfully connected to Instagram &mdash; <span><a id="delete-<?php echo $id; ?>" class="delete-instagram-user" href="<?php echo add_query_arg( array( 'page' => $this->plugin_id, 'delete-insta-user' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) ); ?>">Delete User?</a></span></p>
 									<p>Please select the import filter options below. If none of the options are selected, all photos for <strong id="full-username-<?php echo $id; ?>"><?php echo $opts[$id]['full_username']; ?></strong> will be imported. <em>(This could take a long time if you have a lot of shots)</em></p>
 								</th>
 								</tr>
@@ -236,6 +236,27 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								</tr>
 
 
+								<!-- <tr valign="top">
+								<th scope="row"><strong>Check for and auto-import posts:</strong></th>
+								<td>
+									<?php
+									$cur_schedule = isset( $opts[$id]['auto-import'] ) ? $opts[$id]['auto-import'] : 'never';
+									?>
+
+									<select id="instagram-auto-import-<?php echo $id; ?>" name="dsgnwrks_insta_options[<?php echo $id; ?>][auto-import]">
+										<option value="never" <?php selected( $cur_schedule, 'never' ); ?>>Never</option>
+										<?php
+										$schedules = wp_get_schedules();
+										foreach ( $schedules  as $sched_key => $schedule ) {
+											?>
+											<option value="<?php echo $sched_key; ?>" <?php selected( $cur_schedule, $sched_key ); ?>><?php echo $schedule['display']; ?></option>
+											<?php
+										}
+										?>
+									</select>
+								</td>
+								</tr> -->
+
 								<tr valign="top">
 								<th scope="row"><strong>Save Instagram photo as post featured image:</strong><br/>If you uncheck this box, the instagram photos will not actually be downloaded and backed-up to your server.</th>
 								<td>
@@ -265,7 +286,6 @@ if ( !empty( $users ) && is_array( $users ) ) {
 										$post_text .= '<p>Instagram filter used: **insta-filter**</p>'."\n";
 										$post_text .= '<p><a href="**insta-link**" target="_blank">View in Instagram &rArr;</a></p>'."\n";
 									}
-									add_filter( 'wp_default_editor', 'dsgnwrks_make_html_default' );
 									$args = array(
 										'textarea_name' => 'dsgnwrks_insta_options['.$id.'][post_content]',
 										'editor_class' => 'post_text',
@@ -408,7 +428,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 							<p class="submit">
 								<input type="submit" id="save-<?php echo sanitize_title( $id ); ?>" name="save" class="button-primary save" value="<?php _e( 'Save' ) ?>" />
 								<?php
-								$importlink = dsgnwrks_get_instimport_link( $opts[$id]['full_username'] );
+								$importlink = $this->instimport_link( $opts[$id]['full_username'] );
 								?>
 								<a href="<?php echo $importlink; ?>" class="button-secondary import-button" id="import-<?php echo $id; ?>">Import</a>
 							</p>
@@ -420,12 +440,12 @@ if ( !empty( $users ) && is_array( $users ) ) {
 					<?php
 				} else {
 					$message = '<p>Welcome to the Instagram Importer! Click to be taken to Instagram\'s site to securely authorize this plugin for use with your account.</p>';
-					dsgnwrks_settings_user_form( $users, $message );
+					$this->settings_user_form( $users, $message );
 				}
 
 				if ( !$nogo ) { ?>
 					<div id="add-another-user" class="help-tab-content <?php echo ( $nofeed == true ) ? ' active' : ''; ?>">
-						<?php dsgnwrks_settings_user_form( $users ); ?>
+						<?php $this->settings_user_form( $users ); ?>
 					</div>
 				<?php } ?>
 				</div>
@@ -441,31 +461,3 @@ if ( !empty( $users ) && is_array( $users ) ) {
 		</div>
 	</div>
 </div>
-
-<?php
-function dsgnwrks_settings_user_form( $users = array(), $message = '' ) {
-
-	$message = $message ? $message : '<p>Click to be taken to Instagram\'s site to securely authorize this plugin for use with your account.</p><p><em>(If you have already authorized an account, You will first be logged out of Instagram.)</em></p>'; ?>
-	<form class="instagram-importer user-authenticate" method="post" action="options.php">
-		<?php
-		settings_fields('dsgnwrks_instagram_importer_users');
-		echo $message;
-		$class = !empty( $users ) ? 'logout' : '';
-		?>
-		<p class="submit">
-			<input type="submit" name="save" class="button-primary authenticate <?php echo $class; ?>" value="<?php _e( 'Secure Authentication with Instagram' ) ?>" />
-		</p>
-	</form>
-
-	<?php
-}
-
-function dsgnwrks_get_instimport_link( $id ) {
-	return add_query_arg( array( 'page' => DSGNWRKSINSTA_ID, 'instaimport' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) );
-}
-
-function dsgnwrks_make_html_default( $default ) {
-	if ( get_current_screen()->id == 'tools_page_dsgnwrks-instagram-importer-settings' )
-		$default = 'html';
-	return $default;
-}
