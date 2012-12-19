@@ -29,7 +29,7 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 1. Upload the `dsgnwrks-instagram-importer` directory to the `/wp-content/plugins/` directory.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. Visit the plugin settings page (`/wp-admin/tools.php?page=dsgnwrks-instagram-importer-settings`) to add your instagram usernames and adjust your import settings. If you want to see how how the output will look, I suggest you set the date filter to the last month or so. If you have a lot of instagram photos, you may want to impor the photos in chunks (set the date further and further back between imports till you have them all).
+3. Visit the plugin settings page (`/wp-admin/tools.php?page=dsgnwrks-instagram-importer-settings`) to add your instagram usernames and adjust your import settings. If you want to see how how the output will look, I suggest you set the date filter to the last month or so. If you have a lot of instagram photos, you may want to import the photos in chunks (set the date further and further back between imports till you have them all) to avoid server overload or timeouts.
 4. Import!
 
 == Frequently Asked Questions ==
