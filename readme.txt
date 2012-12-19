@@ -9,9 +9,9 @@ Author URI: http://about.me/jtsternberg
 Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
-Tested up to: 3.4.1
-Stable tag: 1.0.1
-Version: 1.0.1
+Tested up to: 3.5
+Stable tag: 1.1
+Version: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,12 @@ If you run into a problem or have a question, contact me ([contact form](http://
 
 == Changelog ==
 
+= 1.1 =
+* Convert plugin to an OOP class and remove amazon S3 links from post content. Props to ([@UltraNurd](https://github.com/UltraNurd).
+
+= 1.0.2 =
+* Fixes a bug with new user profile images not showing correctly
+
 = 1.0.1 =
 * Fixed a bug where imported instagram times could be set to the future
 
@@ -52,6 +58,12 @@ If you run into a problem or have a question, contact me ([contact form](http://
 
 
 == Upgrade Notice ==
+
+= 1.1 =
+* Convert plugin to an OOP class and remove amazon S3 links from post content. Props to ([@UltraNurd](https://github.com/UltraNurd).
+
+= 1.0.2 =
+* Fixes a bug with new user profile images not showing correctly
 
 = 1.0.1 =
 * Fixed a bug where imported instagram times could be set to the future
