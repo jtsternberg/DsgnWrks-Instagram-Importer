@@ -46,6 +46,7 @@ class DsgnWrksInstagram {
 			array( $this, 'settings_validate' )
 		);
 
+		// TODO
 		// schedule an hourly cron to pull updates from instagram
 		// if ( !wp_next_scheduled( $this->pre.'cron' ) ) {
 		// 	wp_schedule_event( time(), 'hourly', $this->pre.'cron' );
