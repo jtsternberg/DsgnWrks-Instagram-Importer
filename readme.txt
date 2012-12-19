@@ -10,8 +10,8 @@ Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 3.4.1
-Stable tag: 1.0.2
-Version: 1.0.2
+Stable tag: 1.1
+Version: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,6 +43,9 @@ If you run into a problem or have a question, contact me ([contact form](http://
 2. After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.
 
 == Changelog ==
+
+= 1.0.2 =
+* Fixes a bug with new user profile images not showing correctly
 
 = 1.0.2 =
 * Fixes a bug with new user profile images not showing correctly
