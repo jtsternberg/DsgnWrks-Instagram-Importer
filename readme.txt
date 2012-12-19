@@ -46,7 +46,7 @@ If you run into a problem or have a question, contact me ([contact form](http://
 == Changelog ==
 
 = 1.1 =
-* Convert plugin to an OOP class and remove amazon S3 links from post content. Props to ([@UltraNurd](https://github.com/UltraNurd).
+* Convert plugin to an OOP class and remove amazon S3 links from post content. Props to [@UltraNurd](https://github.com/UltraNurd).
 
 = 1.0.2 =
 * Fixes a bug with new user profile images not showing correctly
@@ -61,7 +61,7 @@ If you run into a problem or have a question, contact me ([contact form](http://
 == Upgrade Notice ==
 
 = 1.1 =
-* Convert plugin to an OOP class and remove amazon S3 links from post content. Props to ([@UltraNurd](https://github.com/UltraNurd).
+* Convert plugin to an OOP class and remove amazon S3 links from post content. Props to [@UltraNurd](https://github.com/UltraNurd).
 
 = 1.0.2 =
 * Fixes a bug with new user profile images not showing correctly
