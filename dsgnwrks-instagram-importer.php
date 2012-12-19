@@ -28,7 +28,7 @@ class DsgnWrksInstagram {
 
 	public function init() {
 
-		$this->plugin_page = add_query_arg( 'page', $this->plugin_id, admin_url( '/tools.php' ) ) );
+		$this->plugin_page = add_query_arg( 'page', $this->plugin_id, admin_url( '/tools.php' ) );
 
 		if ( isset( $_GET['instaimport'] ) ) {
 			set_transient( sanitize_title( urldecode( $_GET['instaimport'] ) ) .'-instaimportdone', date_i18n( 'l F jS, Y @ h:i:s A', strtotime( current_time('mysql') ) ), 14400 );
@@ -36,12 +36,12 @@ class DsgnWrksInstagram {
 
 		// delete_option( 'dsgnwrks_insta_options' );
 		register_setting(
-			$this->$pre .'importer_users',
+			$this->pre .'importer_users',
 			'dsgnwrks_insta_registration',
 			array( $this, 'users_validate' )
 		);
 		register_setting(
-			$this->$pre .'importer_settings',
+			$this->pre .'importer_settings',
 			'dsgnwrks_insta_options',
 			array( $this, 'settings_validate' )
 		);
@@ -114,7 +114,7 @@ class DsgnWrksInstagram {
 
 	public function settings() {
 
-		$plugin_page = add_submenu_page( 'tools.php', $this->$plugin_name, 'Instagram Importer', 'manage_options', $this->plugin_id, array( $this, 'settings_page' ) );
+		$plugin_page = add_submenu_page( 'tools.php', $this->plugin_name, 'Instagram Importer', 'manage_options', $this->plugin_id, array( $this, 'settings_page' ) );
 		add_action( 'admin_print_styles-' . $plugin_page, array( $this, 'styles' ) );
 		add_action( 'admin_print_scripts-' . $plugin_page, array( $this, 'scripts' ) );
 		add_action( 'admin_head-'. $plugin_page, array( $this, 'fire_importer' ) );
