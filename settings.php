@@ -8,13 +8,6 @@ $opts = get_option( 'dsgnwrks_insta_options' );
 $users = get_option( 'dsgnwrks_insta_users' );
 $users = ( !empty( $users ) ) ? $users : array();
 
-// delete_option( 'dsgnwrks_insta_options' );
-// delete_option( 'dsgnwrks_insta_users' );
-
-// super_var_dump( $opts );
-// echo '<pre>'. htmlentities( print_r( $opts, true ) ) .'</pre>';
-// super_var_dump( $users );
-
 $has_notice = get_transient( 'instagram_notification' );
 $notice = '';
 if ( isset( $_GET['notice'] ) && $_GET['notice'] == 'success' && $has_notice ){
