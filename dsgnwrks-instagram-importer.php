@@ -379,35 +379,34 @@ class DsgnWrksInstagram {
 		$import = &$this->import;
 
 		if ( empty( $imgurl ) )
-			return '<p><strong><em>&ldquo;'. $import['post_title'] .'&rdquo; </em> created successfully but image not uploaded.</strong></p>';
+			return $this->upload_error();
 
 		$content = &$import['post_content'];
-		$thumburl = $imgurl;
 
-		if ( !empty( $imgurl ) && $import['featured'] ) {
-			$tmp = download_url( $imgurl );
+		$tmp = download_url( $imgurl );
 
-			preg_match('/[^\?]+\.(jpg|JPG|jpe|JPE|jpeg|JPEG|gif|GIF|png|PNG)/', $imgurl, $matches);
-			$file_array['name'] = basename( $matches[0] );
-			$file_array['tmp_name'] = $tmp;
+		preg_match('/[^\?]+\.(jpg|JPG|jpe|JPE|jpeg|JPEG|gif|GIF|png|PNG)/', $imgurl, $matches);
+		$file_array['name'] = basename( $matches[0] );
+		$file_array['tmp_name'] = $tmp;
 
-			if ( is_wp_error( $tmp ) ) {
-				@unlink( $file_array['tmp_name'] );
-				$file_array['tmp_name'] = '';
-			}
-
-			$img_id = media_handle_sideload( $file_array, $import['post_id'], $import['post_title'] );
-
-			if ( is_wp_error( $img_id ) ) {
-				@unlink( $file_array['tmp_name'] );
-				return $img_id;
-			}
-
-			set_post_thumbnail( $import['post_id'], $img_id );
-			// Replace URLs in post with uploaded image
-			$thumburl = wp_get_attachment_url( $img_id );
-			$imgurl = wp_get_attachment_thumb_url( $img_id );
+		if ( is_wp_error( $tmp ) ) {
+			@unlink( $file_array['tmp_name'] );
+			$file_array['tmp_name'] = '';
 		}
+
+		$img_id = media_handle_sideload( $file_array, $import['post_id'], $import['post_title'] );
+
+		if ( is_wp_error( $img_id ) ) {
+			@unlink( $file_array['tmp_name'] );
+			return $this->upload_error( $imgurl );
+		}
+
+		if ( $import['featured'] )
+			set_post_thumbnail( $import['post_id'], $img_id );
+
+		// Replace URLs in post with uploaded image
+		$thumburl = wp_get_attachment_url( $img_id );
+		$imgurl = wp_get_attachment_thumb_url( $img_id );
 
 		$content = str_replace( '**insta-image**', '<img src="'. $thumburl .'"/>', $content );
 		$content = str_replace( '**insta-image-link**', $imgurl, $content );
@@ -419,6 +418,27 @@ class DsgnWrksInstagram {
 		) );
 
 		return '<p><strong><em>&ldquo;'. $import['post_title'] .'&rdquo; </em> imported and created successfully.</strong></p>';
+	}
+
+	protected function upload_error( $imgurl = false ) {
+
+		$import = &$this->import;
+
+		if ( !$imgurl ) {
+			$import['post_content'] = str_replace( '**insta-image**', 'image error', $import['post_content'] );
+			$import['post_content'] = str_replace( '**insta-image-link**', 'image error', $import['post_content'] );
+		} else {
+			$content = str_replace( '**insta-image**', '<img src="'. $imgurl .'"/>', $content );
+			$content = str_replace( '**insta-image-link**', $imgurl, $content );
+		}
+
+		wp_update_post( array(
+			'ID' => $import['post_id'],
+			'post_content' => $import['post_content'],
+		) );
+
+		return '<p><strong><em>&ldquo;'. $import['post_title'] .'&rdquo; </em> created successfully but there was an error with the image upload.</strong></p>';
+
 	}
 
 	public function redirects() {
