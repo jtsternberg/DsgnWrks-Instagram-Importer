@@ -253,8 +253,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								<tr valign="top">
 								<th scope="row"><strong>Save Instagram photo as post's featured image:</strong></th>
 								<td>
-									<?php $feat_image = isset( $opts[$id]['feat_image'] ) ? (bool) $opts[$id]['feat_image'] : 1; ?>
-									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $id; ?>][feat_image]" <?php checked( $feat_image ); ?>/>
+									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $id; ?>][feat_image]" <?php checked( isset( $opts[$id]['feat_image'] ) ); ?>/>
 								</td>
 								</tr>
 

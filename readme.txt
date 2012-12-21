@@ -10,8 +10,8 @@ Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 3.5
-Stable tag: 1.1.2
-Version: 1.1.2
+Stable tag: 1.1.3
+Version: 1.1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ If you run into a problem or have a question, contact me ([contact form](http://
 
 == Changelog ==
 
+= 1.1.3 =
+* Fixed: When unchecking "set as featured image" the input would still display as checked
+
 = 1.1.2 =
 * Fix infinite redirect when adding a new user
 
@@ -65,6 +68,9 @@ If you run into a problem or have a question, contact me ([contact form](http://
 
 
 == Upgrade Notice ==
+
+= 1.1.3 =
+* Fixed: When unchecking "set as featured image" the input would still display as checked
 
 = 1.1.2 =
 * Fix infinite redirect when adding a new user
