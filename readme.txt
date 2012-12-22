@@ -50,11 +50,6 @@ If you run into a problem or have a question, contact me ([contact form](http://
 * Updated: Default options when first adding a user, including the "insta-location" conditional in the post content.
 * Fixed: When unchecking "set as featured image," the posts would still add the featured image.
 
-= 1.1.4 =
-* Added: Option to conditionally add "insta-text" & "insta-location."
-* Updated: Default options when first adding a user, including the "insta-location" conditional in the post content.
-* Fixed: When unchecking "set as featured image," the posts would still add the featured image.
-
 = 1.1.3 =
 * Fixed: When unchecking "set as featured image" the input would still display as checked
 
