@@ -6,7 +6,7 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.1.3
+Version: 1.1.4
 */
 
 class DsgnWrksInstagram {
@@ -15,9 +15,24 @@ class DsgnWrksInstagram {
 	protected $plugin_id = 'dsgnwrks-instagram-importer-settings';
 	protected $pre = 'dsgnwrks_instagram_';
 	protected $plugin_page;
+	protected $defaults;
 	protected $import = array();
 
 	function __construct() {
+
+		$this->defaults = array(
+			'tag-filter' => false,
+			'feat_image' => 'yes',
+			'date-filter' => 0,
+			'mm' => date( 'm', strtotime( '-1 month' ) ),
+			'dd' => date( 'd', strtotime( '-1 month' ) ),
+			'yy' => date( 'Y', strtotime( '-1 month' ) ),
+			'post-title' => '**insta-text**',
+			'post_content' => '<p><a href="**insta-link**" target="_blank">**insta-image**</a></p>'."\n".'<p>Instagram filter used: **insta-filter**</p>'."\n".'[if-insta-location]<p>Photo taken at: **insta-location**</p>[/if-insta-location]'."\n".'<p><a href="**insta-link**" target="_blank">View in Instagram &rArr;</a></p>',
+			'post-type' => 'post',
+			'draft' => 'draft',
+		);
+
 		add_action( 'admin_init', array( $this, 'init' ) );
 		add_action( $this->pre.'cron', array( $this, 'cron_callback' ) );
 		add_action( 'admin_menu', array( $this, 'settings' ) );
@@ -79,7 +94,6 @@ class DsgnWrksInstagram {
 	public function settings_validate( $opts ) {
 		if ( !empty( $opts ) && is_array( $opts ) ) : foreach ( $opts as $user => $useropts ) {
 			if ( !empty( $useropts ) && is_array( $useropts ) ) : foreach ( $useropts as $key => $opt ) {
-
 				if ( $key === 'date-filter' ) {
 					if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
 						$opts[$user][$key] = 0;
@@ -103,7 +117,7 @@ class DsgnWrksInstagram {
 				} elseif ( $key === 'post_content' ) {
 					$opts[$user][$key] = $this->filter( $opt, 'wp_kses_post' );
 				} elseif ( $key === 'feat_image' ) {
-					$opts[$user][$key] = (bool)$opts[$user][$key];
+					$opts[$user][$key] = $opts[$user][$key] == 'yes' ? 'yes' : false;
 				} else {
 					$opts[$user][$key] = $this->filter( $opt );
 				}
@@ -183,6 +197,8 @@ class DsgnWrksInstagram {
 
 	protected function import_messages( $api_url, $settings, $prevmessages = array() ) {
 
+		$this->settings = $settings;
+
 		$api = wp_remote_retrieve_body( wp_remote_get( $api_url ) );
 		$data = json_decode( $api );
 
@@ -192,7 +208,7 @@ class DsgnWrksInstagram {
 
 		add_filter( 'wp_editor_set_quality', array( $this, 'max_quality' ) );
 		add_filter( 'jpeg_quality', array( $this, 'max_quality' ) );
-		$messages = $this->pic_loop( $data, $settings );
+		$messages = $this->pic_loop( $data );
 
 		$next_url = ( !isset( $data->pagination->next_url ) || isset( $messages['nexturl'] ) && $messages['nexturl'] == 'halt' ) ? '' : $data->pagination->next_url;
 
@@ -213,15 +229,18 @@ class DsgnWrksInstagram {
 		}
 	}
 
-	protected function pic_loop( $data = array(), $settings = array() ) {
+	protected function pic_loop( $data = array() ) {
 
+		$settings = &$this->settings;
 		// avoid http://wordpress.org/support/topic/error-warning-invalid-argument-supplied-for-foreach
 		if ( !isset( $data->data ) )
 			return array();
 
-		foreach ($data->data as $pics) {
+		foreach ( $data->data as $this->pic ) {
 
-			if ( isset( $settings['date-filter'] ) && $settings['date-filter'] > $pics->created_time ) {
+			$pic = &$this->pic;
+
+			if ( isset( $settings['date-filter'] ) && $settings['date-filter'] > $pic->created_time ) {
 				$messages['nexturl'] = 'halt';
 				break;
 			}
@@ -231,7 +250,7 @@ class DsgnWrksInstagram {
 				$in_title = false;
 				if ( $tags ) {
 					foreach ($tags as $tag) {
-						if ( strpos( $pics->caption->text, $tag ) ) $in_title = true;
+						if ( strpos( $pic->caption->text, $tag ) ) $in_title = true;
 					}
 				}
 
@@ -245,7 +264,7 @@ class DsgnWrksInstagram {
 					'meta_query' => array(
 						array(
 							'key' => 'instagram_created_time',
-							'value' => $pics->created_time
+							'value' => $pic->created_time
 						)
 					)
 				)
@@ -254,79 +273,62 @@ class DsgnWrksInstagram {
 				continue;
 			}
 
-			$messages['messages'][] = $this->save_img_post( $pics, $settings );
+			$messages['messages'][] = $this->save_img_post();
 		}
 		return !empty( $messages ) ? $messages : array();
 	}
 
-	protected function save_img_post( $pics, $settings = array(), $tags='' ) {
+	protected function save_img_post() {
+
+		$settings = &$this->settings;
+		$p = &$this->pic;
+		$import = &$this->import;
 
 		global $user_ID;
 
-		$import = &$this->import;
 		$settings = ( empty( $settings ) ) ? get_option( 'dsgnwrks_insta_options' ) : $settings;
 
-		$loc = ( isset( $pics->location->name ) ) ? $pics->location->name : '';
+		$loc = ( isset( $p->location->name ) ) ? $p->location->name : '';
 
-		// if ( $loc ) $loc = ' at '. $loc;
-		$insta_title = !empty( $pics->caption->text ) ? $pics->caption->text : 'Untitled';
-		// if ( $tags ) {
-		// 	$tags = '#'. $tags;
-		// 	$title = str_replace( $tags, '', $title );
-		// }
-		// $title = ($title) ? $title : 'Untitled';
+		$insta_title = !empty( $p->caption->text ) ? $p->caption->text : 'Untitled';
+		$import['post_title'] = $insta_title;
 
 		if ( !empty( $settings['post-title'] ) ) {
-			$import['post_title'] = $settings['post-title'];
-			$import['post_title'] = str_replace( '**insta-text**', $insta_title, $import['post_title'] );
-			$import['post_title'] = str_replace( '**insta-location**', $loc, $import['post_title'] );
-			$import['post_title'] = str_replace( '**insta-filter**', $pics->filter, $import['post_title'] );
-		} else {
-			$import['post_title'] = $insta_title;
+			$import['post_title'] = $this->conditional( 'insta-text', $settings['post-title'], $import['post_title'] );
+			$import['post_title'] = $this->conditional( 'insta-location', $import['post_title'], $loc );
+			$import['post_title'] = str_replace( '**insta-filter**', $p->filter, $import['post_title'] );
 		}
 
-		$imgurl = $pics->images->standard_resolution->url;
-		$insta_url = esc_url( $pics->link );
-		$import['featured'] = isset( $settings['feat_image'] ) ? $settings['feat_image'] : true;
+		$imgurl = $p->images->standard_resolution->url;
+		$insta_url = esc_url( $p->link );
+		$import['featured'] = ( isset( $settings['feat_image'] ) && $settings['feat_image'] == true ) ? true : false;
 
-		$import['post_excerpt'] = !empty( $pics->caption->text ) ? $pics->caption->text : '';
-		// if ( $tags ) {
-		// 	$tags = '#'. $tags;
-		// 	$import['post_excerpt'] = str_replace( $tags, '', $import['post_excerpt'] );
-		// }
-		// $import['post_excerpt'] .= ' (Taken with Instagram'. $loc .')';
-
-		// $content = '';
-		// $image_setting = isset( $settings['image'] ) ? $settings['image'] : '';
-		// if ( !empty( $image_setting ) && $image_setting == 'content' || $image_setting == 'both' )
-		// 	$content .= '<a href="'. $imgurl .'" ><img src="'. $imgurl .'"/></a>';
-		// $content .= '<p>'. $import['post_excerpt'] .'</p>';
-		// $content .= '<p>Instagram filter used: '. $pics->filter .'</p>';
-		// $content .= '<p><a href="'. esc_url( $pics->link ) .'" target="_blank">View in Instagram &rArr;</a></p>';
+		$import['post_excerpt'] = !empty( $p->caption->text ) ? $p->caption->text : '';
 
 		if ( empty( $settings['post_content'] ) ) {
 			$content  = '<p><a href="'. $imgurl .'" target="_blank"><img src="'. $imgurl .'"/></a></p>'."\n";
-			$content .= '<p>'. $import['post_excerpt'] .' (Taken with Instagram at '. $loc .')</p>'."\n";
-			$content .= '<p>Instagram filter used: '. $pics->filter .'</p>'."\n";
+			$content .= '<p>'. $import['post_excerpt'];
+			if ( !empty( $loc ) )
+				$content .= ' (Taken with Instagram at '. $loc .')';
+			$content .= '</p>'."\n";
+			$content .= '<p>Instagram filter used: '. $p->filter .'</p>'."\n";
 			$content .= '<p><a href="'. $insta_url .'" target="_blank">View in Instagram &rArr;</a></p>'."\n";
 		} else {
 			$content = $settings['post_content'];
-			$content = str_replace( '**insta-text**', $import['post_excerpt'], $content );
-			// $content = str_replace( '**insta-image**', '<img src="'. $imgurl .'"/>', $content );
-			// $content = str_replace( '**insta-image-link**', $imgurl, $content );
 			$content = str_replace( '**insta-link**', $insta_url, $content );
-			$content = str_replace( '**insta-location**', $loc, $content );
-			$content = str_replace( '**insta-filter**', $pics->filter, $content );
+			$content = $this->conditional( 'insta-text', $content, $insta_title );
+			$content = $this->conditional( 'insta-location', $content, $loc );
+			$content = str_replace( '**insta-filter**', $p->filter, $content );
 		}
 
 		$import['post_author'] = isset( $settings['author'] ) ? $settings['author'] : $user_ID;
 		$import['post_content'] = $content;
-		$import['post_date'] = date( 'Y-m-d H:i:s', $pics->created_time );
+		$import['post_date'] = date( 'Y-m-d H:i:s', $p->created_time );
 		$import['post_date_gmt'] = $import['post_date'];
 		$import['post_status'] = isset( $settings['draft'] ) ? $settings['draft'] : 'draft';
 		$import['post_type'] = isset( $settings['post-type'] ) ? $settings['post-type'] : 'post';
 
-		apply_filters( 'dsgnwrks_instagram_pre_save', $import, $pics, $settings );
+		apply_filters( 'dsgnwrks_instagram_pre_save', $import, $p, $settings );
 
 		$post = array(
 		  'post_author' => $import['post_author'],
@@ -341,7 +343,7 @@ class DsgnWrksInstagram {
 		$new_post_id = wp_insert_post( $post, true );
 		$import['post_id'] = $new_post_id;
 
-		apply_filters( 'dsgnwrks_instagram_post_save', $new_post_id, $pics );
+		apply_filters( 'dsgnwrks_instagram_post_save', $new_post_id, $p );
 
 		$args = array(
 			'public' => true,
@@ -361,19 +363,19 @@ class DsgnWrksInstagram {
 
 		}
 
-		$insta_data = array( 'count' => $pics->likes->count );
-		if ( !empty( $pics->likes->data ) ) {
-			foreach ( $pics->likes->data as $key => $user ) {
+		$insta_data = array( 'count' => $p->likes->count );
+		if ( !empty( $p->likes->data ) ) {
+			foreach ( $p->likes->data as $key => $user ) {
 				$insta_data['data'][$key] = $user;
 			}
 		}
 
 		update_post_meta( $new_post_id, 'dsgnwrks_instagram_likes', $insta_data );
-		update_post_meta( $new_post_id, 'instagram_created_time', $pics->created_time );
-		update_post_meta( $new_post_id, 'dsgnwrks_instagram_id', $pics->id );
-		update_post_meta( $new_post_id, 'instagram_filter_used', $pics->filter );
-		update_post_meta( $new_post_id, 'instagram_location', $pics->location );
-		update_post_meta( $new_post_id, 'instagram_link', esc_url( $pics->link ) );
+		update_post_meta( $new_post_id, 'instagram_created_time', $p->created_time );
+		update_post_meta( $new_post_id, 'dsgnwrks_instagram_id', $p->id );
+		update_post_meta( $new_post_id, 'instagram_filter_used', $p->filter );
+		update_post_meta( $new_post_id, 'instagram_location', $p->location );
+		update_post_meta( $new_post_id, 'instagram_link', esc_url( $p->link ) );
 
 		return $this->upload_img( $imgurl );
 	}
@@ -445,9 +447,33 @@ class DsgnWrksInstagram {
 
 	}
 
+	protected function conditional( $tag, $content, $data ) {
+
+		$open = '[if-'.$tag.']';
+		$close = '[/if-'.$tag.']';
+		$tag = '**'.$tag.'**';
+
+		if ( ( $pos1 = strpos( $content, $open ) ) && ( $pos2 = strpos( $content, $close ) ) ) {
+
+			if ( !empty( $data ) ) {
+				$content = str_replace( $tag, $data, $content );
+				$content = str_replace( $open, '', $content );
+				$content = str_replace( $close, '', $content );
+			} else {
+				$length = ( $pos2 + strlen( $close ) ) - $pos1;
+				$content = substr_replace( $content, '', $pos1, $length );
+			}
+
+		} else {
+			$content = str_replace( $tag, $data, $content );
+		}
+
+		return $content;
+	}
+
 	public function redirects() {
 
-		if ( isset( $_GET['error'] ) || ( isset( $_GET['access_token'] ) ) )  {
+		if ( isset( $_GET['error'] ) || isset( $_GET['access_token'] ) )  {
 
 			$opts = get_option( 'dsgnwrks_insta_options' );
 
@@ -477,6 +503,11 @@ class DsgnWrksInstagram {
 					$opts[$sanitized_user]['full_name'] = isset( $_GET['full_name'] ) ? $_GET['full_name'] : '';
 					$opts[$sanitized_user]['id'] = isset( $_GET['id'] ) ? $_GET['id'] : '';
 					$opts[$sanitized_user]['full_username'] = $_GET['username'];
+
+					foreach ( $this->defaults as $key => $default ) {
+						$opts[$sanitized_user][$key] = $default;
+					}
+
 					$opts['username'] = $sanitized_user;
 
 					update_option( 'dsgnwrks_insta_users', $users );

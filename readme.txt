@@ -10,8 +10,8 @@ Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 3.5
-Stable tag: 1.1.3
-Version: 1.1.3
+Stable tag: 1.1.4
+Version: 1.1.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,7 +19,7 @@ Backup your instagram photos & display your instagram archive. Supports importin
 
 == Description ==
 
-In the spirit of WordPress and "owning your data," this plugin will allow you to import and backup your instagram photos to your WordPress site. Includes robust options to allow you to control the imported posts formatting including built-in support for WordPress custom post-types, custom taxonomies, post-formats. You can control the content of the title and content of the imported posts using tags like `**insta-image**`, `**insta-text**`, and others. Add an unlimited number of user accounts for backup and importing.
+In the spirit of WordPress and "owning your data," this plugin will allow you to import and backup your instagram photos to your WordPress site. Includes robust options to allow you to control the imported posts formatting including built-in support for WordPress custom post-types, custom taxonomies, post-formats. You can control the content of the title and content of the imported posts using tags like `**insta-image**`, `**insta-text**`, and others, or use the new conditional tags `[if-insta-text]Photo Caption: **insta-text**[/if-insta-text]` and `[if-insta-location]Photo taken at: **insta-location**[/if-insta-location]`. Add an unlimited number of user accounts for backup and importing.
 
 Plugin is built with developers in mind and has many filters to manipulate the imported posts.
 
@@ -45,6 +45,16 @@ If you run into a problem or have a question, contact me ([contact form](http://
 
 == Changelog ==
 
+= 1.1.4 =
+* Added: Option to conditionally add "insta-text" & "insta-location."
+* Updated: Default options when first adding a user, including the "insta-location" conditional in the post content.
+* Fixed: When unchecking "set as featured image," the posts would still add the featured image.
+
+= 1.1.4 =
+* Added: Option to conditionally add "insta-text" & "insta-location."
+* Updated: Default options when first adding a user, including the "insta-location" conditional in the post content.
+* Fixed: When unchecking "set as featured image," the posts would still add the featured image.
+
 = 1.1.3 =
 * Fixed: When unchecking "set as featured image" the input would still display as checked
 
@@ -68,6 +78,11 @@ If you run into a problem or have a question, contact me ([contact form](http://
 
 
 == Upgrade Notice ==
+
+= 1.1.4 =
+* Added: Option to conditionally add "insta-text" & "insta-location."
+* Updated: Default options when first adding a user, including the "insta-location" conditional in the post content.
+* Fixed: When unchecking "set as featured image," the posts would still add the featured image.
 
 = 1.1.3 =
 * Fixed: When unchecking "set as featured image" the input would still display as checked
