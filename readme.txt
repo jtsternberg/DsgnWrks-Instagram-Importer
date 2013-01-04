@@ -29,6 +29,7 @@ Plugin is built with developers in mind and has many filters to manipulate the i
 
 * [http://instadre.com/](http://instadre.com/)
 * [http://photos.jkudish.com/](http://photos.jkudish.com/)
+* [http://photos.jtsternberg.com](http://photos.jtsternberg.com)
 
 (send me your site if you want to be featured here)
 
