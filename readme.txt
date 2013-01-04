@@ -23,6 +23,15 @@ In the spirit of WordPress and "owning your data," this plugin will allow you to
 
 Plugin is built with developers in mind and has many filters to manipulate the imported posts.
 
+--------------------------
+
+= Sites That Have Used the Importer =
+
+* [http://instadre.com/](http://instadre.com/)
+* [http://photos.jkudish.com/](http://photos.jkudish.com/)
+
+(send me your site if you want to be featured here)
+
 Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbMC8N). Feel free to [contribute to this plugin on github](http://j.ustin.co/QbQKpw).
 
 == Installation ==
