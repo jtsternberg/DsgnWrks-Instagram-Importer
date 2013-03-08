@@ -52,7 +52,7 @@ class DsgnWrksInstagram {
 	 */
 	function show_cron_notice() {
 		// check if we have any saved notices from our cron auto-import
-		$notices = get_option( 'dsgnwrks_imported_photos' );
+		$notices = get_option( 'dsgnwrks_imported_photo_notices' );
 		if ( !$notices )
 			return;
 
@@ -65,7 +65,7 @@ class DsgnWrksInstagram {
 		}
 		echo '</div>';
 		// reset notices
-		update_option( 'dsgnwrks_imported_photos', '' );
+		update_option( 'dsgnwrks_imported_photo_notices', '' );
 	}
 
 	/**
@@ -291,10 +291,10 @@ class DsgnWrksInstagram {
 		if ( !$userid ) {
 			echo '<div id="message" class="updated">'. $notice .'</div>';
 		}
-		// otherwise, save our notice to an option to be displayed later
-		else {
+		// otherwise, save our imported photo notices to an option to be displayed later
+		elseif ( stripos( $notice, 'No new Instagram shots to import' ) === false ) {
 			// check if we already have some notices saved
-			$notices = get_option( 'dsgnwrks_imported_photos' );
+			$notices = get_option( 'dsgnwrks_imported_photo_notices' );
 			// if so, add to them
 			if ( is_array( $notices ) )
 				$notices[$userid] = $notice;
@@ -302,7 +302,7 @@ class DsgnWrksInstagram {
 			else
 				$notices = array( $userid => $notice );
 			// save our option
-			update_option( 'dsgnwrks_imported_photos', $notices );
+			update_option( 'dsgnwrks_imported_photo_notices', $notices );
 		}
 
 		// Save the date/time to notify users of last import time
