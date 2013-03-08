@@ -229,28 +229,6 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								</th>
 								</tr>
 
-
-								<!-- <tr valign="top">
-								<th scope="row"><strong>Check for and auto-import posts:</strong></th>
-								<td>
-									<?php
-									$cur_schedule = isset( $o['auto-import'] ) ? $o['auto-import'] : 'never';
-									?>
-
-									<select id="instagram-auto-import-<?php echo $id; ?>" name="dsgnwrks_insta_options[<?php echo $id; ?>][auto-import]">
-										<option value="never" <?php selected( $cur_schedule, 'never' ); ?>>Never</option>
-										<?php
-										$schedules = wp_get_schedules();
-										foreach ( $schedules  as $sched_key => $schedule ) {
-											?>
-											<option value="<?php echo $sched_key; ?>" <?php selected( $cur_schedule, $sched_key ); ?>><?php echo $schedule['display']; ?></option>
-											<?php
-										}
-										?>
-									</select>
-								</td>
-								</tr> -->
-
 								<?php
 								// Our auto-import interval text. "Manual" if not set
 								$interval = empty( $opts['frequency'] ) || $opts['frequency'] == 'never' ? 'Manual' : strtolower( $this->schedules[$opts['frequency']]['display'] );
