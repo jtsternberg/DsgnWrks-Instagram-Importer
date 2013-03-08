@@ -20,6 +20,7 @@ class DsgnWrksInstagram {
 
 	function __construct() {
 
+		// user option defaults
 		$this->defaults = array(
 			'tag-filter' => false,
 			'feat_image' => 'yes',
@@ -37,19 +38,25 @@ class DsgnWrksInstagram {
 		add_action( 'admin_init', array( $this, 'init' ) );
 		add_action( $this->pre.'cron', array( $this, 'cron_callback' ) );
 		add_action( 'admin_menu', array( $this, 'settings' ) );
-		add_action( 'before_delete_post', array( $this, 'save_id_on_delete' ), 10, 1 );
+		// @TODO
+		// add_action( 'before_delete_post', array( $this, 'save_id_on_delete' ), 10, 1 );
 		add_action( 'current_screen', array( $this, 'redirects' ) );
 		add_filter( 'wp_default_editor', array( $this, 'html_default' ) );
-		add_filter( 'cron_schedules', array( $this, 'minutely' ) );
+		// @DEV
+		// add_filter( 'cron_schedules', array( $this, 'minutely' ) );
 		add_action( 'all_admin_notices', array( $this, 'show_cron_notice' ) );
 	}
 
+	/**
+	 * Hooks to 'all_admin_notices' and displays auto-imported photo messages
+	 */
 	function show_cron_notice() {
-
+		// check if we have any saved notices from our cron auto-import
 		$notices = get_option( 'dsgnwrks_imported_photos' );
 		if ( !$notices )
 			return;
 
+		// if so, loop through and display them
 		echo '<div id="message" class="updated">';
 		foreach ( $notices as $userid => $notice ) {
 			echo '<h3>'. $userid .'</h3>';
@@ -57,11 +64,13 @@ class DsgnWrksInstagram {
 			echo '<hr/>';
 		}
 		echo '</div>';
+		// reset notices
 		update_option( 'dsgnwrks_imported_photos', '' );
-
 	}
 
-	// Add import function to cron
+	/**
+	 * Add import function to cron
+	 */
 	public function cron_callback() {
 		$opts = get_option( 'dsgnwrks_insta_options' );
 
@@ -71,8 +80,10 @@ class DsgnWrksInstagram {
 		} endif;
 	}
 
+	/**
+	 * @DEV Adds once minutely to the existing schedules for easier testing.
+	 */
 	function minutely( $schedules ) {
-		// Adds once minutely to the existing schedules.
 		$schedules['minutely'] = array(
 			'interval' => 60,
 			'display' => __( 'Once Every Minute' )
@@ -80,57 +91,58 @@ class DsgnWrksInstagram {
 		return $schedules;
 	}
 
-
+	/**
+	 * Get the party started
+	 */
 	public function init() {
 
+		// Set our plugin page parameter
 		$this->plugin_page = add_query_arg( 'page', $this->plugin_id, admin_url( '/tools.php' ) );
 
-		if ( isset( $_GET['instaimport'] ) ) {
-			set_transient( sanitize_title( urldecode( $_GET['instaimport'] ) ) .'-instaimportdone', date_i18n( 'l F jS, Y @ h:i:s A', strtotime( current_time('mysql') ) ), 14400 );
-		}
-
-		// delete_option( 'dsgnwrks_insta_options' );
+		// A pseudo setting. redirects to instagram oauth
 		register_setting(
 			$this->pre .'importer_users',
 			'dsgnwrks_insta_registration',
 			array( $this, 'users_validate' )
 		);
+		// validate user options settings
 		register_setting(
 			$this->pre .'importer_settings',
 			'dsgnwrks_insta_options',
 			array( $this, 'settings_validate' )
 		);
 
-		// schedule a cron to pull updates from instagram
 		$opts = get_option( 'dsgnwrks_insta_options' );
 		if ( empty( $opts['frequency'] ) || $opts['frequency'] == 'never' )
 			return;
 
+		// if a auto-import frequency interval was saved,
 		if ( !wp_next_scheduled( $this->pre.'cron' ) ) {
+			// schedule a cron to pull updates from instagram
 			wp_schedule_event( time(), $opts['frequency'], $this->pre.'cron' );
 		}
 	}
 
+	/**
+	 * A pseudo setting validation. Sends user on to instagram to be authenticated.
+	 */
 	public function users_validate( $opts ) {
-
-		$dsgnwrks = 'http://dsgnwrks.pro/insta_oauth/';
-		$instagram = 'https://api.instagram.com/oauth/authorize/';
 		$return = add_query_arg( array( 'page' => $this->plugin_id ), admin_url('/tools.php') );
-
-		$uri = add_query_arg( 'return_uri', urlencode( $return ), $dsgnwrks );
-
+		$uri = add_query_arg( 'return_uri', urlencode( $return ), 'http://dsgnwrks.pro/insta_oauth/' );
+		// Send them on with our redirect uri set.
 		wp_redirect( $uri, 307 );
 		exit;
-
-		// wp_die( '<pre>'. print_r( $uri, true ) .'</pre>' );
-		return $opts;
 	}
 
+	/**
+	 * Validate each of our user options with an appropriate filter
+	 */
 	public function settings_validate( $opts ) {
-
+		// get existing saved options to check against
 		$old_opts = get_option( 'dsgnwrks_insta_options' );
-
+		// loop through options (users)
 		if ( !empty( $opts ) && is_array( $opts ) ) : foreach ( $opts as $user => $useropts ) {
+			// loop through options (user's options)
 			if ( !empty( $useropts ) && is_array( $useropts ) ) : foreach ( $useropts as $key => $opt ) {
 				if ( $key === 'date-filter' ) {
 					if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
@@ -155,76 +167,112 @@ class DsgnWrksInstagram {
 				} elseif ( $key === 'post_content' ) {
 					$opts[$user][$key] = $this->filter( $opt, 'wp_kses_post' );
 				} elseif ( $key === 'feat_image' || $key === 'auto_import' ) {
+					// checkboxes
 					$opts[$user][$key] = $opts[$user][$key] == 'yes' ? 'yes' : false;
 				} else {
+					// defaults to esc_attr() validation
 					$opts[$user][$key] = $this->filter( $opt );
 				}
 
 			} endif;
 
+			// if our 'frequency' interval was set
 			if ( $user === 'frequency' ) {
 				$opts[$user] = $this->filter( $useropts );
+				// and if our newly saved 'frequency' is different
+				// clear the previously scheduled hook
 				if ( $opts[$user] != $old_opts['frequency'] )
 					wp_clear_scheduled_hook( $this->pre.'cron' );
 			}
 		} endif;
+
+		// ok, we're done validating the options, so give them back
 		return $opts;
 	}
 
+	/**
+	 * hooks to 'admin_menu', adds our submenu page and corresponding scripts/styles
+	 */
 	public function settings() {
-
+		// create admin page
 		$plugin_page = add_submenu_page( 'tools.php', $this->plugin_name, 'Instagram Importer', 'manage_options', $this->plugin_id, array( $this, 'settings_page' ) );
+		// enqueue styles
 		add_action( 'admin_print_styles-' . $plugin_page, array( $this, 'styles' ) );
+		// enqueue scripts
 		add_action( 'admin_print_scripts-' . $plugin_page, array( $this, 'scripts' ) );
+		// run our importer only on our admin page when clicking "import"
 		add_action( 'admin_head-'. $plugin_page, array( $this, 'fire_importer' ) );
 	}
 
+	/**
+	 * Creates our admin page
+	 */
 	public function settings_page() { require_once('settings.php'); }
 
+	/**
+	 * Enqueue our admin page's CSS
+	 */
 	public function styles() {
 		wp_enqueue_style( 'dsgnwrks-instagram-importer-admin', plugins_url( 'css/admin.css', __FILE__ ), false, '1.1' );
 	}
 
+	/**
+	 * Enqueue our admin page's JS
+	 */
 	public function scripts() {
 		wp_enqueue_script( 'dsgnwrks-instagram-importer-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ) );
 
-		$args = array(
-		  'public'   => true,
-		);
-		$cpts = get_post_types( $args );
+		// get registered post-types
+		$cpts = get_post_types( array( 'public' => true ) );
 		foreach ($cpts as $key => $cpt) {
+			// get registered taxonomies
 			$taxes = get_object_taxonomies( $cpt );
 			if ( !empty( $taxes ) ) $data['cpts'][$cpt][] = $taxes;
 		}
-		if ( !empty( $data ) ) wp_localize_script( 'dsgnwrks-instagram-importer-admin', 'dwinstagram', $data );
-
+		// and save that data for use in our script
+		if ( !empty( $data ) )
+			wp_localize_script( 'dsgnwrks-instagram-importer-admin', 'dwinstagram', $data );
 	}
 
+	/**
+	 * hooks into our admin page's head and fires the importer if requested
+	 */
 	public function fire_importer() {
-
-		if ( isset( $_GET['instaimport'] ) ) {
+		if ( isset( $_GET['instaimport'] ) )
 			add_action( 'all_admin_notices', array( $this, 'import' ) );
-		}
 	}
 
+	/**
+	 * Start the engine. begins our import and generates feedback messages
+	 */
 	public function import( $userid = false ) {
 
+		// Only import if the correct flags have been set
 		if ( !$userid && !isset( $_GET['instaimport'] ) )
 			return;
-
+		// get our options for use in the import
 		$opts = get_option( 'dsgnwrks_insta_options' );
+		// instagram user id for pinging instagram
 		$id = $userid ? $userid : sanitize_title( urldecode( $_GET['instaimport'] ) );
+		// if a $userid was passed in, we know we're doing a cron scheduled event
 		$this->doing_cron = $userid ? true : false;
-		$notice = '';
 
+		// We need an id and access token to keep going
 		if ( !( isset( $opts[$id]['id'] ) && isset( $opts[$id]['access_token'] ) ) )
 			return;
 
+		// init our variable
+		$notice = '';
+
+		// if a timezone string was saved
 		if ( $tz_string = get_option('timezone_string') ) {
+			// save our current date to a var
 			$pre = date('e');
+		 	// and tell php to use WP's timezone string
 			date_default_timezone_set( get_option('timezone_string') );
 		}
 
+		// ok, let's access instagram's api
 		$messages = $this->import_messages( 'https://api.instagram.com/v1/users/'. $opts[$id]['id'] .'/media/recent?access_token='. $opts[$id]['access_token'] .'&count=80', $opts[$id] );
 
 		while ( !empty( $messages['next_url'] ) ) {
@@ -235,6 +283,7 @@ class DsgnWrksInstagram {
 			$notice .= $message;
 		}
 
+		// return php's timezone to its previously set value
 		if ( $tz_string )
 			date_default_timezone_set( $pre );
 
@@ -251,6 +300,8 @@ class DsgnWrksInstagram {
 
 			update_option( 'dsgnwrks_imported_photos', $notices );
 		}
+		// Save the date/time to notify users of last import time
+		set_transient( sanitize_title( urldecode( $_GET['instaimport'] ) ) .'-instaimportdone', date_i18n( 'l F jS, Y @ h:i:s A', strtotime( current_time('mysql') ) ), 14400 );
 	}
 
 	protected function import_messages( $api_url, $settings, $prevmessages = array() ) {
@@ -623,6 +674,7 @@ class DsgnWrksInstagram {
 		return (int) 100;
 	}
 
+	// @TODO
 	public function save_id_on_delete( $post_id ) {
 		get_post_meta( $post_id, 'instagram_created_time', true );
 	}
