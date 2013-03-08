@@ -251,8 +251,19 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								</td>
 								</tr> -->
 
-								<tr valign="top">
-								<th scope="row"><strong>Save Instagram photo as post's featured image:</strong></th>
+								<?php
+								// Our auto-import interval text. "Manual" if not set
+								$interval = empty( $opts['frequency'] ) || $opts['frequency'] == 'never' ? 'Manual' : strtolower( $this->schedules[$opts['frequency']]['display'] );
+								?>
+								<tr valign="top"<?php echo $interval == 'Manual' ? ' class="disabled"' : ''; ?>>
+								<th scope="row">
+									<strong>Auto-import future photos:</strong><br/>
+									<?php if ( $interval == 'Manual' ) : ?>
+									<em>Change import interval from "Manual" in the "Plugin Options" tab for this option to take effect.</em>
+									<?php else : ?>
+									Change import interval (<?php echo $interval; ?>) in the "Plugin Options" tab.
+									<?php endif; ?>
+								</th>
 								<td>
 									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $id; ?>][feat_image]" <?php checked( isset( $o['feat_image'] ) ); ?> value="yes"/>
 								</td>
