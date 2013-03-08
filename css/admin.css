@@ -15,6 +15,9 @@
 	border: none;
 	border-bottom: 10px solid #fff;
 }
+.instagram-importer tr.disabled th strong, .instagram-importer tr.disabled input {
+	opacity: .6;
+}
 .instagram-importer .form-table tr code {
 	background: #fff;
 }

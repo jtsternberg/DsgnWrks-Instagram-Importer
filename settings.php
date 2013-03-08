@@ -243,10 +243,18 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								</td>
 								</tr>
 
-								<tr valign="top">
+								<?php
+								// Our auto-import interval text. "Manual" if not set
+								$interval = empty( $opts['frequency'] ) || $opts['frequency'] == 'never' ? 'Manual' : strtolower( $this->schedules[$opts['frequency']]['display'] );
+								?>
+								<tr valign="top"<?php echo $interval == 'Manual' ? ' class="disabled"' : ''; ?>>
 								<th scope="row">
-									<!-- $this->schedules -->
-									<strong>Auto-import future photos:</strong><br/>Change import interval (<?php echo strtolower( $this->schedules[$opts['frequency']]['display'] ); ?>) in the "Plugin Options."
+									<strong>Auto-import future photos:</strong><br/>
+									<?php if ( $interval == 'Manual' ) : ?>
+									<em>Change import interval from "Manual" in the "Plugin Options" tab for this option to take effect.</em>
+									<?php else : ?>
+									Change import interval (<?php echo $interval; ?>) in the "Plugin Options" tab.
+									<?php endif; ?>
 								</th>
 								<td>
 									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $id; ?>][auto_import]" <?php checked( isset( $o['auto_import'] ) ); ?> value="yes"/>

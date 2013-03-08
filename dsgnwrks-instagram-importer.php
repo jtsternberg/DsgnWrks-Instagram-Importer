@@ -101,9 +101,11 @@ class DsgnWrksInstagram {
 			array( $this, 'settings_validate' )
 		);
 
-		// @TODO
 		// schedule a cron to pull updates from instagram
 		$opts = get_option( 'dsgnwrks_insta_options' );
+		if ( empty( $opts['frequency'] ) || $opts['frequency'] == 'never' )
+			return;
+
 		if ( !wp_next_scheduled( $this->pre.'cron' ) ) {
 			wp_schedule_event( time(), $opts['frequency'], $this->pre.'cron' );
 		}
@@ -212,6 +214,7 @@ class DsgnWrksInstagram {
 
 		$opts = get_option( 'dsgnwrks_insta_options' );
 		$id = $userid ? $userid : sanitize_title( urldecode( $_GET['instaimport'] ) );
+		$this->doing_cron = $userid ? true : false;
 		$notice = '';
 
 		if ( !( isset( $opts[$id]['id'] ) && isset( $opts[$id]['access_token'] ) ) )
@@ -318,6 +321,7 @@ class DsgnWrksInstagram {
 			$alreadyInSystem = new WP_Query(
 				array(
 					'post_type' => $pt,
+					'post_status' => 'any',
 					'meta_query' => array(
 						array(
 							'key' => 'instagram_created_time',
@@ -328,8 +332,6 @@ class DsgnWrksInstagram {
 			);
 			if ( $alreadyInSystem->have_posts() )
 				continue;
-
-			break;
 
 			$messages['messages'][] = $this->save_img_post();
 		}
@@ -447,6 +449,12 @@ class DsgnWrksInstagram {
 			return $this->upload_error();
 
 		$content = &$import['post_content'];
+
+		if ( $this->doing_cron ) {
+			require_once (ABSPATH.'/wp-admin/includes/file.php');
+			require_once (ABSPATH.'/wp-admin/includes/media.php');
+			require_once (ABSPATH.'/wp-admin/includes/image.php');
+		}
 
 		$tmp = download_url( $imgurl );
 
@@ -617,7 +625,6 @@ class DsgnWrksInstagram {
 
 	public function save_id_on_delete( $post_id ) {
 		get_post_meta( $post_id, 'instagram_created_time', true );
-
 	}
 
 	protected function settings_user_form( $users = array(), $message = '' ) {
@@ -651,6 +658,7 @@ class DsgnWrksInstagram {
 					<th scope="row"><strong>Set Auto-import Frequency:</strong></th>
 					<td>
 						<select name="dsgnwrks_insta_options[frequency]">
+							<option value="never" <?php echo selected( $this->opts['frequency'], 'never' ); ?>>Manual</option>
 							<?php
 							foreach ( $this->schedules as $key => $value ) {
 								echo '<option value="'. $key .'"'. selected( $this->opts['frequency'], $key, false ) .'>'. $value['display'] .'</option>';
