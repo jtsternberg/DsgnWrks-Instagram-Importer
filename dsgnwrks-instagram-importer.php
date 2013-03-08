@@ -59,8 +59,8 @@ class DsgnWrksInstagram {
 		// if so, loop through and display them
 		echo '<div id="message" class="updated">';
 		foreach ( $notices as $userid => $notice ) {
-			echo '<h3>'. $userid .'</h3>';
-			echo $notice;
+			echo '<h3>'. $userid .' &mdash; imported: '. $notice['time'] .'</h3>';
+			echo $notice['notice'];
 			echo '<hr/>';
 		}
 		echo '</div>';
@@ -287,6 +287,9 @@ class DsgnWrksInstagram {
 			$notice .= $message;
 		}
 
+		// get our current time
+		$time = date_i18n( 'l F jS, Y @ h:i:s A', strtotime( current_time('mysql') ) );
+
 		// if we're not doing cron, show our notice now
 		if ( !$userid ) {
 			echo '<div id="message" class="updated">'. $notice .'</div>';
@@ -297,16 +300,16 @@ class DsgnWrksInstagram {
 			$notices = get_option( 'dsgnwrks_imported_photo_notices' );
 			// if so, add to them
 			if ( is_array( $notices ) )
-				$notices[$userid] = $notice;
+				$notices[$userid] = array( 'notice' => $notice, 'time' => $time );
 			// if not, create a new one
 			else
-				$notices = array( $userid => $notice );
+				$notices = array( $userid => array( 'notice' => $notice, 'time' => $time ) );
 			// save our option
 			update_option( 'dsgnwrks_imported_photo_notices', $notices );
 		}
 
 		// Save the date/time to notify users of last import time
-		set_transient( sanitize_title( urldecode( $_GET['instaimport'] ) ) .'-instaimportdone', date_i18n( 'l F jS, Y @ h:i:s A', strtotime( current_time('mysql') ) ), 14400 );
+		set_transient( sanitize_title( urldecode( $_GET['instaimport'] ) ) .'-instaimportdone', $time, 14400 );
 	}
 
 	/**
