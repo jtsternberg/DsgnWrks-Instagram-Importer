@@ -4,7 +4,7 @@ jQuery(document).ready(function($) {
 
 		show_tax_blocks_init();
 
-		$('.tab-instagram-user a').click(function() {
+		$('.instagram-tab a').click(function() {
 			show_tax_blocks_init($(this).text());
 		});
 
@@ -56,7 +56,7 @@ jQuery(document).ready(function($) {
 	// $('.dw-pw-form').width(width-85);
 
 	$('.button-primary.save').click(function(event) {
-		var curr_user = $.trim($('.tab-instagram-user.active').text());
+		var curr_user = $.trim($('.instagram-tab.active').text());
 		$('input[name="dsgnwrks_insta_options[username]"]').val(curr_user);
 		// event.preventDefault();
 	});
@@ -64,7 +64,7 @@ jQuery(document).ready(function($) {
 	$('.save-warning').hide();
 	// $('.dw-pw-form').hide();
 	$('.user-options input, .user-options select').change(function() {
-		var curr_user = $.trim($('.tab-instagram-user.active').text());
+		var curr_user = $.trim($('.instagram-tab.active').text());
 		$('.save-warning.user-'+curr_user).show();
 	});
 

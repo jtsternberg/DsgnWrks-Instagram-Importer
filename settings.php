@@ -4,8 +4,12 @@ if ( !current_user_can( 'manage_options' ) )  {
 }
 add_thickbox();
 
-$opts = get_option( 'dsgnwrks_insta_options' );
-$users = get_option( 'dsgnwrks_insta_users' );
+$this->opts = get_option( 'dsgnwrks_insta_options' );
+$this->users = get_option( 'dsgnwrks_insta_users' );
+$opts = &$this->opts;
+$users = &$this->users;
+$this->schedules = wp_get_schedules();
+
 $users = ( !empty( $users ) ) ? $users : array();
 
 $has_notice = get_transient( 'instagram_notification' );
@@ -83,7 +87,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								}
 
 								?>
-								<li class="tab-instagram-user<?php echo $class; ?>" id="tab-instagram-user-<?php echo $id; ?>">
+								<li class="instagram-tab<?php echo $class; ?>" id="tab-instagram-user-<?php echo $id; ?>">
 									<a href="#instagram-user-<?php echo $id; ?>"><?php echo $opts[$id]['full_username']; ?></a>
 								</li>
 								<?php
@@ -92,7 +96,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 							$user = 'Create User';
 							$class = str_replace( ' ', '', strtolower( $user ) );
 							?>
-							<li class="tab-instagram-user active" id="tab-instagram-user-<?php echo $class; ?>">
+							<li class="instagram-tab active" id="tab-instagram-user-<?php echo $class; ?>">
 								<a href="#instagram-user-<?php echo $class; ?>"><?php echo $user; ?></a>
 							</li>
 							<?php
@@ -101,6 +105,9 @@ if ( !empty( $users ) && is_array( $users ) ) {
 						if ( !$nogo ) { ?>
 							<li id="tab-add-another-user" <?php echo ( $nofeed == true ) ? 'class="active"' : ''; ?>>
 								<a href="#add-another-user">Add Another User</a>
+							</li>
+							<li class="instagram-tab <?php echo isset( $opts['username'] ) && $opts['username'] == 'Plugin Options' ? ' active' : ''; ?>" id="tab-universal-options">
+								<a href="#universal-options">Plugin Options</a>
 							</li>
 						<?php } ?>
 					</ul>
@@ -229,32 +236,20 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								</th>
 								</tr>
 
-
-								<!-- <tr valign="top">
-								<th scope="row"><strong>Check for and auto-import posts:</strong></th>
-								<td>
-									<?php
-									$cur_schedule = isset( $o['auto-import'] ) ? $o['auto-import'] : 'never';
-									?>
-
-									<select id="instagram-auto-import-<?php echo $id; ?>" name="dsgnwrks_insta_options[<?php echo $id; ?>][auto-import]">
-										<option value="never" <?php selected( $cur_schedule, 'never' ); ?>>Never</option>
-										<?php
-										$schedules = wp_get_schedules();
-										foreach ( $schedules  as $sched_key => $schedule ) {
-											?>
-											<option value="<?php echo $sched_key; ?>" <?php selected( $cur_schedule, $sched_key ); ?>><?php echo $schedule['display']; ?></option>
-											<?php
-										}
-										?>
-									</select>
-								</td>
-								</tr> -->
-
 								<tr valign="top">
 								<th scope="row"><strong>Save Instagram photo as post's featured image:</strong></th>
 								<td>
 									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $id; ?>][feat_image]" <?php checked( isset( $o['feat_image'] ) ); ?> value="yes"/>
+								</td>
+								</tr>
+
+								<tr valign="top">
+								<th scope="row">
+									<!-- $this->schedules -->
+									<strong>Auto-import future photos:</strong><br/>Change import interval (<?php echo strtolower( $this->schedules[$opts['frequency']]['display'] ); ?>) in the "Plugin Options."
+								</th>
+								<td>
+									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $id; ?>][auto_import]" <?php checked( isset( $o['auto_import'] ) ); ?> value="yes"/>
 								</td>
 								</tr>
 
@@ -421,7 +416,11 @@ if ( !empty( $users ) && is_array( $users ) ) {
 						</div>
 						<?php
 					}
+
 					?>
+					<div id="universal-options" class="help-tab-content instagram-importer <?php echo isset( $opts['username'] ) && $opts['username'] == 'Plugin Options' ? ' active' : ''; ?>">
+						<?php $this->universal_options_form(); ?>
+					</div>
 					</form>
 					<?php
 				} else {
