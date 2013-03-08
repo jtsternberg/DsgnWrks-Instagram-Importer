@@ -23,6 +23,7 @@ class DsgnWrksInstagram {
 		$this->defaults = array(
 			'tag-filter' => false,
 			'feat_image' => 'yes',
+			'auto_import' => 'yes',
 			'date-filter' => 0,
 			'mm' => date( 'm', strtotime( '-1 month' ) ),
 			'dd' => date( 'd', strtotime( '-1 month' ) ),
@@ -39,7 +40,46 @@ class DsgnWrksInstagram {
 		add_action( 'before_delete_post', array( $this, 'save_id_on_delete' ), 10, 1 );
 		add_action( 'current_screen', array( $this, 'redirects' ) );
 		add_filter( 'wp_default_editor', array( $this, 'html_default' ) );
+		add_filter( 'cron_schedules', array( $this, 'minutely' ) );
+		add_action( 'all_admin_notices', array( $this, 'show_cron_notice' ) );
 	}
+
+	function show_cron_notice() {
+
+		$notices = get_option( 'dsgnwrks_imported_photos' );
+		if ( !$notices )
+			return;
+
+		echo '<div id="message" class="updated">';
+		foreach ( $notices as $userid => $notice ) {
+			echo '<h3>'. $userid .'</h3>';
+			echo $notice;
+			echo '<hr/>';
+		}
+		echo '</div>';
+		update_option( 'dsgnwrks_imported_photos', '' );
+
+	}
+
+	// Add import function to cron
+	public function cron_callback() {
+		$opts = get_option( 'dsgnwrks_insta_options' );
+
+		if ( !empty( $opts ) && is_array( $opts ) ) : foreach ( $opts as $user => $useropts ) {
+			if ( isset( $useropts['auto_import'] ) && $useropts['auto_import'] == 'yes' )
+				$this->import( $user );
+		} endif;
+	}
+
+	function minutely( $schedules ) {
+		// Adds once minutely to the existing schedules.
+		$schedules['minutely'] = array(
+			'interval' => 60,
+			'display' => __( 'Once Every Minute' )
+		);
+		return $schedules;
+	}
+
 
 	public function init() {
 
@@ -61,18 +101,11 @@ class DsgnWrksInstagram {
 			array( $this, 'settings_validate' )
 		);
 
-		// TODO
-		// schedule an hourly cron to pull updates from instagram
-		// if ( !wp_next_scheduled( $this->pre.'cron' ) ) {
-		// 	wp_schedule_event( time(), 'hourly', $this->pre.'cron' );
-		// }
-	}
-
-	// Add import function to cron
-	public function cron_callback() {
+		// @TODO
+		// schedule a cron to pull updates from instagram
 		$opts = get_option( 'dsgnwrks_insta_options' );
-		foreach ( $opts as $key => $opt ) {
-			# code...
+		if ( !wp_next_scheduled( $this->pre.'cron' ) ) {
+			wp_schedule_event( time(), $opts['frequency'], $this->pre.'cron' );
 		}
 	}
 
@@ -92,6 +125,9 @@ class DsgnWrksInstagram {
 	}
 
 	public function settings_validate( $opts ) {
+
+		$old_opts = get_option( 'dsgnwrks_insta_options' );
+
 		if ( !empty( $opts ) && is_array( $opts ) ) : foreach ( $opts as $user => $useropts ) {
 			if ( !empty( $useropts ) && is_array( $useropts ) ) : foreach ( $useropts as $key => $opt ) {
 				if ( $key === 'date-filter' ) {
@@ -116,13 +152,19 @@ class DsgnWrksInstagram {
 					}
 				} elseif ( $key === 'post_content' ) {
 					$opts[$user][$key] = $this->filter( $opt, 'wp_kses_post' );
-				} elseif ( $key === 'feat_image' ) {
+				} elseif ( $key === 'feat_image' || $key === 'auto_import' ) {
 					$opts[$user][$key] = $opts[$user][$key] == 'yes' ? 'yes' : false;
 				} else {
 					$opts[$user][$key] = $this->filter( $opt );
 				}
 
 			} endif;
+
+			if ( $user === 'frequency' ) {
+				$opts[$user] = $this->filter( $useropts );
+				if ( $opts[$user] != $old_opts['frequency'] )
+					wp_clear_scheduled_hook( $this->pre.'cron' );
+			}
 		} endif;
 		return $opts;
 	}
@@ -163,36 +205,49 @@ class DsgnWrksInstagram {
 		}
 	}
 
-	public function import() {
+	public function import( $userid = false ) {
+
+		if ( !$userid && !isset( $_GET['instaimport'] ) )
+			return;
 
 		$opts = get_option( 'dsgnwrks_insta_options' );
-		$id = sanitize_title( urldecode( $_GET['instaimport'] ) );
+		$id = $userid ? $userid : sanitize_title( urldecode( $_GET['instaimport'] ) );
+		$notice = '';
 
-		if ( isset( $opts[$id]['id'] ) && isset( $opts[$id]['access_token'] ) ) {
-			echo '<div id="message" class="updated">';
+		if ( !( isset( $opts[$id]['id'] ) && isset( $opts[$id]['access_token'] ) ) )
+			return;
 
-			if ( $tz_string = get_option('timezone_string') ) {
-				$pre = date('e');
-				date_default_timezone_set( get_option('timezone_string') );
-			}
-
-			$messages = $this->import_messages( 'https://api.instagram.com/v1/users/'. $opts[$id]['id'] .'/media/recent?access_token='. $opts[$id]['access_token'] .'&count=80', $opts[$id] );
-
-			while ( !empty( $messages['next_url'] ) ) {
-				$messages = $this->import_messages( $messages['next_url'], $opts[$id], $messages['message'] );
-			}
-
-			foreach ( $messages['message'] as $key => $message ) {
-				echo $message;
-			}
-
-			if ( $tz_string )
-				date_default_timezone_set( $pre );
-
-			echo '</div>';
-
+		if ( $tz_string = get_option('timezone_string') ) {
+			$pre = date('e');
+			date_default_timezone_set( get_option('timezone_string') );
 		}
 
+		$messages = $this->import_messages( 'https://api.instagram.com/v1/users/'. $opts[$id]['id'] .'/media/recent?access_token='. $opts[$id]['access_token'] .'&count=80', $opts[$id] );
+
+		while ( !empty( $messages['next_url'] ) ) {
+			$messages = $this->import_messages( $messages['next_url'], $opts[$id], $messages['message'] );
+		}
+
+		foreach ( $messages['message'] as $key => $message ) {
+			$notice .= $message;
+		}
+
+		if ( $tz_string )
+			date_default_timezone_set( $pre );
+
+		if ( !$userid ) {
+			echo '<div id="message" class="updated">'. $notice .'</div>';
+		} else {
+
+			$notices = get_option( 'dsgnwrks_imported_photos' );
+
+			if ( is_array( $notices ) )
+				$notices[$userid] = $notice;
+			else
+				$notices = array( $userid => $notice );
+
+			update_option( 'dsgnwrks_imported_photos', $notices );
+		}
 	}
 
 	protected function import_messages( $api_url, $settings, $prevmessages = array() ) {
@@ -227,13 +282,15 @@ class DsgnWrksInstagram {
 				'next_url' => $next_url,
 			);
 		}
+
+
 	}
 
 	protected function pic_loop( $data = array() ) {
 
 		$settings = &$this->settings;
 		// avoid http://wordpress.org/support/topic/error-warning-invalid-argument-supplied-for-foreach
-		if ( !isset( $data->data ) )
+		if ( !isset( $data->data ) || !is_array( $data->data ) )
 			return array();
 
 		foreach ( $data->data as $this->pic ) {
@@ -269,12 +326,14 @@ class DsgnWrksInstagram {
 					)
 				)
 			);
-			if ( $alreadyInSystem->have_posts() ) {
+			if ( $alreadyInSystem->have_posts() )
 				continue;
-			}
+
+			break;
 
 			$messages['messages'][] = $this->save_img_post();
 		}
+
 		return !empty( $messages ) ? $messages : array();
 	}
 
@@ -509,6 +568,7 @@ class DsgnWrksInstagram {
 					}
 
 					$opts['username'] = $sanitized_user;
+					$opts['frequency'] = 'daily';
 
 					update_option( 'dsgnwrks_insta_users', $users );
 					update_option( 'dsgnwrks_insta_options', $opts );
@@ -574,6 +634,36 @@ class DsgnWrksInstagram {
 			</p>
 		</form>
 
+		<?php
+	}
+
+	protected function universal_options_form() {
+		?>
+		<table class="form-table">
+			<tbody>
+				<tr valign="top" class="info">
+					<th colspan="2">
+						<h3><img class="alignleft" src="<?php echo plugins_url( 'images/merge.png', __FILE__ ); ?>" width="83" height="66">Universal Import Options</h3>
+						<p>Please select the general import options below.</p>
+					</th>
+				</tr>
+				<tr valign="top">
+					<th scope="row"><strong>Set Auto-import Frequency:</strong></th>
+					<td>
+						<select name="dsgnwrks_insta_options[frequency]">
+							<?php
+							foreach ( $this->schedules as $key => $value ) {
+								echo '<option value="'. $key .'"'. selected( $this->opts['frequency'], $key, false ) .'>'. $value['display'] .'</option>';
+							}
+							?>
+						</select>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<p class="submit">
+			<input type="submit" name="save" class="button-primary save" value="<?php _e( 'Save' ) ?>" />
+		</p>
 		<?php
 	}
 
