@@ -27,9 +27,9 @@ Plugin is built with developers in mind and has many filters to manipulate the i
 
 = Sites That Have Used the Importer =
 
-* [instadre.com](http://instadre.com/)
-* [photos.jkudish.com](http://photos.jkudish.com/)
-* [photos.jtsternberg.com](http://photos.jtsternberg.com)
+* [http://instadre.com/](http://instadre.com/)
+* [http://photos.jkudish.com/](http://photos.jkudish.com/)
+* [http://photos.jtsternberg.com](http://photos.jtsternberg.com)
 
 (send me your site if you want to be featured here)
 
