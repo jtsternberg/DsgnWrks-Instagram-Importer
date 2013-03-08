@@ -24,6 +24,7 @@ class DsgnWrksInstagram {
 		$this->defaults = array(
 			'tag-filter' => false,
 			'feat_image' => 'yes',
+			'auto_import' => 'yes',
 			'date-filter' => 0,
 			'mm' => date( 'm', strtotime( '-1 month' ) ),
 			'dd' => date( 'd', strtotime( '-1 month' ) ),
@@ -722,6 +723,7 @@ class DsgnWrksInstagram {
 					}
 
 					$opts['username'] = $sanitized_user;
+					$opts['frequency'] = 'daily';
 
 					update_option( 'dsgnwrks_insta_users', $users );
 					update_option( 'dsgnwrks_insta_options', $opts );
