@@ -10,8 +10,8 @@ Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 3.5
-Stable tag: 1.1.4
-Version: 1.1.4
+Stable tag: 1.2.0
+Version: 1.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,15 +21,18 @@ Backup your instagram photos & display your instagram archive. Supports importin
 
 In the spirit of WordPress and "owning your data," this plugin will allow you to import and backup your instagram photos to your WordPress site. Includes robust options to allow you to control the imported posts formatting including built-in support for WordPress custom post-types, custom taxonomies, post-formats. You can control the content of the title and content of the imported posts using tags like `**insta-image**`, `**insta-text**`, and others, or use the new conditional tags `[if-insta-text]Photo Caption: **insta-text**[/if-insta-text]` and `[if-insta-location]Photo taken at: **insta-location**[/if-insta-location]`. Add an unlimited number of user accounts for backup and importing.
 
+As of version 1.2.0, you can now import and backup your instagram photos automatically! The plugin gives you the option to choose from the default WordPress cron schedules, but if you wish to add a custom interval, you may want to add the [wp-crontrol plugin](http://wordpress.org/extend/plugins/wp-crontrol/).
+
 Plugin is built with developers in mind and has many filters to manipulate the imported posts.
 
 --------------------------
 
 = Sites That Have Used the Importer =
 
-* [http://instadre.com/](http://instadre.com/)
-* [http://photos.jkudish.com/](http://photos.jkudish.com/)
-* [http://photos.jtsternberg.com](http://photos.jtsternberg.com)
+* [stevenfurtick.com](http://www.stevenfurtick.com/)
+* [instadre.com](http://instadre.com/)
+* [photos.jkudish.com](http://photos.jkudish.com/)
+* [photos.jtsternberg.com](http://photos.jtsternberg.com)
 
 (send me your site if you want to be featured here)
 
@@ -54,6 +57,9 @@ If you run into a problem or have a question, contact me ([contact form](http://
 2. After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.
 
 == Changelog ==
+
+= 1.2.0 =
+* Added: It's finally here! Option to auto-import/backup your instagram shots.
 
 = 1.1.4 =
 * Added: Option to conditionally add "insta-text" & "insta-location."
@@ -83,6 +89,9 @@ If you run into a problem or have a question, contact me ([contact form](http://
 
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+* Added: It's finally here! Option to auto-import/backup your instagram shots.
 
 = 1.1.4 =
 * Added: Option to conditionally add "insta-text" & "insta-location."
