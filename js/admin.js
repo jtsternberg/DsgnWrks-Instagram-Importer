@@ -47,7 +47,7 @@ jQuery(document).ready(function($) {
 
 	$('.delete-instagram-user').click(function(event) {
 		var userid = '#full-username-' + $(this).attr('id').replace('delete-','');
-		if ( !confirm('Are you sure you want to delete user, '+ $(userid).text() +'?') ) {
+		if ( !confirm(window.dwinstagram.delete_text +', '+ $(userid).text() +'?') ) {
 			event.preventDefault();
 		}
 	});
@@ -69,7 +69,7 @@ jQuery(document).ready(function($) {
 	});
 
 	$('.button-primary.authenticate.logout').click( function(event) {
-		tb_show('Logging out of Instagram', 'https://instagr.am/accounts/logout/?TB_iframe=true');
+		tb_show( window.dwinstagram.logout_text, 'https://instagr.am/accounts/logout/?TB_iframe=true');
 		setTimeout(function(){
 			tb_remove();
 			$('.user-authenticate').submit();

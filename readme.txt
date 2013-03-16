@@ -10,8 +10,8 @@ Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 3.5
-Stable tag: 1.2.0
-Version: 1.2.0
+Stable tag: 1.2.1
+Version: 1.2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,6 +58,9 @@ If you run into a problem or have a question, contact me ([contact form](http://
 
 == Changelog ==
 
+= 1.2.1 =
+* Added: Internationalization (i18n) translation support, and debugging infrastructure.
+
 = 1.2.0 =
 * Added: It's finally here! Option to auto-import/backup your instagram shots.
 
@@ -89,6 +92,9 @@ If you run into a problem or have a question, contact me ([contact form](http://
 
 
 == Upgrade Notice ==
+
+= 1.2.1 =
+* Added: Internationalization (i18n) translation support, and debugging infrastructure.
 
 = 1.2.0 =
 * Added: It's finally here! Option to auto-import/backup your instagram shots.
