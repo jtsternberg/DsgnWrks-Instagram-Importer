@@ -32,6 +32,7 @@ Plugin is built with developers in mind and has many filters to manipulate the i
 * [stevenfurtick.com](http://www.stevenfurtick.com/)
 * [instadre.com](http://instadre.com/)
 * [photos.jkudish.com](http://photos.jkudish.com/)
+* [aaronrutley.com](http://www.aaronrutley.com/)
 * [photos.jtsternberg.com](http://photos.jtsternberg.com)
 
 (send me your site if you want to be featured here)
@@ -47,8 +48,11 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 == Frequently Asked Questions ==
 
+= Plugin gives me an error! help? =
+* Please install the [DsgnWrks Instagram Importer Debug](http://wordpress.org/extend/plugins/dsgnwrks-instagram-importer-debug/) plugin.
+
 = ?? =
-If you run into a problem or have a question, contact me ([contact form](http://j.ustin.co/scbo43) or [@jtsternberg on twitter](http://j.ustin.co/wUfBD3)). I'll add them here.
+* If you run into a problem or have a question, contact me ([contact form](http://j.ustin.co/scbo43) or [@jtsternberg on twitter](http://j.ustin.co/wUfBD3)). I'll add them here.
 
 
 == Screenshots ==
