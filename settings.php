@@ -387,13 +387,13 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									);
 								$taxs = get_taxonomies( $args, 'objects' );
 
+								$placeholder = __( 'e.g. Instagram, Life, dog, etc', 'dsgnwrks' );
+
 								foreach ( $taxs as $key => $tax ) {
 
 									if ( $tax->label == 'Format' ) continue;
 
 									$o[$tax->name] = !empty( $o[$tax->name] ) ? esc_attr( $o[$tax->name] ) : '';
-
-									$placeholder = __( 'e.g. Instagram, Life, dog, etc', 'dsgnwrks' );
 
 									if ( $tax->name == 'post_tag' )  $placeholder = __( 'e.g. beach, sunrise', 'dsgnwrks' );
 
@@ -410,7 +410,29 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									</td>
 									</tr>
 									<?php
+								}
 
+								// Add extra fields to the user settings page.
+								// ie. $extra_fields[] = array( 'title' => 'My Title', 'input' => '<input />' );
+								if ( $extra_fields = apply_filters( 'dsgnwrks_instagram_extra_user_fields', array(), $o, $id ) ) {
+									foreach ( $extra_fields as $field ) {
+										if ( !is_array( $field ) || !isset( $field['title'], $field['input'] ) )
+											continue;
+										?>
+										<tr valign="top">
+											<th scope="row">
+												<strong><?php echo $field['title']; ?></strong>
+												<?php
+												if ( isset( $field['desc'] ) )
+													echo '<br/>'. $field['desc'];
+												?>
+											</th>
+											<td>
+												<?php echo $field['input']; ?>
+											</td>
+										</tr>
+										<?php
+									}
 								}
 
 								echo '<input type="hidden" name="dsgnwrks_insta_options[username]" value="replaceme" />';
