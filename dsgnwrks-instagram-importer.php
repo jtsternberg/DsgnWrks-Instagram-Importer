@@ -543,9 +543,6 @@ class DsgnWrksInstagram {
 		// Save terms from settings
 		$this->saveTerms();
 
-		// If requested, set photo hashtags as taxonomy terms
-		$this->saveHashtags();
-
 		// save instagram api data as postmeta
 		$this->savePostmeta();
 
@@ -559,7 +556,7 @@ class DsgnWrksInstagram {
 	 */
 	protected function formatTitle() {
 		// Check for a title, or use 'Untitled'
-		$this->insta_title = !empty( $p->caption->text ) ? $p->caption->text : __( 'Untitled', 'dsgnwrks' );
+		$this->insta_title = !empty( $this->pic->caption->text ) ? $this->pic->caption->text : __( 'Untitled', 'dsgnwrks' );
 		// Set post title to caption by default
 		$this->import['post_title'] = $this->insta_title;
 
@@ -641,6 +638,9 @@ class DsgnWrksInstagram {
 			// get user saved taxonomy terms
 			$this->settings[$tax->name] = !empty( $this->settings[$tax->name] ) ? esc_attr( $this->settings[$tax->name] ) : '';
 			$terms = explode( ', ', $this->settings[$tax->name] );
+			// If requested, set photo hashtags as taxonomy terms
+			$terms = array_merge( $terms, $this->saveHashtags( $tax->name ) );
+
 			// if user set taxonomy terms to be saved...
 			if ( empty( $terms ) )
 				continue;
@@ -650,6 +650,7 @@ class DsgnWrksInstagram {
 			foreach ( $terms as $term ) {
 				$clean_terms[] = sanitize_text_field( trim( $term ) );
 			}
+
 			// Save our terms to the post
 			if ( !empty( $clean_terms ) )
 				wp_set_object_terms( $this->import['post_id'], $clean_terms, $tax->name );
@@ -660,14 +661,12 @@ class DsgnWrksInstagram {
 	 * If option is set, will save each photo hashtag to a taxonomy term
 	 * @since 1.2.2
 	 */
-	protected function saveHashtags() {
-		if ( isset( $this->settings['hashtags_as_tax'] ) && $this->settings['hashtags_as_tax'] ) {
-			$terms = array();
-			foreach ( $this->pic->tags as $tag ) {
-				$terms[] = $tag;
-			}
-			wp_set_object_terms( $this->import['post_id'], $terms, $this->settings['hashtags_as_tax'] );
-		}
+	protected function saveHashtags( $taxonomy_name ) {
+
+		if ( isset( $this->settings['hashtags_as_tax'] ) && $this->settings['hashtags_as_tax'] == $taxonomy_name )
+			return (array) $this->pic->tags;
+
+		return array();
 	}
 
 	/**
@@ -790,9 +789,9 @@ class DsgnWrksInstagram {
 	 */
 	protected function wp_error_message( $error, $array = true ) {
 
-		$message = 'message' => '<p><strong>ERROR:</strong> '. $error->get_error_message() .'</p>';
+		$message = '<p><strong>ERROR:</strong> '. $error->get_error_message() .'</p>';
 		// return the wp_error message
-		return $array? array( $message ) : $message;
+		return $array ? array( 'message' => $message ) : $message;
 
 	}
 

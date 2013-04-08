@@ -9,7 +9,6 @@ $this->users = get_option( 'dsgnwrks_insta_users' );
 $opts = &$this->opts;
 $users = &$this->users;
 $this->schedules = wp_get_schedules();
-
 $users = ( !empty( $users ) ) ? $users : array();
 
 $has_notice = get_transient( 'instagram_notification' );
@@ -263,7 +262,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 								<?php
 								// Our auto-import interval text. "Manual" if not set
-								$interval = empty( $o['frequency'] ) || $o['frequency'] == 'never' ? 'Manual' : strtolower( $this->schedules[$o['frequency']]['display'] );
+								$interval = empty( $opts['frequency'] ) || $opts['frequency'] == 'never' ? 'Manual' : strtolower( $this->schedules[$opts['frequency']]['display'] );
 								?>
 								<tr valign="top"<?php echo $interval == 'Manual' ? ' class="disabled"' : ''; ?>>
 								<th scope="row">
@@ -357,7 +356,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 
 								<?php
-								$taxs = get_taxonomies( array( 'public' => true ), 'objects' );
+								$taxonomies = get_taxonomies( array( 'public' => true ), 'objects' );
 								$taxes = array();
 
 								?>
@@ -369,7 +368,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 									echo '<select id="dsgnwrks_insta_options-'.$id.'-hashtags_as_tax" name="dsgnwrks_insta_options['.$id.'][hashtags_as_tax]">';
 										echo '<option class="empty" value="" '. selected( $hash_tax, '', false ) .'>'. __( '&mdash; Select &mdash;', 'dsgnwrks' ) .'</option>';
-										foreach ( $taxs as $key => $tax ) {
+										foreach ( $taxonomies as $key => $tax ) {
 
 											if ( $tax->label == __( 'Format' ) )
 												continue;
@@ -412,16 +411,12 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									}
 								}
 
-								$args = array(
-									'public' => true,
-									);
-								$taxs = get_taxonomies( $args, 'objects' );
 
 								$placeholder = __( 'e.g. Instagram, Life, dog, etc', 'dsgnwrks' );
+								foreach ( $taxonomies as $key => $tax ) {
 
-								foreach ( $taxs as $key => $tax ) {
-
-									if ( $tax->label == 'Format' ) continue;
+									if ( $tax->label == __( 'Format' ) )
+										continue;
 
 									$o[$tax->name] = !empty( $o[$tax->name] ) ? esc_attr( $o[$tax->name] ) : '';
 
