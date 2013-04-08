@@ -6,7 +6,7 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.2.1
+Version: 1.2.2
 */
 
 class DsgnWrksInstagram {
