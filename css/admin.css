@@ -4,11 +4,17 @@
 	width: auto;
 	max-width: 660px;
 }
+.instagram-importer select {
+	max-width: 100%;
+}
 .instagram-importer .form-table {
 	margin-top: 0;
 }
 .instagram-importer .form-table th {
 	width: 410px;
+}
+.instagram-importer .form-table td {
+	max-width: 230px;
 }
 .instagram-importer .form-table tr {
 	background: #eee;

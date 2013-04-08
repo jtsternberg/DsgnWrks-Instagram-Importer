@@ -18,6 +18,10 @@ class DsgnWrksInstagram {
 	protected $defaults;
 	protected $import = array();
 
+	/**
+	 * Sets up our plugin
+	 * @since  1.1.0
+	 */
 	function __construct() {
 
 		// user option defaults
@@ -49,6 +53,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Internationalize the plugin name
+	 * @since  1.2.1
 	 */
 	function pluginName() {
 		// i18n
@@ -58,6 +63,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Hooks to 'all_admin_notices' and displays auto-imported photo messages
+	 * @since  1.2.0
 	 */
 	function show_cron_notice() {
 
@@ -80,6 +86,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Add import function to cron
+	 * @since  1.2.0
 	 */
 	public function cron_callback() {
 		$opts = get_option( 'dsgnwrks_insta_options' );
@@ -92,6 +99,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * @DEV Adds once minutely to the existing schedules for easier cron testing.
+	 * @since  1.2.0
 	 */
 	function minutely( $schedules ) {
 		$schedules['minutely'] = array(
@@ -103,6 +111,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Get the party started
+	 * @since  1.1.0
 	 */
 	public function init() {
 
@@ -135,6 +144,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * A pseudo setting validation. Sends user on to instagram to be authenticated.
+	 * @since  1.1.0
 	 */
 	public function users_validate( $opts ) {
 		$return = add_query_arg( array( 'page' => $this->plugin_id ), admin_url('/tools.php') );
@@ -146,6 +156,9 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Validate each of our user options with an appropriate filter
+	 * @since  1.1.0
+	 * @param  array  $opts   array of options to be saved
+	 * @return array          sanitized options array
 	 */
 	public function settings_validate( $opts ) {
 
@@ -208,6 +221,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * hooks to 'admin_menu', adds our submenu page and corresponding scripts/styles
+	 * @since  1.1.0
 	 */
 	public function settings() {
 		// create admin page
@@ -222,11 +236,13 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Creates our admin page
+	 * @since  1.1.0
 	 */
 	public function settings_page() { require_once('settings.php'); }
 
 	/**
 	 * Enqueue our admin page's CSS
+	 * @since  1.1.0
 	 */
 	public function styles() {
 		wp_enqueue_style( 'dsgnwrks-instagram-importer-admin', plugins_url( 'css/admin.css', __FILE__ ), false, '1.1' );
@@ -234,6 +250,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Enqueue our admin page's JS
+	 * @since  1.1.0
 	 */
 	public function scripts() {
 		wp_enqueue_script( 'dsgnwrks-instagram-importer-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ) );
@@ -257,6 +274,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * hooks into our admin page's head and fires the importer if requested
+	 * @since  1.1.0
 	 */
 	public function fire_importer() {
 		if ( isset( $_GET['instaimport'] ) )
@@ -265,6 +283,8 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Start the engine. begins our import and generates feedback messages
+	 * @since  1.1.0
+	 * @param  string $userid Instagram user id
 	 */
 	public function import( $userid = false ) {
 
@@ -339,15 +359,24 @@ class DsgnWrksInstagram {
 
 	/**
 	 * pings instagram with our user's feed url to retrieve photos
+	 * @since  1.1.0
+	 * @param  string $api_url      Instagram's api url
+	 * @param  array  $settings     our user's saved settings
+	 * @param  array  $prevmessages Previous messages from the api pagination loop
+	 * @return array                messages array
 	 */
 	protected function import_messages( $api_url, $settings, $prevmessages = array() ) {
 
 		// our individual user's settings
 		$this->settings = $settings;
 		// get instagram feed
-		$api = wp_remote_retrieve_body( wp_remote_get( $api_url ) );
-		// format our data to be useable
-		$data = json_decode( $api );
+		$response = wp_remote_get( $api_url );
+		// if feed causes a wp_error object, send the error back
+		if ( is_wp_error( $response ) )
+			return $this->wp_error_message( $response );
+
+		// otherwise, let's get our api and format our data to be useable
+		$data = json_decode( wp_remote_retrieve_body( $response ) );
 
 		if ( !$this->importDebugCheck() )
 			$this->debugsend( 'import_messages', $this->userid .' - $data', array( '$this->userid' => $this->userid, '$data' => $data ) );
@@ -388,6 +417,9 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Loops through instagram api data
+	 * @since  1.1.0
+	 * @param  array $data instagram photo data
+	 * @return array       post created/error messages
 	 */
 	protected function pic_loop( $data = array() ) {
 
@@ -457,6 +489,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Saves a WP post with our instagram photo data
+	 * @since  1.1.0
 	 */
 	protected function save_img_post() {
 
@@ -472,60 +505,20 @@ class DsgnWrksInstagram {
 		$settings = ( empty( $settings ) ) ? get_option( 'dsgnwrks_insta_options' ) : $settings;
 
 		// check for a location saved
-		$loc = ( isset( $p->location->name ) ) ? $p->location->name : '';
+		$this->loc = ( isset( $p->location->name ) ) ? $p->location->name : '';
 
-		// Check for a title, or use 'Untitled'
-		$insta_title = !empty( $p->caption->text ) ? $p->caption->text : __( 'Untitled', 'dsgnwrks' );
+		// Update post title
+		$this->formatTitle();
 
-		// Set post title to caption by default
-		$import['post_title'] = $insta_title;
-
-		// if our user's post-title option is saved
-		if ( !empty( $settings['post-title'] ) ) {
-			// check for insta-text conditionals
-			$import['post_title'] = $this->conditional( 'insta-text', $settings['post-title'], $import['post_title'] );
-			// check for insta-location conditionals
-			$import['post_title'] = $this->conditional( 'insta-location', $import['post_title'], $loc );
-			// Add the instagram filter name if requested
-			$import['post_title'] = str_replace( '**insta-filter**', $p->filter, $import['post_title'] );
-		}
-
-		// get large image url (612x612)
-		$imgurl = $p->images->standard_resolution->url;
-		// url to photo on instagram
-		$insta_url = esc_url( $p->link );
 		// save photo as featured?
 		$import['featured'] = ( isset( $settings['feat_image'] ) && $settings['feat_image'] == true ) ? true : false;
 		// save instagram photo caption as post excerpt
 		$import['post_excerpt'] = !empty( $p->caption->text ) ? $p->caption->text : '';
 
-		// if our user's post-content option is NOT saved
-		if ( empty( $settings['post_content'] ) ) {
-			// we'll add some default content
-			$content  = '<p><a href="'. $imgurl .'" target="_blank"><img src="'. $imgurl .'"/></a></p>'."\n";
-			$content .= '<p>'. $import['post_excerpt'];
-			if ( !empty( $loc ) )
-				$content .= sprintf( __( ' (Taken with Instagram at %s)', 'dsgnwrks' ), $loc );
-			$content .= '</p>'."\n";
-			$content .= '<p>'. __( 'Instagram filter used:', 'dsgnwrks' ) .' '. $p->filter .'</p>'."\n";
-			$content .= '<p><a href="'. $insta_url .'" target="_blank">'. __( 'View in Instagram', 'dsgnwrks' ) .' &rArr;</a></p>'."\n";
-		}
-		// if our user's post-content option is saved
-		else {
-			$content = $settings['post_content'];
-			// Add the instagram photo url if requested
-			$content = str_replace( '**insta-link**', $insta_url, $content );
-			// check for insta-text conditionals
-			$content = $this->conditional( 'insta-text', $content, $insta_title );
-			// check for insta-location conditionals
-			$content = $this->conditional( 'insta-location', $content, $loc );
-			// Add the instagram filter name if requested
-			$content = str_replace( '**insta-filter**', $p->filter, $content );
-		}
+		$this->formatContent();
 
-		// post author, deafault to current user
+		// post author, default to current user
 		$import['post_author'] = isset( $settings['author'] ) ? $settings['author'] : $user_ID;
-		$import['post_content'] = $content;
 		// post date, default to photo's created time
 		$import['post_date'] = date( 'Y-m-d H:i:s', $p->created_time );
 		$import['post_date_gmt'] = $import['post_date'];
@@ -537,63 +530,171 @@ class DsgnWrksInstagram {
 		// A filter so filter-savvy devs can modify the data before the post is created
 		$import = apply_filters( 'dsgnwrks_instagram_pre_save', $import, $p, $settings );
 
-		// Setup our new post's data
-		$post = array(
-		  'post_author' => $import['post_author'],
-		  'post_content' => $import['post_content'],
-		  'post_date' => $import['post_date'],
-		  'post_date_gmt' => $import['post_date_gmt'],
-		  'post_excerpt' => $import['post_excerpt'],
-		  'post_status' => $import['post_status'],
-		  'post_title' => $import['post_title'],
-		  'post_type' => $import['post_type'],
-		);
 		// and insert our new post
-		$new_post_id = wp_insert_post( $post, true );
+		$import['post_id'] = $this->insertPost();
 
-		// grab our new post ID
-		$import['post_id'] = $new_post_id;
+		// if a wp_error object, send the error back
+		if ( is_wp_error( $import['post_id'] ) )
+			return $this->wp_error_message( $import['post_id'], false );
 
-		// Another filter to modify post after it's created.
-		do_action( 'dsgnwrks_instagram_post_save', $new_post_id, $p );
+		// an action to fire after each post is created.
+		do_action( 'dsgnwrks_instagram_post_save', $import['post_id'], $p, $import, $settings );
 
+		// Save terms from settings
+		$this->saveTerms();
+
+		// If requested, set photo hashtags as taxonomy terms
+		$this->saveHashtags();
+
+		// save instagram api data as postmeta
+		$this->savePostmeta();
+
+		// our post is properly saved, now let's bring the image over to WordPress
+		return $this->upload_img( $p->images->standard_resolution->url );
+	}
+
+	/**
+	 * Formats new post title
+	 * @since 1.2.2
+	 */
+	protected function formatTitle() {
+		// Check for a title, or use 'Untitled'
+		$this->insta_title = !empty( $p->caption->text ) ? $p->caption->text : __( 'Untitled', 'dsgnwrks' );
+		// Set post title to caption by default
+		$this->import['post_title'] = $this->insta_title;
+
+		// if our user's post-title option is saved
+		if ( empty( $this->settings['post-title'] ) )
+			return;
+		// check for insta-text conditionals
+		$t = $this->conditional( 'insta-text', $this->settings['post-title'], $this->import['post_title'] );
+		// check for insta-location conditionals
+		$t = $this->conditional( 'insta-location', $t, $this->loc );
+		// Add the instagram filter name if requested
+		$t = str_replace( '**insta-filter**', $this->pic->filter, $t );
+
+		$this->import['post_title'] = $t;
+	}
+
+	/**
+	 * Formats new post content
+	 * @since 1.2.2
+	 */
+	protected function formatContent() {
+		// if our user's post-content option is NOT saved
+		if ( empty( $this->settings['post_content'] ) ) {
+
+			$imgurl = $this->pic->images->standard_resolution->url;
+			// we'll add some default content
+			$c  = '<p><a href="'. $imgurl .'" target="_blank"><img src="'. $imgurl .'"/></a></p>'."\n";
+			$c .= '<p>'. $this->import['post_excerpt'];
+			if ( !empty( $this->loc ) )
+				$c .= sprintf( __( ' (Taken with Instagram at %s)', 'dsgnwrks' ), $this->loc );
+			$c .= '</p>'."\n";
+			$c .= '<p>'. __( 'Instagram filter used:', 'dsgnwrks' ) .' '. $this->pic->filter .'</p>'."\n";
+			$c .= '<p><a href="'. $this->pic->link .'" target="_blank">'. __( 'View in Instagram', 'dsgnwrks' ) .' &rArr;</a></p>'."\n";
+		}
+		// if our user's post-content option is saved
+		else {
+			$c = $this->settings['post_content'];
+			// Add the instagram photo url if requested
+			$c = str_replace( '**insta-link**', $this->pic->link, $c );
+			// check for insta-text conditionals
+			$c = $this->conditional( 'insta-text', $c, $this->insta_title );
+			// check for insta-location conditionals
+			$c = $this->conditional( 'insta-location', $c, $this->loc );
+			// Add the instagram filter name if requested
+			$c = str_replace( '**insta-filter**', $this->pic->filter, $c );
+		}
+		$this->import['post_content'] = $c;
+	}
+
+	/**
+	 * Creates new post from instagram data and saved plugin settings
+	 * @since 1.2.2
+	 */
+	protected function insertPost() {
+		// insert our new post with its data
+		return wp_insert_post( array(
+		  'post_author' => $this->import['post_author'],
+		  'post_content' => $this->import['post_content'],
+		  'post_date' => $this->import['post_date'],
+		  'post_date_gmt' => $this->import['post_date_gmt'],
+		  'post_excerpt' => $this->import['post_excerpt'],
+		  'post_status' => $this->import['post_status'],
+		  'post_title' => $this->import['post_title'],
+		  'post_type' => $this->import['post_type'],
+		), true );
+	}
+
+	/**
+	 * Saves terms to post from settings fields
+	 * @since 1.2.2
+	 */
+	protected function saveTerms() {
 		// loop through our taxonomies
-		$taxs = get_taxonomies( array(
-			'public' => true,
-		), 'objects' );
-		foreach ( $taxs as $tax ) {
+		$taxonomies = get_taxonomies( array( 'public' => true ), 'objects' );
+		foreach ( $taxonomies as $tax ) {
 			// only save post-formats on themes which support them
 			if ( $tax->label == __( 'Format' ) && !current_theme_supports( 'post-formats' ) )
 				continue;
 			// get user saved taxonomy terms
-			$settings[$tax->name] = !empty( $settings[$tax->name] ) ? esc_attr( $settings[$tax->name] ) : '';
-			$taxonomies = explode( ', ', $settings[$tax->name] );
-			// if user set taxonomy terms to be saved, save them now
-			if ( !empty( $taxonomies ) )
-				wp_set_object_terms( $new_post_id, $taxonomies, $tax->name );
-		}
+			$this->settings[$tax->name] = !empty( $this->settings[$tax->name] ) ? esc_attr( $this->settings[$tax->name] ) : '';
+			$terms = explode( ', ', $this->settings[$tax->name] );
+			// if user set taxonomy terms to be saved...
+			if ( empty( $terms ) )
+				continue;
 
-		// get instagram likes data
-		$insta_likes_data = array( 'count' => $p->likes->count );
-		if ( !empty( $p->likes->data ) ) {
-			foreach ( $p->likes->data as $key => $user ) {
-				$insta_likes_data['data'][$key] = $user;
+			// Clean up terms
+			$clean_terms = array();
+			foreach ( $terms as $term ) {
+				$clean_terms[] = sanitize_text_field( trim( $term ) );
 			}
+			// Save our terms to the post
+			if ( !empty( $clean_terms ) )
+				wp_set_object_terms( $this->import['post_id'], $clean_terms, $tax->name );
 		}
+	}
 
-		update_post_meta( $new_post_id, 'dsgnwrks_instagram_likes', $insta_likes_data );
-		update_post_meta( $new_post_id, 'instagram_created_time', $p->created_time );
-		update_post_meta( $new_post_id, 'dsgnwrks_instagram_id', $p->id );
-		update_post_meta( $new_post_id, 'instagram_filter_used', $p->filter );
-		update_post_meta( $new_post_id, 'instagram_location', $p->location );
-		update_post_meta( $new_post_id, 'instagram_link', esc_url( $p->link ) );
+	/**
+	 * If option is set, will save each photo hashtag to a taxonomy term
+	 * @since 1.2.2
+	 */
+	protected function saveHashtags() {
+		if ( isset( $this->settings['hashtags_as_tax'] ) && $this->settings['hashtags_as_tax'] ) {
+			$terms = array();
+			foreach ( $this->pic->tags as $tag ) {
+				$terms[] = $tag;
+			}
+			wp_set_object_terms( $this->import['post_id'], $terms, $this->settings['hashtags_as_tax'] );
+		}
+	}
 
-		// our post is properly saved, now let's bring the image over to WordPress
-		return $this->upload_img( $imgurl );
+	/**
+	 * Save instagram api data pieces to post_meta
+	 * @since 1.2.2
+	 */
+	protected function savePostmeta() {
+
+		foreach ( array(
+			'dsgnwrks_instagram_likes' => $this->pic->likes,
+			'dsgnwrks_instagram_comments' => $this->pic->comments,
+			'dsgnwrks_instagram_hashtags' => $this->pic->tags,
+			'instagram_created_time' => $this->pic->created_time,
+			'dsgnwrks_instagram_id' => $this->pic->id,
+			'instagram_filter_used' => $this->pic->filter,
+			'instagram_attribution' => $this->pic->attribution,
+			'instagram_location' => $this->pic->location,
+			'instagram_link' => esc_url( $this->pic->link ),
+			'instagram_user' => $this->pic->user,
+		) as $key => $value )
+			update_post_meta( $this->import['post_id'], $key, $value );
+
 	}
 
 	/**
 	 * Sideloads an image to the currrent WordPress post
+	 * @since  1.1.0
 	 */
 	protected function upload_img( $imgurl = '' ) {
 
@@ -653,7 +754,10 @@ class DsgnWrksInstagram {
 	}
 
 	/**
-	 * Returns an error message
+	 * Returns an upload error message
+	 * @since  1.2.0
+	 * @param  string $imgurl (optional) url for image to be uploaded
+	 * @return string         Upload error message
 	 */
 	protected function upload_error( $imgurl = false ) {
 
@@ -680,7 +784,25 @@ class DsgnWrksInstagram {
 	}
 
 	/**
+	 * Returns error message contained within wp_error
+	 * @since  1.2.2
+	 * @return array Error message
+	 */
+	protected function wp_error_message( $error, $array = true ) {
+
+		$message = 'message' => '<p><strong>ERROR:</strong> '. $error->get_error_message() .'</p>';
+		// return the wp_error message
+		return $array? array( $message ) : $message;
+
+	}
+
+	/**
 	 * Checks for conditionals, runs them, and removes the conditional markup
+	 * @since  1.1.4
+	 * @param  string $tag     tag to check for
+	 * @param  string $content content to search for tags
+	 * @param  string $replace content to replace tags with
+	 * @return string          modified content
 	 */
 	protected function conditional( $tag, $content, $replace ) {
 
@@ -714,6 +836,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Checks for query parameters and does subsequent redirects
+	 * @since  1.1.0
 	 */
 	public function redirects() {
 
@@ -793,6 +916,11 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Helper function to sanitized variables using whitelisted filters and set a default
+	 * @since  1.1.0
+	 * @param  mixed  $opt    option value to be saved
+	 * @param  string $filter filter to run option through
+	 * @param  mixed  $else   default value if no option value
+	 * @return mixed          sanitized option value
 	 */
 	protected function filter( $opt = '', $filter = '', $else = '' ) {
 		// if $opt is empty, return our default if set, or nothing
@@ -816,6 +944,9 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Sets maximum quality for WP image saving
+	 * @since  1.1.0
+	 * @param  int $arg WordPress image quality setting
+	 * @return int      modified quality setting
 	 */
 	public function max_quality($arg) {
 		return (int) 100;
@@ -884,6 +1015,9 @@ class DsgnWrksInstagram {
 
 	/**
 	 * a link to instagram import admin page with user pre-selected
+	 * @since  1.1.0
+	 * @param  string $id Instagram user id
+	 * @return string     Instagram importer options page with selected user
 	 */
 	protected function instimport_link( $id ) {
 		return add_query_arg( array( 'page' => $this->plugin_id, 'instaimport' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) );
@@ -891,6 +1025,9 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Set wp_editor default to 'html' on our admin page
+	 * @since  1.1.0
+	 * @param  string $default WordPress editor instance default view
+	 * @return string      		modified view
 	 */
 	public function html_default( $default ) {
 		if ( get_current_screen()->id == 'tools_page_dsgnwrks-instagram-importer-settings' )
@@ -901,6 +1038,8 @@ class DsgnWrksInstagram {
 	/**
 	 * Checks if user has enabled Debug Mode
 	 * Requires DsgnWrks Instagram Debug plugin.
+	 * @since  1.2.1
+	 * @return bool debug on or off
 	 */
 	public function debugEnabled() {
 		return isset( $this->opts['debugmode'] ) && $this->opts['debugmode'] == 'on';
@@ -909,6 +1048,7 @@ class DsgnWrksInstagram {
 	/**
 	 * Sets option stating user just sent an import debug (only want to send once!)
 	 * Requires DsgnWrks Instagram Debug plugin.
+	 * @since  1.2.1
 	 */
 	public function importDebugSet() {
 		if ( !$this->debugEnabled() )
@@ -919,6 +1059,8 @@ class DsgnWrksInstagram {
 	/**
 	 * Checks if user sent an import debug already (only want to send once!)
 	 * Requires DsgnWrks Instagram Debug plugin.
+	 * @since  1.2.1
+	 * @return bool send debug
 	 */
 	public function importDebugCheck() {
 		if ( !$this->debugEnabled() )
@@ -929,6 +1071,7 @@ class DsgnWrksInstagram {
 	/**
 	 * Sends me a debug report if Debug Mode is enabled
 	 * Requires DsgnWrks Instagram Debug plugin.
+	 * @since  1.2.1
 	 */
 	public function debugsend( $line, $title = false, $data = false ) {
 		if ( !$this->debugEnabled() )

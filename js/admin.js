@@ -34,14 +34,37 @@ jQuery(document).ready(function($) {
 
 	function show_tax_blocks(curr_cpt,cpts) {
 
+		// hashtags saver (disable)
+		var selector = 'select[id$="hashtags_as_tax"]:visible';
+		$(selector).prop('disabled',true);
+
 		if (typeof cpts[curr_cpt] !== 'undefined') {
 			curr_taxes = cpts[curr_cpt];
 
 			curr_taxes = curr_taxes.toString();
 			curr_taxes = curr_taxes.split(',');
-			$.each(curr_taxes, function(i, tax) {
+
+			// hashtags saver (disable options)
+			$(selector + ' option:not(.empty)').prop('disabled',true);
+			var selected = $(selector + ' option:selected').prop('selected',false).text();
+			var option;
+
+			for ( var i = 0; i < curr_taxes.length; i++ ) {
+
+				var tax = curr_taxes[i];
 				$('.taxonomy-'+tax).show();
-			});
+
+				// skip post formats
+				if ( tax === 'post_format' )
+					continue;
+
+				// hashtags saver (re-enable options)
+				$(selector).prop('disabled',false);
+				option = $(selector + ' option.taxonomy-'+tax);
+				option.prop('disabled',false);
+				if ( option.text() === selected )
+					option.prop('selected', true);
+			}
 		}
 	}
 

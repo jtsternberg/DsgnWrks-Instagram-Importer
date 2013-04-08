@@ -263,7 +263,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 								<?php
 								// Our auto-import interval text. "Manual" if not set
-								$interval = empty( $opts['frequency'] ) || $opts['frequency'] == 'never' ? 'Manual' : strtolower( $this->schedules[$opts['frequency']]['display'] );
+								$interval = empty( $o['frequency'] ) || $o['frequency'] == 'never' ? 'Manual' : strtolower( $this->schedules[$o['frequency']]['display'] );
 								?>
 								<tr valign="top"<?php echo $interval == 'Manual' ? ' class="disabled"' : ''; ?>>
 								<th scope="row">
@@ -354,6 +354,36 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 								</td>
 								</tr>
+
+
+								<?php
+								$taxs = get_taxonomies( array( 'public' => true ), 'objects' );
+								$taxes = array();
+
+								?>
+								<tr valign="top">
+								<th scope="row"><strong><?php _e( 'Save photo hashtags as taxonomy terms (tags, categories, etc):', 'dsgnwrks' ); ?></strong></th>
+								<td>
+									<?php
+									$hash_tax = isset( $o['hashtags_as_tax'] ) ? $o['hashtags_as_tax'] : '';
+
+									echo '<select id="dsgnwrks_insta_options-'.$id.'-hashtags_as_tax" name="dsgnwrks_insta_options['.$id.'][hashtags_as_tax]">';
+										echo '<option class="empty" value="" '. selected( $hash_tax, '', false ) .'>'. __( '&mdash; Select &mdash;', 'dsgnwrks' ) .'</option>';
+										foreach ( $taxs as $key => $tax ) {
+
+											if ( $tax->label == __( 'Format' ) )
+												continue;
+
+											$pt_taxes = get_object_taxonomies( $cur_post_type ? $cur_post_type : 'post' );
+											$disabled = !in_array( $tax->name, $pt_taxes );
+											echo '<option class="taxonomy-'. $tax->name .'" value="'. esc_attr( $tax->name ) .'" ', selected( $hash_tax, $tax->name ), ' ', disabled( $disabled ) ,'>'. esc_html( $tax->label ) .'</option>';
+
+										}
+									echo '</select>';
+									?>
+								</td>
+								</tr>
+
 
 								<?php
 								if ( current_theme_supports( 'post-formats' ) && post_type_supports( 'post', 'post-formats' ) ) {
