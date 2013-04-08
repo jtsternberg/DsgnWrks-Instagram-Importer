@@ -64,6 +64,7 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 = 1.2.2 =
 * Added: Option to save Instagram hashtags as taxonomy terms (tags, categories, etc).
+* Added: Filter on Settings page to allow other plugins/themes to add extra settings fields.
 * Added: More of the Instagram photo data is saved to post_meta. props [csenf](https://github.com/csenf/DsgnWrks-Instagram-Importer-WordPress-Plugin/commit/5816ddade00b92fa0975fb47b49ca8467779e2a4)
 * Fixed: Better management and display of API connection errors. props [csenf](https://github.com/csenf/DsgnWrks-Instagram-Importer-WordPress-Plugin/commit/6fec092cafc7d241c1b1d75e4a80b42d28eff2d5)
 
@@ -104,8 +105,9 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 = 1.2.2 =
 * Added: Option to save Instagram hashtags as taxonomy terms (tags, categories, etc).
-* Added: More of the Instagram photo data is saved to post_meta.
-* Fixed: Better management and display of API connection errors. props [csenf](https://github.com/csenf/DsgnWrks-Instagram-Importer-WordPress-Plugin/commit/6fec092cafc7d241c1b1d75e4a80b42d28eff2d5).
+* Added: Filter on Settings page to allow other plugins/themes to add extra settings fields.
+* Added: More of the Instagram photo data is saved to post_meta. props [csenf](https://github.com/csenf/DsgnWrks-Instagram-Importer-WordPress-Plugin/commit/5816ddade00b92fa0975fb47b49ca8467779e2a4)
+* Fixed: Better management and display of API connection errors. props [csenf](https://github.com/csenf/DsgnWrks-Instagram-Importer-WordPress-Plugin/commit/6fec092cafc7d241c1b1d75e4a80b42d28eff2d5)
 
 = 1.2.1 =
 * Added: Internationalization (i18n) translation support, and debugging infrastructure.
