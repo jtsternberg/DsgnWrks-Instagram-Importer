@@ -86,7 +86,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								}
 
 								// somthing's wrong, don't continue
-								if ( !isset( $opts[$id] ) ) {
+								if ( !isset( $opts[$id] ) || !isset( $opts[$id]['full_username'] ) ) {
 									$this->debugsend( '91' );
 									continue;
 								}
