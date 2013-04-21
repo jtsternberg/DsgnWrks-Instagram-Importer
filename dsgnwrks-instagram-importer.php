@@ -6,7 +6,7 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.2.2
+Version: 1.2.3
 */
 
 class DsgnWrksInstagram {
@@ -325,11 +325,20 @@ class DsgnWrksInstagram {
 		if ( $tz_string )
 			date_default_timezone_set( $pre );
 
+		// message class
+		$message_class = 'updated';
+
 		// init our variable
 		$notice = '';
-		foreach ( $messages['message'] as $key => $message ) {
-			// build our $notice variable
-			$notice .= $message;
+		if ( is_array( $messages['message'] ) ) {
+			foreach ( $messages['message'] as $key => $message ) {
+				// build our $notice variable
+				$notice .= $message;
+			}
+		} elseif ( is_string( $messages['message'] ) ) {
+			// something went wrong
+			$message_class = 'error';
+			$notice .= $messages['message'];
 		}
 
 		// get our current time
@@ -337,7 +346,7 @@ class DsgnWrksInstagram {
 
 		// if we're not doing cron, show our notice now
 		if ( !$userid ) {
-			echo '<div id="message" class="updated">'. $notice .'</div>';
+			echo '<div id="message" class="'. $message_class .'">'. $notice .'</div>';
 		}
 		// otherwise, save our imported photo notices to an option to be displayed later
 		elseif ( stripos( $notice, __( 'No new Instagram shots to import', 'dsgnwrks' ) ) === false ) {
@@ -370,7 +379,7 @@ class DsgnWrksInstagram {
 		// our individual user's settings
 		$this->settings = $settings;
 		// get instagram feed
-		$response = wp_remote_get( $api_url );
+		$response = wp_remote_get( $api_url, array( 'sslverify' => false ) );
 		// if feed causes a wp_error object, send the error back
 		if ( is_wp_error( $response ) )
 			return $this->wp_error_message( $response );

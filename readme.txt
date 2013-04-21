@@ -10,8 +10,8 @@ Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 3.6
-Stable tag: 1.2.2
-Version: 1.2.2
+Stable tag: 1.2.3
+Version: 1.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,9 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 == Changelog ==
 
+= 1.2.3 =
+* Fixed: Better SSL management
+
 = 1.2.2 =
 * Added: Option to save Instagram hashtags as taxonomy terms (tags, categories, etc).
 * Added: Filter on Settings page to allow other plugins/themes to add extra settings fields.
@@ -102,6 +105,9 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 
 == Upgrade Notice ==
+
+= 1.2.3 =
+* Fixed: Better SSL management
 
 = 1.2.2 =
 * Added: Option to save Instagram hashtags as taxonomy terms (tags, categories, etc).
