@@ -63,9 +63,9 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 == Changelog ==
 
 = 1.2.4 =
-* Fixed: **insta-image-link** now pulls in the full 612x612 image size.
+* Fixed: `**insta-image-link**` now pulls in the full 612x612 image size.
 * Added: dsgnwrks_instagram_image_size filter for changing from 'full' to any registered image size.
-* Added: dsgnwrks_instagram_insta_image filter to allow manipulation of the **insta-image** html markup (add classes, etc).
+* Added: dsgnwrks_instagram_insta_image filter to allow manipulation of the `**insta-image**` html markup (add classes, etc).
 
 = 1.2.3 =
 * Fixed: Better SSL management
@@ -112,9 +112,9 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 == Upgrade Notice ==
 
 = 1.2.4 =
-* Fixed: **insta-image-link** now pulls in the full 612x612 image size.
+* Fixed: `**insta-image-link**` now pulls in the full 612x612 image size.
 * Added: dsgnwrks_instagram_image_size filter for changing from 'full' to any registered image size.
-* Added: dsgnwrks_instagram_insta_image filter to allow manipulation of the **insta-image** html markup (add classes, etc).
+* Added: dsgnwrks_instagram_insta_image filter to allow manipulation of the `**insta-image**` html markup (add classes, etc).
 
 = 1.2.3 =
 * Fixed: Better SSL management
