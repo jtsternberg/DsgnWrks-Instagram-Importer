@@ -10,8 +10,8 @@ Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 3.6
-Stable tag: 1.2.3
-Version: 1.2.3
+Stable tag: 1.2.4
+Version: 1.2.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,11 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 == Changelog ==
 
+= 1.2.4 =
+* Fixed: **insta-image-link** now pulls in the full 612x612 image size.
+* Added: dsgnwrks_instagram_image_size filter for changing from 'full' to any registered image size.
+* Added: dsgnwrks_instagram_insta_image filter to allow manipulation of the **insta-image** html markup (add classes, etc).
+
 = 1.2.3 =
 * Fixed: Better SSL management
 
@@ -105,6 +110,11 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 
 == Upgrade Notice ==
+
+= 1.2.4 =
+* Fixed: **insta-image-link** now pulls in the full 612x612 image size.
+* Added: dsgnwrks_instagram_image_size filter for changing from 'full' to any registered image size.
+* Added: dsgnwrks_instagram_insta_image filter to allow manipulation of the **insta-image** html markup (add classes, etc).
 
 = 1.2.3 =
 * Fixed: Better SSL management

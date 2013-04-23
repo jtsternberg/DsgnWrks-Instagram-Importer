@@ -6,7 +6,7 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.2.3
+Version: 1.2.4
 */
 
 class DsgnWrksInstagram {
@@ -740,22 +740,29 @@ class DsgnWrksInstagram {
 		if ( $import['featured'] )
 			set_post_thumbnail( $import['post_id'], $img_id );
 
+		$imgsize = apply_filters( 'dsgnwrks_instagram_image_size', 'full' );
+		$imgsize = is_array( $imgsize ) || is_string( $imgsize ) ? $imgsize : 'full';
+		$img     = wp_get_attachment_image_src( $img_id, $imgsize );
+
 		// Replace URLs in post with uploaded image
-		$thumburl = wp_get_attachment_url( $img_id );
-		$imgurl = wp_get_attachment_thumb_url( $img_id );
+		if ( is_array( $img ) ) {
+			// init our var
+			$content = &$import['post_content'];
+			// filter the image element
+			$insta_image = (string) apply_filters( 'dsgnwrks_instagram_insta_image', sprintf( '<img class="insta-image" width="%d" height="%d" src="%s"/>', $img[1], $img[2], $img[0] ), $img_id, $import['post_id'] );
+			// Add the instagram image element if requested
+			$content = str_replace( '**insta-image**', $insta_image, $content );
+			// Add the instagram image source if requested
+			$content = str_replace( '**insta-image-link**', $img[0], $content );
 
-		// init our var
-		$content = &$import['post_content'];
-		// Add the instagram image source if requested
-		$content = str_replace( '**insta-image**', '<img src="'. $thumburl .'"/>', $content );
-		// Add the instagram image url if requested
-		$content = str_replace( '**insta-image-link**', $imgurl, $content );
-
-		// Update the post with updated image URLs
-		wp_update_post( array(
-			'ID' => $import['post_id'],
-			'post_content' => $content,
-		) );
+			// Update the post with updated image URLs
+			wp_update_post( array(
+				'ID' => $import['post_id'],
+				'post_content' => $content,
+			) );
+		} else {
+			return $this->upload_error( $imgurl );
+		}
 
 		// return a success message
 		return '<p><strong><em>&ldquo;'. $import['post_title'] .'&rdquo; </em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</strong></p>';
