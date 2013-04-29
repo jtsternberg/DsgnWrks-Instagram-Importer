@@ -2,9 +2,9 @@
 # This file is distributed under the same license as the DsgnWrks Instagram Importer package.
 msgid ""
 msgstr ""
-"Project-Id-Version: DsgnWrks Instagram Importer 1.2.4\n"
+"Project-Id-Version: DsgnWrks Instagram Importer 1.2.5\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/dsgnwrks-instagram-importer\n"
-"POT-Creation-Date: 2013-04-28 21:55:04+00:00\n"
+"POT-Creation-Date: 2013-04-29 04:49:26+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -12,99 +12,104 @@ msgstr ""
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 
-#: dsgnwrks-instagram-importer.php:37 dsgnwrks-instagram-importer.php:600
+#: dsgnwrks-instagram-importer.php:41 dsgnwrks-instagram-importer.php:697
 msgid "Instagram filter used:"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:37 settings.php:294
+#: dsgnwrks-instagram-importer.php:41 settings.php:294
 msgid "Photo taken at:"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:37 dsgnwrks-instagram-importer.php:601
+#: dsgnwrks-instagram-importer.php:41 dsgnwrks-instagram-importer.php:698
 msgid "View in Instagram"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:60 dsgnwrks-instagram-importer.php:228
+#: dsgnwrks-instagram-importer.php:66 dsgnwrks-instagram-importer.php:298
 msgid "Instagram Importer"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:78
+#: dsgnwrks-instagram-importer.php:84
 msgid "imported:"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:82
+#: dsgnwrks-instagram-importer.php:89 dsgnwrks-instagram-importer.php:163
 msgid "Hide"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:259
-msgid "Are you sure you want to delete user"
+#: dsgnwrks-instagram-importer.php:148
+msgid "No Instagram username found."
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:260
-msgid "Logging out of Instagram"
-msgstr ""
-
-#: dsgnwrks-instagram-importer.php:352 dsgnwrks-instagram-importer.php:417
+#: dsgnwrks-instagram-importer.php:155 dsgnwrks-instagram-importer.php:446
+#: dsgnwrks-instagram-importer.php:452 dsgnwrks-instagram-importer.php:517
 msgid "No new Instagram shots to import"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:568
+#: dsgnwrks-instagram-importer.php:356
+msgid "Are you sure you want to delete user"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:357
+msgid "Logging out of Instagram"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:665
 msgid "Untitled"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:598
+#: dsgnwrks-instagram-importer.php:695
 msgid " (Taken with Instagram at %s)"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:645 settings.php:373 settings.php:418
+#: dsgnwrks-instagram-importer.php:742 settings.php:373 settings.php:418
 msgid "Format"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:768
+#: dsgnwrks-instagram-importer.php:865
 msgid "imported and created successfully."
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:782 dsgnwrks-instagram-importer.php:783
+#: dsgnwrks-instagram-importer.php:880 dsgnwrks-instagram-importer.php:881
 msgid "image error"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:798
+#: dsgnwrks-instagram-importer.php:896
 msgid "created successfully but there was an error with the image upload."
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:982
+#: dsgnwrks-instagram-importer.php:1079
 msgid ""
 "Click to be taken to Instagram's site to securely authorize this plugin for "
 "use with your account."
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:982
+#: dsgnwrks-instagram-importer.php:1079
 msgid ""
 "(If you have already authorized an account, You will first be logged out of "
 "Instagram.)"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:990
+#: dsgnwrks-instagram-importer.php:1087
 msgid "Secure Authentication with Instagram"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:1005
+#: dsgnwrks-instagram-importer.php:1102
 msgid "Universal Import Options"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:1006
+#: dsgnwrks-instagram-importer.php:1103
 msgid "Please select the general import options below."
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:1010
+#: dsgnwrks-instagram-importer.php:1107
 msgid "Set Auto-import Frequency:"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:1013
+#: dsgnwrks-instagram-importer.php:1110
 msgid "Manual"
 msgstr ""
 
-#: dsgnwrks-instagram-importer.php:1026 settings.php:481
+#: dsgnwrks-instagram-importer.php:1123 settings.php:481
 msgid "Save"
 msgstr ""
 
@@ -128,7 +133,7 @@ msgstr ""
 msgid "Add Another User"
 msgstr ""
 
-#: settings.php:114 settings.php:115 settings.php:492
+#: settings.php:114 settings.php:115 settings.php:493
 msgid "Plugin Options"
 msgstr ""
 
@@ -324,21 +329,29 @@ msgstr ""
 msgid "Import"
 msgstr ""
 
-#: settings.php:498
+#: settings.php:486
+msgid "...Importing. This could take a while."
+msgstr ""
+
+#: settings.php:486
+msgid "ERROR!"
+msgstr ""
+
+#: settings.php:499
 msgid ""
 "Welcome to the Instagram Importer! Click to be taken to Instagram's site to "
 "securely authorize this plugin for use with your account."
 msgstr ""
 
-#: settings.php:510
+#: settings.php:511
 msgid "Contribute"
 msgstr ""
 
-#: settings.php:511
+#: settings.php:512
 msgid "Follow me on Twitter"
 msgstr ""
 
-#: settings.php:512
+#: settings.php:513
 msgid "Contact Me"
 msgstr ""
 
