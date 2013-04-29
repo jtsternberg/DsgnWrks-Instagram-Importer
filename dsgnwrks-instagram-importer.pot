@@ -1,0 +1,366 @@
+# Copyright (C) 2013 DsgnWrks Instagram Importer
+# This file is distributed under the same license as the DsgnWrks Instagram Importer package.
+msgid ""
+msgstr ""
+"Project-Id-Version: DsgnWrks Instagram Importer 1.2.4\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/dsgnwrks-instagram-importer\n"
+"POT-Creation-Date: 2013-04-28 21:55:04+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2013-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: dsgnwrks-instagram-importer.php:37 dsgnwrks-instagram-importer.php:600
+msgid "Instagram filter used:"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:37 settings.php:294
+msgid "Photo taken at:"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:37 dsgnwrks-instagram-importer.php:601
+msgid "View in Instagram"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:60 dsgnwrks-instagram-importer.php:228
+msgid "Instagram Importer"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:78
+msgid "imported:"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:82
+msgid "Hide"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:259
+msgid "Are you sure you want to delete user"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:260
+msgid "Logging out of Instagram"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:352 dsgnwrks-instagram-importer.php:417
+msgid "No new Instagram shots to import"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:568
+msgid "Untitled"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:598
+msgid " (Taken with Instagram at %s)"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:645 settings.php:373 settings.php:418
+msgid "Format"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:768
+msgid "imported and created successfully."
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:782 dsgnwrks-instagram-importer.php:783
+msgid "image error"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:798
+msgid "created successfully but there was an error with the image upload."
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:982
+msgid ""
+"Click to be taken to Instagram's site to securely authorize this plugin for "
+"use with your account."
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:982
+msgid ""
+"(If you have already authorized an account, You will first be logged out of "
+"Instagram.)"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:990
+msgid "Secure Authentication with Instagram"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:1005
+msgid "Universal Import Options"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:1006
+msgid "Please select the general import options below."
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:1010
+msgid "Set Auto-import Frequency:"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:1013
+msgid "Manual"
+msgstr ""
+
+#: dsgnwrks-instagram-importer.php:1026 settings.php:481
+msgid "Save"
+msgstr ""
+
+#: settings.php:3
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: settings.php:17
+msgid "You've successfully connected to Instagram!"
+msgstr ""
+
+#: settings.php:19
+msgid "There was an authorization error. Try again?"
+msgstr ""
+
+#: settings.php:59
+msgid "Instagram Importer Options"
+msgstr ""
+
+#: settings.php:112
+msgid "Add Another User"
+msgstr ""
+
+#: settings.php:114 settings.php:115 settings.php:492
+msgid "Plugin Options"
+msgstr ""
+
+#: settings.php:149
+msgid "Please select full date."
+msgstr ""
+
+#: settings.php:159
+msgid "Successfully connected to Instagram"
+msgstr ""
+
+#: settings.php:159
+msgid "Delete User?"
+msgstr ""
+
+#: settings.php:162
+msgid ""
+"Please select the import filter options below. If none of the options are "
+"selected, all photos for %s will be imported."
+msgstr ""
+
+#: settings.php:164
+msgid "(This could take a long time if you have a lot of photos)"
+msgstr ""
+
+#: settings.php:170
+msgid "Filter import by hashtag:"
+msgstr ""
+
+#: settings.php:170
+msgid ""
+"Will only import instagram photos with these hashtags.%sPlease separate tags "
+"with commas."
+msgstr ""
+
+#: settings.php:172
+msgid "e.g. keeper, fortheblog"
+msgstr ""
+
+#: settings.php:175 settings.php:243
+msgid "Remove filter"
+msgstr ""
+
+#: settings.php:182
+msgid "Import from this date:"
+msgstr ""
+
+#: settings.php:182
+msgid "Select a date to begin importing your photos."
+msgstr ""
+
+#: settings.php:197
+msgid "Please select full date"
+msgstr ""
+
+#: settings.php:200
+msgid "No date selected"
+msgstr ""
+
+#: settings.php:205
+msgid "Month"
+msgstr ""
+
+#: settings.php:216
+msgid "Day"
+msgstr ""
+
+#: settings.php:227
+msgid "Year"
+msgstr ""
+
+#. translators: 1: month input, 2: day input, 3: year input, 4: hour input, 5:
+#. minute input
+#: settings.php:240
+msgid "%1$s %2$s %3$s %4$s"
+msgstr ""
+
+#: settings.php:252
+msgid "Please select the post options for the imported instagram photos below."
+msgstr ""
+
+#: settings.php:257
+msgid "Save Instagram photo as post's featured image:"
+msgstr ""
+
+#: settings.php:269
+msgid "Auto-import future photos:"
+msgstr ""
+
+#: settings.php:271
+msgid ""
+"Change import interval from \"Manual\" in the \"Plugin Options\" tab for "
+"this option to take effect."
+msgstr ""
+
+#: settings.php:274
+msgid "Change import interval (%s) in the \"Plugin Options\" tab."
+msgstr ""
+
+#: settings.php:284
+msgid "Post Title:"
+msgstr ""
+
+#: settings.php:284 settings.php:293
+msgid "Add the imported Instagram data using these custom tags:"
+msgstr ""
+
+#: settings.php:293
+msgid "Post Content:"
+msgstr ""
+
+#: settings.php:294
+msgid "Or use these conditional tags:"
+msgstr ""
+
+#: settings.php:294
+msgid "Photo Caption:"
+msgstr ""
+
+#: settings.php:310
+msgid "Import to Post-Type:"
+msgstr ""
+
+#: settings.php:331
+msgid "Imported posts status:"
+msgstr ""
+
+#: settings.php:337
+msgid "Draft"
+msgstr ""
+
+#: settings.php:338
+msgid "Published"
+msgstr ""
+
+#: settings.php:339
+msgid "Pending"
+msgstr ""
+
+#: settings.php:340
+msgid "Private"
+msgstr ""
+
+#: settings.php:347
+msgid "Assign posts to an existing user:"
+msgstr ""
+
+#: settings.php:364
+msgid "Save photo hashtags as taxonomy terms (tags, categories, etc):"
+msgstr ""
+
+#: settings.php:370
+msgid "&mdash; Select &mdash;"
+msgstr ""
+
+#: settings.php:399
+msgid "Select Imported Posts Format:"
+msgstr ""
+
+#: settings.php:402
+msgid "Standard"
+msgstr ""
+
+#: settings.php:415
+msgid "e.g. Instagram, Life, dog, etc"
+msgstr ""
+
+#: settings.php:423
+msgid "e.g. beach, sunrise"
+msgstr ""
+
+#: settings.php:425
+msgid "%s to apply to imported posts."
+msgstr ""
+
+#: settings.php:425
+msgid "Please separate %s with commas"
+msgstr ""
+
+#: settings.php:473
+msgid "Last updated: %s"
+msgstr ""
+
+#: settings.php:479
+msgid "You've changed settings."
+msgstr ""
+
+#: settings.php:479
+msgid "please \"Save\" them before importing."
+msgstr ""
+
+#: settings.php:485
+msgid "Import"
+msgstr ""
+
+#: settings.php:498
+msgid ""
+"Welcome to the Instagram Importer! Click to be taken to Instagram's site to "
+"securely authorize this plugin for use with your account."
+msgstr ""
+
+#: settings.php:510
+msgid "Contribute"
+msgstr ""
+
+#: settings.php:511
+msgid "Follow me on Twitter"
+msgstr ""
+
+#: settings.php:512
+msgid "Contact Me"
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "DsgnWrks Instagram Importer"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Allows you to backup your instagram photos while allowing you to have a site "
+"to display your instagram archive. Allows you to import to custom post types "
+"and attach custom taxonomies."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "DsgnWrks"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://dsgnwrks.pro"
+msgstr ""
