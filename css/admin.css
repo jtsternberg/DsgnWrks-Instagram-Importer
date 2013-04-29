@@ -1,5 +1,29 @@
 /* Admin Page CSS */
 
+.updated.instagram-import-message {
+	overflow: hidden;
+	background: #F1F1F1;
+	border-color: #ccc;
+	padding: 0 0 10px 10px;
+	margin: 0;
+}
+.updated.instagram-import-message p {
+	margin: 10px 10px 0 0;
+	padding: 8px;
+	background: #fff;
+	width: 350px;
+	float: left;
+}
+.updated.instagram-import-message strong {
+	display: block;
+}
+.updated.instagram-import-message img {
+	width: 50px;
+	height: 50px;
+	margin-right: 8px;
+	vertical-align: middle;
+	float: left;
+}
 .instagram-importer p, .instagram-importer .form-table {
 	width: auto;
 	max-width: 660px;
@@ -123,4 +147,23 @@
 
 img.alignleft {
 	margin: 0 14px 14px 0;
+}
+
+.instagram-importer .spinner-wrap {
+	margin-top: 0;
+	/*display: block !important;*/
+}
+.instagram-importer .spinner {
+	margin-bottom: -4px;
+	line-height: 1;
+	opacity: 1;
+	width: 220px;
+	height: 10px;
+	background: url(../images/loading.gif) no-repeat top right;
+	background-size: 220px 10px;
+	/*display: block !important;*/
+}
+
+.instagram-importer .warning.hidden {
+	padding-left: 10px;
 }

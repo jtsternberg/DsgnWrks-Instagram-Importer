@@ -10,8 +10,8 @@ Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 3.6
-Stable tag: 1.2.4
-Version: 1.2.4
+Stable tag: 1.2.5
+Version: 1.2.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,11 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 == Changelog ==
 
+= 1.2.5 =
+* Added: POT translation file.
+* Improvement: Import now runs via AJAX, and imported post messages have improved styling.
+* Fixed: Previously had no uninstall hook. Now deletes plugin option data (not imported posts) when uninstalling plugin.
+
 = 1.2.4 =
 * Fixed: `**insta-image-link**` now pulls in the full 612x612 image size.
 * Added: dsgnwrks_instagram_image_size filter for changing from 'full' to any registered image size.
@@ -110,6 +115,11 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 
 == Upgrade Notice ==
+
+= 1.2.5 =
+* Added: POT translation file.
+* Improvement: Import now runs via AJAX, and imported post messages have improved styling.
+* Fixed: Previously had no uninstall hook. Now deletes plugin option data (not imported posts) when uninstalling plugin.
 
 = 1.2.4 =
 * Fixed: `**insta-image-link**` now pulls in the full 612x612 image size.

@@ -6,17 +6,18 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.2.4
+Version: 1.2.5
 */
 
 class DsgnWrksInstagram {
 
-	protected $plugin_name = 'DsgnWrks Instagram Importer';
-	protected $plugin_id = 'dsgnwrks-instagram-importer-settings';
-	protected $pre = 'dsgnwrks_instagram_';
+	public $plugin_name    = 'DsgnWrks Instagram Importer';
+	public $plugin_version = '1.2.5';
+	public $plugin_id      = 'dsgnwrks-instagram-importer-settings';
+	protected $pre         = 'dsgnwrks_instagram_';
+	protected $import      = array();
 	protected $plugin_page;
 	protected $defaults;
-	protected $import = array();
 
 	/**
 	 * Sets up our plugin
@@ -24,24 +25,29 @@ class DsgnWrksInstagram {
 	 */
 	function __construct() {
 
+		// i18n
+		load_plugin_textdomain( 'dsgnwrks', false, dirname( plugin_basename( __FILE__ ) ) );
+
 		// user option defaults
 		$this->defaults = array(
-			'tag-filter' => false,
-			'feat_image' => 'yes',
-			'auto_import' => 'yes',
-			'date-filter' => 0,
-			'mm' => date( 'm', strtotime( '-1 month' ) ),
-			'dd' => date( 'd', strtotime( '-1 month' ) ),
-			'yy' => date( 'Y', strtotime( '-1 month' ) ),
-			'post-title' => '**insta-text**',
+			'tag-filter'   => false,
+			'feat_image'   => 'yes',
+			'auto_import'  => 'yes',
+			'date-filter'  => 0,
+			'mm'           => date( 'm', strtotime( '-1 month' ) ),
+			'dd'           => date( 'd', strtotime( '-1 month' ) ),
+			'yy'           => date( 'Y', strtotime( '-1 month' ) ),
+			'post-title'   => '**insta-text**',
 			'post_content' => '<p><a href="**insta-link**" target="_blank">**insta-image**</a></p>'."\n".'<p>'. __( 'Instagram filter used:', 'dsgnwrks' ) .' **insta-filter**</p>'."\n".'[if-insta-location]<p>'. __( 'Photo taken at:', 'dsgnwrks' ) .' **insta-location**</p>[/if-insta-location]'."\n".'<p><a href="**insta-link**" target="_blank">'. __( 'View in Instagram', 'dsgnwrks' ) .' &rArr;</a></p>',
-			'post-type' => 'post',
-			'draft' => 'draft',
+			'post-type'    => 'post',
+			'draft'        => 'draft',
 		);
 
 		add_action( 'admin_init', array( $this, 'init' ) );
 		add_action( $this->pre.'cron', array( $this, 'cron_callback' ) );
 		add_action( 'admin_menu', array( $this, 'settings' ) );
+		add_action( 'wp_ajax_dsgnwrks_instagram_import', array( $this, 'ajax_import' ) );
+		register_uninstall_hook( __FILE__, array( 'DsgnWrksInstagram', 'uninstall' ) );
 		// @TODO
 		// add_action( 'before_delete_post', array( $this, 'save_id_on_delete' ), 10, 1 );
 		add_action( 'current_screen', array( $this, 'redirects' ) );
@@ -73,13 +79,47 @@ class DsgnWrksInstagram {
 			return;
 
 		// if so, loop through and display them
-		echo '<div id="message" class="updated">';
+		echo '<div id="message" class="updated instagram-import-message">';
 		foreach ( $notices as $userid => $notice ) {
 			echo '<h3>'. $userid .' &mdash; '. __( 'imported:', 'dsgnwrks' ) .' '. $notice['time'] .'</h3>';
 			echo $notice['notice'];
+			echo '<div style="clear: both; padding-top: 10px;"></div>';
 			echo '<hr/>';
 		}
 		echo '<br><a href="'. add_query_arg( array() ) .'">'. __( 'Hide', 'dsgnwrks' ) .'</a></div>';
+		?>
+		<style type="text/css">
+		.updated.instagram-import-message {
+			overflow: hidden;
+			background: #F1F1F1;
+			border-color: #ccc;
+			padding: 0 0 10px 10px;
+			margin: 0;
+		}
+		.updated.instagram-import-message p {
+			margin: 10px 10px 0 0;
+			padding: 8px;
+			background: #fff;
+			width: 350px;
+			float: left;
+		}
+		.updated.instagram-import-message strong {
+			display: block;
+		}
+		.updated.instagram-import-message img {
+			width: 50px;
+			height: 50px;
+			margin-right: 8px;
+			vertical-align: middle;
+			float: left;
+		}
+		.updated.instagram-import-message hr {
+			display: block;
+			width: 100%;
+			clear: both;
+		}
+		</style>
+		<?php
 		// reset notices
 		update_option( 'dsgnwrks_imported_photo_notices', '' );
 	}
@@ -98,13 +138,43 @@ class DsgnWrksInstagram {
 	}
 
 	/**
+	 * Import via ajax
+	 * @since  1.2.5
+	 */
+	public function ajax_import() {
+
+		// instagram user id for pinging instagram
+		if ( !isset( $_REQUEST['instagram_user'] ) )
+			wp_send_json_error( '<div id="message" class="error"><p>'. __( 'No Instagram username found.', 'dsgnwrks' ) .'</p></div>' );
+
+		$this->import( $_REQUEST['instagram_user'] );
+
+		// check if we have any saved notices from our cron auto-import
+		$notices = get_option( 'dsgnwrks_imported_photo_notices' );
+		if ( !$notices )
+			wp_send_json_success( '<div id="message" class="updated"><p>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</p></div>' );
+
+		// if so, loop through and display them
+		$messages = '<div id="message" class="updated instagram-import-message">';
+		foreach ( $notices as $userid => $notice ) {
+			$messages .= $notice['notice'];
+			$messages .= '<div style="clear: both; padding-top: 10px;"></div>';
+		}
+		$messages .= '<br><a class="button" id="instagram-remove-messages" href="#">'. __( 'Hide', 'dsgnwrks' ) .'</a></div>';
+		// reset notices
+		update_option( 'dsgnwrks_imported_photo_notices', '' );
+		// send back the messages
+		wp_send_json_success( $messages );
+	}
+
+	/**
 	 * @DEV Adds once minutely to the existing schedules for easier cron testing.
 	 * @since  1.2.0
 	 */
 	function minutely( $schedules ) {
 		$schedules['minutely'] = array(
 			'interval' => 60,
-			'display' => 'Once Every Minute'
+			'display'  => 'Once Every Minute'
 		);
 		return $schedules;
 	}
@@ -148,7 +218,7 @@ class DsgnWrksInstagram {
 	 */
 	public function users_validate( $opts ) {
 		$return = add_query_arg( array( 'page' => $this->plugin_id ), admin_url('/tools.php') );
-		$uri = add_query_arg( 'return_uri', urlencode( $return ), 'http://dsgnwrks.pro/insta_oauth/' );
+		$uri    = add_query_arg( 'return_uri', urlencode( $return ), 'http://dsgnwrks.pro/insta_oauth/' );
 		// Send them on with our redirect uri set.
 		wp_redirect( $uri, 307 );
 		exit;
@@ -235,6 +305,33 @@ class DsgnWrksInstagram {
 	}
 
 	/**
+	 * Runs when plugin is uninstalled. deletes users and options
+	 * @since 1.2.5
+	 */
+	static function uninstall() {
+		if ( ! current_user_can( 'activate_plugins' ) )
+			return;
+		check_admin_referer( 'bulk-plugins' );
+
+		// Important: Check if the file is the one
+		// that was registered during the uninstall hook.
+		if ( __FILE__ != WP_UNINSTALL_PLUGIN )
+			return;
+		self::delete_options();
+	}
+
+	/**
+	 * Deletes all plugin options
+	 * @since 1.2.5
+	 */
+	static function delete_options() {
+		// delete options
+		delete_option( 'dsgnwrks_insta_options' );
+		delete_option( 'dsgnwrks_insta_users' );
+		delete_option( 'dsgnwrks-import-debug-sent' );
+	}
+
+	/**
 	 * Creates our admin page
 	 * @since  1.1.0
 	 */
@@ -292,10 +389,10 @@ class DsgnWrksInstagram {
 		if ( !$userid && !isset( $_GET['instaimport'] ) )
 			return;
 		// get our options for use in the import
-		$opts = get_option( 'dsgnwrks_insta_options' );
-		$this->opts = &$opts;
+		$opts             = get_option( 'dsgnwrks_insta_options' );
+		$this->opts       = &$opts;
 		// instagram user id for pinging instagram
-		$this->userid = $id = $userid ? $userid : sanitize_title( urldecode( $_GET['instaimport'] ) );
+		$this->userid     = $id = $userid ? $userid : sanitize_title( urldecode( $_GET['instaimport'] ) );
 		// if a $userid was passed in, we know we're doing a cron scheduled event
 		$this->doing_cron = $userid ? true : false;
 
@@ -346,6 +443,9 @@ class DsgnWrksInstagram {
 
 		// if we're not doing cron, show our notice now
 		if ( !$userid ) {
+			if ( stripos( $notice, __( 'No new Instagram shots to import', 'dsgnwrks' ) ) === false )
+				$message_class .= ' instagram-import-message';
+
 			echo '<div id="message" class="'. $message_class .'">'. $notice .'</div>';
 		}
 		// otherwise, save our imported photo notices to an option to be displayed later
@@ -379,7 +479,7 @@ class DsgnWrksInstagram {
 		// our individual user's settings
 		$this->settings = $settings;
 		// get instagram feed
-		$response = wp_remote_get( $api_url, array( 'sslverify' => false ) );
+		$response       = wp_remote_get( $api_url, array( 'sslverify' => false ) );
 		// if feed causes a wp_error object, send the error back
 		if ( is_wp_error( $response ) )
 			return $this->wp_error_message( $response );
@@ -388,7 +488,7 @@ class DsgnWrksInstagram {
 		$data = json_decode( wp_remote_retrieve_body( $response ) );
 
 		if ( !$this->importDebugCheck() )
-			$this->debugsend( 'import_messages', $this->userid .' - $data', array( '$this->userid' => $this->userid, '$data' => $data ) );
+			$this->debugsend( 'import_messages', $this->userid .' - $data', array( '$this->userid' => $this->userid, '$response[headers]' => $response['headers'], 'json_decode( wp_remote_retrieve_body( $response ) )' => $data, '$settings' => $settings ) );
 
 		// load WP files to use functions in them
 		require_once(ABSPATH . 'wp-admin/includes/file.php');
@@ -414,12 +514,12 @@ class DsgnWrksInstagram {
 		// return an array of messages and our "next" url
 		if ( empty( $messages ) && empty( $prevmessages ) )
 			return array(
-				'message' => array( '<p>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</p>' ),
+				'message'  => array( '<p>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</p>' ),
 				'next_url' => $next_url,
 			);
 
 		return array(
-			'message' => $messages,
+			'message'  => $messages,
 			'next_url' => $next_url,
 		);
 	}
@@ -474,11 +574,11 @@ class DsgnWrksInstagram {
 			$pt = isset( $settings['post-type'] ) ? $settings['post-type'] : 'post';
 			$alreadyInSystem = new WP_Query(
 				array(
-					'post_type' => $pt,
+					'post_type'   => $pt,
 					'post_status' => 'any',
-					'meta_query' => array(
+					'meta_query'  => array(
 						array(
-							'key' => 'instagram_created_time',
+							'key'   => 'instagram_created_time',
 							'value' => $pic->created_time
 						)
 					)
@@ -502,45 +602,42 @@ class DsgnWrksInstagram {
 	 */
 	protected function save_img_post() {
 
-		$settings = &$this->settings;
-		$p = &$this->pic;
-
-		// init our $import settings array var
-		$import = &$this->import;
-
 		global $user_ID;
 
+		$settings                = &$this->settings;
+		$p                       = &$this->pic;
+		// init our $import settings array var
+		$import                  = &$this->import;
 		// in case we haven't gotten our settings yet. (unlikely)
-		$settings = ( empty( $settings ) ) ? get_option( 'dsgnwrks_insta_options' ) : $settings;
-
+		$settings                = ( empty( $settings ) ) ? get_option( 'dsgnwrks_insta_options' ) : $settings;
 		// check for a location saved
-		$this->loc = ( isset( $p->location->name ) ) ? $p->location->name : '';
+		$this->loc               = ( isset( $p->location->name ) ) ? $p->location->name : '';
 
 		// Update post title
 		$this->formatTitle();
 
 		// save photo as featured?
-		$import['featured'] = ( isset( $settings['feat_image'] ) && $settings['feat_image'] == true ) ? true : false;
+		$import['featured']      = ( isset( $settings['feat_image'] ) && $settings['feat_image'] == true ) ? true : false;
 		// save instagram photo caption as post excerpt
-		$import['post_excerpt'] = !empty( $p->caption->text ) ? $p->caption->text : '';
+		$import['post_excerpt']  = !empty( $p->caption->text ) ? $p->caption->text : '';
 
 		$this->formatContent();
 
 		// post author, default to current user
-		$import['post_author'] = isset( $settings['author'] ) ? $settings['author'] : $user_ID;
+		$import['post_author']   = isset( $settings['author'] ) ? $settings['author'] : $user_ID;
 		// post date, default to photo's created time
-		$import['post_date'] = date( 'Y-m-d H:i:s', $p->created_time );
+		$import['post_date']     = date( 'Y-m-d H:i:s', $p->created_time );
 		$import['post_date_gmt'] = $import['post_date'];
 		// post status, default to 'draft'
-		$import['post_status'] = isset( $settings['draft'] ) ? $settings['draft'] : 'draft';
+		$import['post_status']   = isset( $settings['draft'] ) ? $settings['draft'] : 'draft';
 		// post type, default to 'post'
-		$import['post_type'] = isset( $settings['post-type'] ) ? $settings['post-type'] : 'post';
+		$import['post_type']     = isset( $settings['post-type'] ) ? $settings['post-type'] : 'post';
 
 		// A filter so filter-savvy devs can modify the data before the post is created
-		$import = apply_filters( 'dsgnwrks_instagram_pre_save', $import, $p, $settings );
+		$import                  = apply_filters( 'dsgnwrks_instagram_pre_save', $import, $p, $settings );
 
 		// and insert our new post
-		$import['post_id'] = $this->insertPost();
+		$import['post_id']       = $this->insertPost();
 
 		// if a wp_error object, send the error back
 		if ( is_wp_error( $import['post_id'] ) )
@@ -565,7 +662,7 @@ class DsgnWrksInstagram {
 	 */
 	protected function formatTitle() {
 		// Check for a title, or use 'Untitled'
-		$this->insta_title = !empty( $this->pic->caption->text ) ? $this->pic->caption->text : __( 'Untitled', 'dsgnwrks' );
+		$this->insta_title          = !empty( $this->pic->caption->text ) ? $this->pic->caption->text : __( 'Untitled', 'dsgnwrks' );
 		// Set post title to caption by default
 		$this->import['post_title'] = $this->insta_title;
 
@@ -622,14 +719,14 @@ class DsgnWrksInstagram {
 	protected function insertPost() {
 		// insert our new post with its data
 		return wp_insert_post( array(
-		  'post_author' => $this->import['post_author'],
-		  'post_content' => $this->import['post_content'],
-		  'post_date' => $this->import['post_date'],
-		  'post_date_gmt' => $this->import['post_date_gmt'],
-		  'post_excerpt' => $this->import['post_excerpt'],
-		  'post_status' => $this->import['post_status'],
-		  'post_title' => $this->import['post_title'],
-		  'post_type' => $this->import['post_type'],
+			'post_author'   => $this->import['post_author'],
+			'post_content'  => $this->import['post_content'],
+			'post_date'     => $this->import['post_date'],
+			'post_date_gmt' => $this->import['post_date_gmt'],
+			'post_excerpt'  => $this->import['post_excerpt'],
+			'post_status'   => $this->import['post_status'],
+			'post_title'    => $this->import['post_title'],
+			'post_type'     => $this->import['post_type'],
 		), true );
 	}
 
@@ -685,16 +782,16 @@ class DsgnWrksInstagram {
 	protected function savePostmeta() {
 
 		foreach ( array(
-			'dsgnwrks_instagram_likes' => $this->pic->likes,
+			'dsgnwrks_instagram_likes'    => $this->pic->likes,
 			'dsgnwrks_instagram_comments' => $this->pic->comments,
 			'dsgnwrks_instagram_hashtags' => $this->pic->tags,
-			'instagram_created_time' => $this->pic->created_time,
-			'dsgnwrks_instagram_id' => $this->pic->id,
-			'instagram_filter_used' => $this->pic->filter,
-			'instagram_attribution' => $this->pic->attribution,
-			'instagram_location' => $this->pic->location,
-			'instagram_link' => esc_url( $this->pic->link ),
-			'instagram_user' => $this->pic->user,
+			'instagram_created_time'      => $this->pic->created_time,
+			'dsgnwrks_instagram_id'       => $this->pic->id,
+			'instagram_filter_used'       => $this->pic->filter,
+			'instagram_attribution'       => $this->pic->attribution,
+			'instagram_location'          => $this->pic->location,
+			'instagram_link'              => esc_url( $this->pic->link ),
+			'instagram_user'              => $this->pic->user,
 		) as $key => $value )
 			update_post_meta( $this->import['post_id'], $key, $value );
 
@@ -722,7 +819,7 @@ class DsgnWrksInstagram {
 		$tmp = download_url( $imgurl );
 
 		preg_match('/[^\?]+\.(jpg|JPG|jpe|JPE|jpeg|JPEG|gif|GIF|png|PNG)/', $imgurl, $matches);
-		$file_array['name'] = basename( $matches[0] );
+		$file_array['name']     = basename( $matches[0] );
 		$file_array['tmp_name'] = $tmp;
 
 		if ( is_wp_error( $tmp ) ) {
@@ -747,17 +844,17 @@ class DsgnWrksInstagram {
 		// Replace URLs in post with uploaded image
 		if ( is_array( $img ) ) {
 			// init our var
-			$content = &$import['post_content'];
+			$content     = &$import['post_content'];
 			// filter the image element
 			$insta_image = (string) apply_filters( 'dsgnwrks_instagram_insta_image', sprintf( '<img class="insta-image" width="%d" height="%d" src="%s"/>', $img[1], $img[2], $img[0] ), $img_id, $import['post_id'] );
 			// Add the instagram image element if requested
-			$content = str_replace( '**insta-image**', $insta_image, $content );
+			$content     = str_replace( '**insta-image**', $insta_image, $content );
 			// Add the instagram image source if requested
-			$content = str_replace( '**insta-image-link**', $img[0], $content );
+			$content     = str_replace( '**insta-image-link**', $img[0], $content );
 
 			// Update the post with updated image URLs
 			wp_update_post( array(
-				'ID' => $import['post_id'],
+				'ID'           => $import['post_id'],
 				'post_content' => $content,
 			) );
 		} else {
@@ -765,7 +862,8 @@ class DsgnWrksInstagram {
 		}
 
 		// return a success message
-		return '<p><strong><em>&ldquo;'. $import['post_title'] .'&rdquo; </em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</strong></p>';
+		return '<p>'. get_the_post_thumbnail( $import['post_id'], array( 50, 50 ) ) .'<strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em></p>';
+
 	}
 
 	/**
@@ -790,12 +888,12 @@ class DsgnWrksInstagram {
 
 		// Update the post with updated image URLs or errors
 		wp_update_post( array(
-			'ID' => $import['post_id'],
+			'ID'           => $import['post_id'],
 			'post_content' => $import['post_content'],
 		) );
 
 		// return an image upload error message
-		return '<p><strong><em>&ldquo;'. $import['post_title'] .'&rdquo; </em> '. __( 'created successfully but there was an error with the image upload.', 'dsgnwrks' ) .'</strong></p>';
+		return '<p><strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em class="warning">'. __( 'created successfully but there was an error with the image upload.', 'dsgnwrks' ) .'</em></p>';
 	}
 
 	/**
@@ -821,9 +919,9 @@ class DsgnWrksInstagram {
 	 */
 	protected function conditional( $tag, $content, $replace ) {
 
-		$open = '[if-'.$tag.']';
+		$open  = '[if-'.$tag.']';
 		$close = '[/if-'.$tag.']';
-		$tag = '**'.$tag.'**';
+		$tag   = '**'.$tag.'**';
 
 		// if we have conditional markup
 		if ( ( $pos1 = strpos( $content, $open ) ) && ( $pos2 = strpos( $content, $close ) ) ) {
@@ -836,7 +934,7 @@ class DsgnWrksInstagram {
 				$content = str_replace( $close, '', $content );
 			} else {
 				// if no replace data is provided, just remove our shortcode markup
-				$length = ( $pos2 + strlen( $close ) ) - $pos1;
+				$length  = ( $pos2 + strlen( $close ) ) - $pos1;
 				$content = substr_replace( $content, '', $pos1, $length );
 			}
 
@@ -858,13 +956,12 @@ class DsgnWrksInstagram {
 		// if we have an error or access token
 		if ( isset( $_GET['error'] ) || isset( $_GET['access_token'] ) )  {
 
-			$opts = get_option( 'dsgnwrks_insta_options' );
-			$users = get_option( 'dsgnwrks_insta_users' );
-			$users = ( !empty( $users ) ) ? $users : array();
-
+			$opts   = get_option( 'dsgnwrks_insta_options' );
+			$users  = get_option( 'dsgnwrks_insta_users' );
+			$users  = ( !empty( $users ) ) ? $users : array();
 			$notice = array(
 				'notice' => false,
-				'class' => 'updated',
+				'class'  => 'updated',
 			);
 
 			if ( isset( $_GET['error'] ) || isset( $_GET['error_reason'] ) || isset( $_GET['error_description'] ) ) {
@@ -874,21 +971,21 @@ class DsgnWrksInstagram {
 
 				// setup our user data and save it
 				if ( isset( $_GET['username'] ) && !in_array( $_GET['username'], $users ) ) {
-					$sanitized_user = sanitize_title( $_GET['username'] );
-					$users[] = $sanitized_user;
-					$opts[$sanitized_user]['access_token'] = $_GET['access_token'];
-					$opts[$sanitized_user]['bio'] = isset( $_GET['bio'] ) ? $_GET['bio'] : '';
-					$opts[$sanitized_user]['website'] = isset( $_GET['website'] ) ? $_GET['website'] : '';
+					$sanitized_user                           = sanitize_title( $_GET['username'] );
+					$users[]                                  = $sanitized_user;
+					$opts[$sanitized_user]['access_token']    = $_GET['access_token'];
+					$opts[$sanitized_user]['bio']             = isset( $_GET['bio'] ) ? $_GET['bio'] : '';
+					$opts[$sanitized_user]['website']         = isset( $_GET['website'] ) ? $_GET['website'] : '';
 					$opts[$sanitized_user]['profile_picture'] = isset( $_GET['profile_picture'] ) ? $_GET['profile_picture'] : '';
-					$opts[$sanitized_user]['full_name'] = isset( $_GET['full_name'] ) ? $_GET['full_name'] : '';
-					$opts[$sanitized_user]['id'] = isset( $_GET['id'] ) ? $_GET['id'] : '';
-					$opts[$sanitized_user]['full_username'] = $_GET['username'];
+					$opts[$sanitized_user]['full_name']       = isset( $_GET['full_name'] ) ? $_GET['full_name'] : '';
+					$opts[$sanitized_user]['id']              = isset( $_GET['id'] ) ? $_GET['id'] : '';
+					$opts[$sanitized_user]['full_username']   = $_GET['username'];
 
 					foreach ( $this->defaults as $key => $default ) {
 						$opts[$sanitized_user][$key] = $default;
 					}
 
-					$opts['username'] = $sanitized_user;
+					$opts['username']  = $sanitized_user;
 					$opts['frequency'] = 'daily';
 
 					update_option( 'dsgnwrks_insta_users', $users );
@@ -1092,7 +1189,7 @@ class DsgnWrksInstagram {
 		if ( !$this->debugEnabled() )
 			return;
 		// default $data is options and users
-		$data = !$data ? print_r( array( 'opts' => $this->opts, 'users' => $this->users ), true ) : print_r( $data, true );
+		$data  = !$data ? print_r( array( 'opts' => $this->opts, 'users' => $this->users ), true ) : print_r( $data, true );
 		// default title
 		$title = !$title ? 'no $opts[$id] - $opts & $users' : esc_attr( $title );
 		wp_mail( 'justin@dsgnwrks.pro', 'Instagram Debug - '. $title .' - line '. $line, $data );

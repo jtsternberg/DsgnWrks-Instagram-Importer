@@ -100,15 +100,47 @@ jQuery(document).ready(function($) {
 		return false;
 	});
 
+	$('.button-secondary.import-button').click( function(event) {
+		event.preventDefault();
 
-	function changeQueryVar(url, keyString, replaceString) {
-		var vars = url.split('&');
-		for (var i = 0; i < vars.length; i++) {
-			var pair = vars[i].split('=');
-			if (pair[0] == keyString) {
-				vars[i] = pair[0] + '=' + replaceString;
+		var el = $(this);
+		var userid = el.data('instagramuser');
+		var spinner = $('.spinner-wrap, .spinner-wrap .spinner');
+		var strong = spinner.next('strong').hide();
+
+		spinner.show();
+
+		$.ajax({
+			type : "post",
+			dataType : "json",
+			url : window.ajaxurl,
+			data : {
+				action: 'dsgnwrks_instagram_import',
+				instagram_user: userid
+			},
+			success : function(response) {
+				spinner.hide();
+				$('#message').remove();
+				window.scrollTo(0, 0);
+				$('#icon-tools + h2').after(response.data);
+
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+				console.warn(xhr.status);
+				console.warn(thrownError);
+				spinner.hide();
+				strong.show();
+				setTimeout( function(){
+					strong.fadeOut('slow');
+				}, 2000);
 			}
-		}
-		return vars.join('&');
-	}
+		});
+
+	});
+
+	$('body').on( 'click', '#instagram-remove-messages', function(event) {
+		event.preventDefault();
+		$('.updated.instagram-import-message').remove();
+	});
+
 });

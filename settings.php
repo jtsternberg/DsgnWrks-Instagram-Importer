@@ -482,7 +482,8 @@ if ( !empty( $users ) && is_array( $users ) ) {
 								<?php
 								$importlink = $this->instimport_link( $o['full_username'] );
 								?>
-								<a href="<?php echo $importlink; ?>" class="button-secondary import-button" id="import-<?php echo $id; ?>"><?php _e( 'Import', 'dsgnwrks' ); ?></a>
+								<a href="<?php echo $importlink; ?>" class="button-secondary import-button" id="import-<?php echo $id; ?>" data-instagramuser="<?php echo urlencode( $o['full_username'] ); ?>"><?php _e( 'Import', 'dsgnwrks' ); ?></a>
+								<p class="spinner-wrap hidden"><?php _e( '...Importing. This could take a while.', 'dsgnwrks' ); ?><span class="spinner"></span></p><strong class="warning hidden"><?php _e( 'ERROR!', 'dsgnwrks' ); ?></strong>
 							</p>
 						</div>
 						<?php
