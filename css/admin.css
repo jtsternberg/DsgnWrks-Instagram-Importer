@@ -62,6 +62,11 @@
 	border: none;
 	border-bottom: 10px solid #fff;
 }
+.instagram-importer .form-table .remove-hashtags label {
+	background: #FFF;
+	padding: 4px 6px;
+	margin: 0 2px;
+}
 .instagram-importer tr.disabled th strong, .instagram-importer tr.disabled input {
 	opacity: .6;
 }

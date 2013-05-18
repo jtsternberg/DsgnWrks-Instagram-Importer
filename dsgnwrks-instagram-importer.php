@@ -6,13 +6,13 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.2.5
+Version: 1.2.6
 */
 
 class DsgnWrksInstagram {
 
 	public $plugin_name      = 'DsgnWrks Instagram Importer';
-	public $plugin_version   = '1.2.5';
+	public $plugin_version   = '1.2.6';
 	public $plugin_id        = 'dsgnwrks-instagram-importer-settings';
 	protected $pre           = 'dsgnwrks_instagram_';
 	protected $instagram_api = 'https://api.instagram.com/v1/users/';
@@ -288,6 +288,13 @@ class DsgnWrksInstagram {
 					if ( $opts[$user] != $old_opts['frequency'] )
 						wp_clear_scheduled_hook( $this->pre.'cron' );
 				}
+				// if our 'remove_hashtags' was set
+				if ( $user === 'remove_hashtags' ) {
+					// checkboxes
+					foreach ( $useropts as $filter => $value ) {
+						$opts[$user][$filter] = $opts[$user][$filter] == 'yes' ? 'yes' : false;
+					}
+				}
 			}
 		// allow plugins to add options to save
 		$opts = apply_filters( 'dsgnwrks_instagram_option_save', $opts, $old_opts );
@@ -486,6 +493,13 @@ class DsgnWrksInstagram {
 
 		$opts = $this->opts;
 
+		if ( isset( $opts['remove_hashtags'] ) && is_array( $opts['remove_hashtags'] ) ) {
+			foreach ( $opts['remove_hashtags'] as $filter => $value ) {
+				if ( $value )
+					add_filter( 'dsgnwrks_instagram_'.$filter, array( $this, 'remove_hashtags' ) );
+			}
+		}
+
 		// if a timezone string was saved
 		if ( $tz_string = get_option(' timezone_string ') ) {
 			// save our current date to a var
@@ -678,7 +692,7 @@ class DsgnWrksInstagram {
 		// save photo as featured?
 		$import['featured']      = ( isset( $settings['feat_image'] ) && $settings['feat_image'] == true ) ? true : false;
 		// save instagram photo caption as post excerpt
-		$import['post_excerpt']  = !empty( $p->caption->text ) ? $p->caption->text : '';
+		$import['post_excerpt']  = !empty( $p->caption->text ) ? apply_filters( 'dsgnwrks_instagram_post_excerpt', $p->caption->text ) : '';
 
 		$this->formatContent();
 
@@ -735,7 +749,7 @@ class DsgnWrksInstagram {
 		// Add the instagram filter name if requested
 		$t = str_replace( '**insta-filter**', $this->pic->filter, $t );
 
-		$this->import['post_title'] = $t;
+		$this->import['post_title'] = apply_filters( 'dsgnwrks_instagram_post_title', $t );
 	}
 
 	/**
@@ -768,7 +782,26 @@ class DsgnWrksInstagram {
 			// Add the instagram filter name if requested
 			$c = str_replace( '**insta-filter**', $this->pic->filter, $c );
 		}
-		$this->import['post_content'] = $c;
+		$this->import['post_content'] = apply_filters( 'dsgnwrks_instagram_post_content', $c );
+	}
+
+	/**
+	 * Remove hashtags from imported instagram title
+	 * @since  1.2.6
+	 * @param  string $title instagram photo title
+	 * @return string        modified title
+	 */
+	public function remove_hashtags( $title ) {
+
+		// hashtag pattern match
+		$pattern = '/(^|[^0-9A-Z&\/\?]+)([#＃]+)([0-9A-Z_]*[A-Z_]+[a-z0-9_üÀ-ÖØ-öø-ÿ]*)/iu';
+		// replace them
+		$clean_title = trim( preg_replace( $pattern, '', $title ) );
+
+		// if the result is empty (only hashtags), remove only the hash symbol instead
+		$title = empty( $clean_title ) ? trim( str_replace( '#', '', $title ) ) : $clean_title;
+
+		return $title;
 	}
 
 	/**
@@ -1003,7 +1036,7 @@ class DsgnWrksInstagram {
 			$content = str_replace( $tag, $replace, $content );
 		}
 		// return our modified data
-		return $content;
+		return apply_filters( 'dsgnwrks_instagram_'.$tag, $content, $replace );
 	}
 
 	/**
@@ -1173,6 +1206,15 @@ class DsgnWrksInstagram {
 							}
 							?>
 						</select>
+					</td>
+				</tr>
+				<tr valign="top" class="remove-hashtags">
+					<th scope="row"><strong><?php _e( 'Remove #hashtags when saving post:', 'dsgnwrks' ); ?></strong></th>
+					<td>
+						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_title]" <?php checked( isset( $this->opts['remove_hashtags']['post_title'] ) && $this->opts['remove_hashtags']['post_title'] ); ?> value="yes"/>&nbsp;Title</label>
+						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_content]" <?php checked( isset( $this->opts['remove_hashtags']['post_content'] ) && $this->opts['remove_hashtags']['post_content'] ); ?> value="yes"/>&nbsp;Content</label>
+						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_excerpt]" <?php checked( isset( $this->opts['remove_hashtags']['post_excerpt'] ) && $this->opts['remove_hashtags']['post_excerpt'] ); ?> value="yes"/>&nbsp;Excerpt</label>
+
 					</td>
 				</tr>
 				<?php do_action( 'dsgnwrks_instagram_univeral_options', $this->opts ); ?>
