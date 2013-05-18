@@ -57,6 +57,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 <div class="wrap">
 	<div id="icon-tools" class="icon32"><br></div>
 	<h2>DsgnWrks <?php _e( 'Instagram Importer Options', 'dsgnwrks' ); ?></h2>
+	<div class="updated instagram-import-message hidden"><ol></ol><div class="spinner"></div></div>
 	<div id="screen-meta" style="display: block; ">
 	<?php
 	if ( !empty( $notice ) ) {

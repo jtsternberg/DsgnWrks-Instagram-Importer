@@ -11,11 +11,12 @@ Version: 1.2.5
 
 class DsgnWrksInstagram {
 
-	public $plugin_name    = 'DsgnWrks Instagram Importer';
-	public $plugin_version = '1.2.5';
-	public $plugin_id      = 'dsgnwrks-instagram-importer-settings';
-	protected $pre         = 'dsgnwrks_instagram_';
-	protected $import      = array();
+	public $plugin_name      = 'DsgnWrks Instagram Importer';
+	public $plugin_version   = '1.2.5';
+	public $plugin_id        = 'dsgnwrks-instagram-importer-settings';
+	protected $pre           = 'dsgnwrks_instagram_';
+	protected $instagram_api = 'https://api.instagram.com/v1/users/';
+	protected $import        = array();
 	protected $plugin_page;
 	protected $defaults;
 
@@ -81,9 +82,9 @@ class DsgnWrksInstagram {
 		// if so, loop through and display them
 		echo '<div id="message" class="updated instagram-import-message">';
 		foreach ( $notices as $userid => $notice ) {
-			echo '<h3>'. $userid .' &mdash; '. __( 'imported:', 'dsgnwrks' ) .' '. $notice['time'] .'</h3>';
+			echo '<h3>'. $userid .' &mdash; '. __( 'imported:', 'dsgnwrks' ) .' '. $notice['time'] .'</h3><ol>';
 			echo $notice['notice'];
-			echo '<div style="clear: both; padding-top: 10px;"></div>';
+			echo '</ol><div style="clear: both; padding-top: 10px;"></div>';
 			echo '<hr/>';
 		}
 		echo '<br><a href="'. add_query_arg( array() ) .'">'. __( 'Hide', 'dsgnwrks' ) .'</a></div>';
@@ -96,7 +97,12 @@ class DsgnWrksInstagram {
 			padding: 0 0 10px 10px;
 			margin: 0;
 		}
-		.updated.instagram-import-message p {
+		.updated.instagram-import-message ol {
+			padding: 0;
+			margin: 0;
+			list-style-position: inside;
+		}
+		.updated.instagram-import-message li, .updated.instagram-import-message p {
 			margin: 10px 10px 0 0;
 			padding: 8px;
 			background: #fff;
@@ -147,24 +153,26 @@ class DsgnWrksInstagram {
 		if ( !isset( $_REQUEST['instagram_user'] ) )
 			wp_send_json_error( '<div id="message" class="error"><p>'. __( 'No Instagram username found.', 'dsgnwrks' ) .'</p></div>' );
 
-		$this->import( $_REQUEST['instagram_user'] );
+		if ( isset( $_REQUEST['next_url'] ) && $_REQUEST['next_url'] )
+			$this->next_url = $_REQUEST['next_url'];
 
-		// check if we have any saved notices from our cron auto-import
-		$notices = get_option( 'dsgnwrks_imported_photo_notices' );
+		$notices = $this->import( $_REQUEST['instagram_user'] );
+
 		if ( !$notices )
-			wp_send_json_success( '<div id="message" class="updated"><p>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</p></div>' );
+			wp_send_json_error( '<div id="message" class="updated"><p>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</p></div>' );
 
+		$next_url = false;
 		// if so, loop through and display them
-		$messages = '<div id="message" class="updated instagram-import-message">';
+		$messages = '';
 		foreach ( $notices as $userid => $notice ) {
+			if ( $userid == 'next_url' ) {
+				$next_url = $notice;
+				continue;
+			}
 			$messages .= $notice['notice'];
-			$messages .= '<div style="clear: both; padding-top: 10px;"></div>';
 		}
-		$messages .= '<br><a class="button" id="instagram-remove-messages" href="#">'. __( 'Hide', 'dsgnwrks' ) .'</a></div>';
-		// reset notices
-		update_option( 'dsgnwrks_imported_photo_notices', '' );
 		// send back the messages
-		wp_send_json_success( $messages );
+		wp_send_json_success( array( 'messages' => $messages, 'next_url' => $next_url, 'userid' => $_REQUEST['instagram_user'] ) );
 	}
 
 	/**
@@ -393,40 +401,23 @@ class DsgnWrksInstagram {
 		$this->opts       = &$opts;
 		// instagram user id for pinging instagram
 		$this->userid     = $id = $userid ? $userid : sanitize_title( urldecode( $_GET['instaimport'] ) );
-		// if a $userid was passed in, we know we're doing a cron scheduled event
-		$this->doing_cron = $userid ? true : false;
+		$this->doing_ajax = isset( $_REQUEST['instagram_user'] );
+		// if a $userid was passed in, & no ajax $_REQUEST data we know we're doing a cron scheduled event
+		$this->doing_cron = $userid && !$this->doing_ajax ? true : false;
 
 		// We need an id and access token to keep going
 		if ( !( isset( $opts[$id]['id'] ) && isset( $opts[$id]['access_token'] ) ) )
 			return;
 
-		// if a timezone string was saved
-		if ( $tz_string = get_option(' timezone_string ') ) {
-			// save our current date to a var
-			$pre = date('e');
-		 	// and tell php to use WP's timezone string
-			date_default_timezone_set( get_option( 'timezone_string' ) );
-		}
-
-		// ok, let's access instagram's api
-		$messages = $this->import_messages( 'https://api.instagram.com/v1/users/'. $opts[$id]['id'] .'/media/recent?access_token='. $opts[$id]['access_token'] .'&count=80', $opts[$id] );
-		// if the api gave us a "next" url, let's loop through till we've hit all pages
-		while ( !empty( $messages['next_url'] ) ) {
-			$messages = $this->import_messages( $messages['next_url'], $opts[$id], $messages['message'] );
-		}
-
-		// debug sent?
-		$this->importDebugSet();
-
-		// return php's timezone to its previously set value
-		if ( $tz_string )
-			date_default_timezone_set( $pre );
+		// Get our import report
+		$messages = $this->do_import( $this->doing_cron );
 
 		// message class
 		$message_class = 'updated';
 
 		// init our variable
 		$notice = '';
+		$notices = false;
 		if ( is_array( $messages['message'] ) ) {
 			foreach ( $messages['message'] as $key => $message ) {
 				// build our $notice variable
@@ -441,29 +432,90 @@ class DsgnWrksInstagram {
 		// get our current time
 		$time = date_i18n( 'l F jS, Y @ h:i:s A', strtotime( current_time('mysql') ) );
 
-		// if we're not doing cron, show our notice now
+		// if we're not doing cron or ajax, show our notice now
 		if ( !$userid ) {
 			if ( stripos( $notice, __( 'No new Instagram shots to import', 'dsgnwrks' ) ) === false )
 				$message_class .= ' instagram-import-message';
 
-			echo '<div id="message" class="'. $message_class .'">'. $notice .'</div>';
+			echo '<div id="message" class="'. $message_class .'"><ol>'. $notice .'</ol></div>';
 		}
-		// otherwise, save our imported photo notices to an option to be displayed later
+		// otherwise...
 		elseif ( stripos( $notice, __( 'No new Instagram shots to import', 'dsgnwrks' ) ) === false ) {
-			// check if we already have some notices saved
-			$notices = get_option( 'dsgnwrks_imported_photo_notices' );
-			// if so, add to them
-			if ( is_array( $notices ) )
-				$notices[$userid] = array( 'notice' => $notice, 'time' => $time );
-			// if not, create a new one
-			else
+
+			// if we're doing ajax, we'll send the messages back now
+			if ( $this->doing_ajax ) {
+
 				$notices = array( $userid => array( 'notice' => $notice, 'time' => $time ) );
-			// save our option
-			update_option( 'dsgnwrks_imported_photo_notices', $notices );
+
+				if ( !empty( $messages['next_url'] ) )
+					$notices['next_url'] = $messages['next_url'];
+
+				if ( $this->doing_ajax )
+					return $notices;
+
+			}
+			// otherwise we're doing a cron job,
+			// so save our imported photo notices to an option
+			// to be displayed later
+			else {
+				// check if we already have some notices saved
+				$notices = get_option( 'dsgnwrks_imported_photo_notices' );
+				// if so, add to them
+				if ( is_array( $notices ) )
+					$notices[$userid] = array( 'notice' => $notice, 'time' => $time );
+				// if not, create a new one
+				else
+					$notices = array( $userid => array( 'notice' => $notice, 'time' => $time ) );
+
+				// save our option
+				update_option( 'dsgnwrks_imported_photo_notices', $notices );
+			}
 		}
 
 		// Save the date/time to notify users of last import time
 		set_transient( sanitize_title( urldecode( $_GET['instaimport'] ) ) .'-instaimportdone', $time, 14400 );
+
+	}
+
+	/**
+	 * Actually fires the import and returns the messages
+	 * @param  boolean $loop whether to loop the instagram pages
+	 * @return array         success/error messages
+	 */
+	public function do_import( $loop = false ) {
+
+		$opts = $this->opts;
+
+		// if a timezone string was saved
+		if ( $tz_string = get_option(' timezone_string ') ) {
+			// save our current date to a var
+			$pre = date('e');
+		 	// and tell php to use WP's timezone string
+			date_default_timezone_set( get_option( 'timezone_string' ) );
+		}
+
+		$this->api_url = isset( $this->next_url ) ? $this->next_url : $this->instagram_api . $opts[$this->userid]['id'] .'/media/recent?access_token='. $opts[$this->userid]['access_token'] .'&count=3';
+		// trigger_error( $this->api_url );
+
+		// ok, let's access instagram's api
+		$messages = $this->import_messages( $this->api_url, $opts[$this->userid] );
+		// if the api gave us a "next" url, let's loop through till we've hit all pages
+		// while ( !empty( $messages['next_url'] ) && $loop ) {
+		// 	$messages = $this->import_messages( $messages['next_url'], $opts[$this->userid], $messages['message'] );
+		// }
+
+		wp_send_json_error( '<div id="message" class="updated"><pre>'. htmlentities( print_r( $messages, true ) ) .'</pre></div>' );
+
+
+		// debug sent?
+		$this->importDebugSet();
+
+		// return php's timezone to its previously set value
+		if ( $tz_string )
+			date_default_timezone_set( $pre );
+
+		return $messages;
+
 	}
 
 	/**
@@ -488,7 +540,14 @@ class DsgnWrksInstagram {
 		$data = json_decode( wp_remote_retrieve_body( $response ) );
 
 		if ( !$this->importDebugCheck() )
-			$this->debugsend( 'import_messages', $this->userid .' - $data', array( '$this->userid' => $this->userid, '$response[headers]' => $response['headers'], 'json_decode( wp_remote_retrieve_body( $response ) )' => $data, '$settings' => $settings ) );
+			$this->debugsend( 'import_messages', $this->userid .' - $data', array(
+				'$api_url' => $api_url,
+				'$this->userid' => $this->userid,
+				'$response[headers]' => $response['headers'],
+				'json_decode( wp_remote_retrieve_body( $response ) )' => $data,
+				'$prevmessages' => $prevmessages,
+				'$settings' => $settings
+			) );
 
 		// load WP files to use functions in them
 		require_once(ABSPATH . 'wp-admin/includes/file.php');
@@ -514,7 +573,7 @@ class DsgnWrksInstagram {
 		// return an array of messages and our "next" url
 		if ( empty( $messages ) && empty( $prevmessages ) )
 			return array(
-				'message'  => array( '<p>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</p>' ),
+				'message'  => array( '<li>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</li>' ),
 				'next_url' => $next_url,
 			);
 
@@ -862,7 +921,7 @@ class DsgnWrksInstagram {
 		}
 
 		// return a success message
-		return '<p>'. get_the_post_thumbnail( $import['post_id'], array( 50, 50 ) ) .'<strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em></p>';
+		return '<li>'. get_the_post_thumbnail( $import['post_id'], array( 50, 50 ) ) .'<strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em></li>';
 
 	}
 
@@ -893,7 +952,7 @@ class DsgnWrksInstagram {
 		) );
 
 		// return an image upload error message
-		return '<p><strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em class="warning">'. __( 'created successfully but there was an error with the image upload.', 'dsgnwrks' ) .'</em></p>';
+		return '<li><strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em class="warning">'. __( 'created successfully but there was an error with the image upload.', 'dsgnwrks' ) .'</em></li>';
 	}
 
 	/**
@@ -903,7 +962,7 @@ class DsgnWrksInstagram {
 	 */
 	protected function wp_error_message( $error, $array = true ) {
 
-		$message = '<p><strong>ERROR:</strong> '. $error->get_error_message() .'</p>';
+		$message = '<li><strong>ERROR:</strong> '. $error->get_error_message() .'</li>';
 		// return the wp_error message
 		return $array ? array( 'message' => $message ) : $message;
 

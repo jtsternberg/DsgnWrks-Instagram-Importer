@@ -7,7 +7,12 @@
 	padding: 0 0 10px 10px;
 	margin: 0;
 }
-.updated.instagram-import-message p {
+.updated.instagram-import-message ol {
+	padding: 0;
+	margin: 0;
+	list-style-position: inside;
+}
+.updated.instagram-import-message li, .updated.instagram-import-message p {
 	margin: 10px 10px 0 0;
 	padding: 8px;
 	background: #fff;
@@ -24,6 +29,18 @@
 	vertical-align: middle;
 	float: left;
 }
+.updated.instagram-import-message .spinner {
+	clear: both;
+	float: left;
+	padding: 12px 0;
+	background-position: center;
+}
+
+.updated.instagram-import-message .clear {
+	clear: both;
+	padding: 12px 0 0;
+}
+
 .instagram-importer p, .instagram-importer .form-table {
 	width: auto;
 	max-width: 660px;
@@ -52,9 +69,9 @@
 	background: #fff;
 }
 .instagram-importer .form-table tr.info {
-	background: #FFF;
+	background: transparent;
 	border: none;
-	border-bottom: 10px solid #fff;
+	border-bottom: 10px solid transparent;
 }
 .instagram-importer .form-table tr.info th {
 	padding: 0;
@@ -149,11 +166,11 @@ img.alignleft {
 	margin: 0 14px 14px 0;
 }
 
-.instagram-importer .spinner-wrap {
+.tools_page_dsgnwrks-instagram-importer-settings .spinner-wrap {
 	margin-top: 0;
 	/*display: block !important;*/
 }
-.instagram-importer .spinner {
+.tools_page_dsgnwrks-instagram-importer-settings .spinner {
 	margin-bottom: -4px;
 	line-height: 1;
 	opacity: 1;

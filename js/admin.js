@@ -100,47 +100,99 @@ jQuery(document).ready(function($) {
 		return false;
 	});
 
+
+	var spinner = $('.spinner-wrap, .spinner-wrap .spinner');
+	var strong = spinner.next('strong').hide();
+	var messagesDiv = $('.updated.instagram-import-message');
+	var msgSpinner = $('.spinner', messagesDiv);
+	var msgList = $('ol', messagesDiv);
+	var doingloop = false;
+
+	// when clicking "import"
 	$('.button-secondary.import-button').click( function(event) {
 		event.preventDefault();
 
 		var el = $(this);
 		var userid = el.data('instagramuser');
-		var spinner = $('.spinner-wrap, .spinner-wrap .spinner');
-		var strong = spinner.next('strong').hide();
 
 		spinner.show();
+		// import our photos
+		instagramAjax(userid);
+	});
+
+	function instagramAjax(userid, next_url) {
+		var data = {
+			action: 'dsgnwrks_instagram_import',
+			instagram_user: userid
+		};
+		if ( typeof next_url !== 'undefined' ) {}
+			data.next_url = next_url;
 
 		$.ajax({
 			type : "post",
 			dataType : "json",
 			url : window.ajaxurl,
-			data : {
-				action: 'dsgnwrks_instagram_import',
-				instagram_user: userid
-			},
-			success : function(response) {
-				spinner.hide();
-				$('#message').remove();
-				window.scrollTo(0, 0);
-				$('#icon-tools + h2').after(response.data);
-
-			},
-			error: function (xhr, ajaxOptions, thrownError) {
-				console.warn(xhr.status);
-				console.warn(thrownError);
-				spinner.hide();
-				strong.show();
-				setTimeout( function(){
-					strong.fadeOut('slow');
-				}, 2000);
-			}
+			data : data,
+			success : instagramSuccess,
+			error: instagramError
 		});
+	}
 
-	});
+	// ajax success handler
+	function instagramSuccess(response) {
+		// console.log(response);
+		spinner.hide();
 
+		$('#message').remove();
+		if ( !doingloop )
+			window.scrollTo(0, 0);
+
+		if ( response.success ) {
+			var next_url = typeof response.data.next_url !== 'undefined' ? response.data.next_url : false;
+			var userid = typeof response.data.userid !== 'undefined' ? response.data.userid : false;
+
+			console.log(response.data.messages);
+			messagesDiv.show();
+			msgList.append(response.data.messages);
+
+			// If we want to loop again
+			if ( next_url && userid ) {
+				msgSpinner.show();
+				doingloop = true;
+				return instagramAjax(userid, next_url);
+			} else {
+				// ok, we're done looping
+				msgSpinner.hide();
+				messagesDiv.append('<div class="clear"><a class="button" id="instagram-remove-messages" href="#">Hide</a></div>');
+			}
+
+		}
+		else {
+			if ( doingloop ) {
+				messagesDiv.append('<div class="clear"><a class="button" id="instagram-remove-messages" href="#">Hide</a></div>');
+			}
+			// Just a standard "no photos" response
+			else {
+
+				$('#icon-tools + h2').after(response.data);
+			}
+		}
+	}
+	// ajax error handler
+	function instagramError(xhr, ajaxOptions, thrownError) {
+		console.warn(xhr.status);
+		console.warn(thrownError);
+		spinner.hide();
+		strong.show();
+		setTimeout( function(){
+			strong.fadeOut('slow');
+		}, 2000);
+	}
+
+	// hides the imported posts notice box
 	$('body').on( 'click', '#instagram-remove-messages', function(event) {
 		event.preventDefault();
-		$('.updated.instagram-import-message').remove();
+		messagesDiv.hide();
 	});
 
 });
