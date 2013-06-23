@@ -31,6 +31,9 @@ jQuery(document).ready(function($) {
 		});
 	}
 
+	if ( !( $('.instagram-tab.active').length > 0 ) ) {
+		$('.instagram-tab:first, .help-tab-content:first').addClass('active');
+	}
 
 	function show_tax_blocks(curr_cpt,cpts) {
 
@@ -100,13 +103,19 @@ jQuery(document).ready(function($) {
 		return false;
 	});
 
-
 	var spinner = $('.spinner-wrap, .spinner-wrap .spinner');
 	var strong = spinner.next('strong').hide();
 	var messagesDiv = $('.updated.instagram-import-message');
 	var msgSpinner = $('.spinner', messagesDiv);
 	var msgList = $('ol', messagesDiv);
 	var doingloop = false;
+	var import_continue = true;
+
+	// Stop button
+	$('#insta-import-stop').click(function() {
+		import_continue = false;
+		$(this).val('Stopping...');
+	});
 
 	// when clicking "import"
 	$('.button-secondary.import-button').click( function(event) {
@@ -147,7 +156,7 @@ jQuery(document).ready(function($) {
 		if ( !doingloop )
 			window.scrollTo(0, 0);
 
-		if ( response.success ) {
+		if ( response.success && import_continue ) {
 			var next_url = typeof response.data.next_url !== 'undefined' ? response.data.next_url : false;
 			var userid = typeof response.data.userid !== 'undefined' ? response.data.userid : false;
 
@@ -157,6 +166,7 @@ jQuery(document).ready(function($) {
 
 			// If we want to loop again
 			if ( next_url && userid ) {
+				console.log('we want to loop again');
 				msgSpinner.show();
 				doingloop = true;
 				return instagramAjax(userid, next_url);
@@ -169,7 +179,9 @@ jQuery(document).ready(function($) {
 		}
 		else {
 			if ( doingloop ) {
-				messagesDiv.append('<div class="clear"><a class="button" id="instagram-remove-messages" href="#">Hide</a></div>');
+				// ok, we're done looping
+				msgSpinner.hide();
+				messagesDiv.append('<div class="clear"><a class="button" id="instagram-remove-messages" href="#">Hide</a>&nbsp;&nbsp;All done!</div>');
 			}
 			// Just a standard "no photos" response
 			else {
