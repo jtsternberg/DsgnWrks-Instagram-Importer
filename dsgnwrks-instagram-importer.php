@@ -153,8 +153,17 @@ class DsgnWrksInstagram {
 		if ( !isset( $_REQUEST['instagram_user'] ) )
 			wp_send_json_error( '<div id="message" class="error"><p>'. __( 'No Instagram username found.', 'dsgnwrks' ) .'</p></div>' );
 
-		if ( isset( $_REQUEST['next_url'] ) && $_REQUEST['next_url'] )
+		// check user capability
+		if ( !current_user_can( 'publish_posts' ) )
+			wp_send_json_error( '<div id="message" class="error"><p>'. __( 'Sorry, you do not have the right priveleges.', 'dsgnwrks' ) .'</p></div>' );
+
+		if ( isset( $_REQUEST['next_url'] ) && $trans = get_option( 'dsgnwrks_next_url' ) ) {
+			$this->next_url = $trans;
+			trigger_error('transient used');
+		} elseif ( isset( $_REQUEST['next_url'] ) && $_REQUEST['next_url'] ) {
 			$this->next_url = $_REQUEST['next_url'];
+			trigger_error('$_REQUEST[\'next_url\'] used');
+		}
 
 		$notices = $this->import( $_REQUEST['instagram_user'] );
 
@@ -454,8 +463,10 @@ class DsgnWrksInstagram {
 
 				$notices = array( $userid => array( 'notice' => $notice, 'time' => $time ) );
 
-				if ( !empty( $messages['next_url'] ) )
+				if ( !empty( $messages['next_url'] ) ) {
 					$notices['next_url'] = $messages['next_url'];
+					set_transient( 'get_option', $messages['next_url'] );
+				}
 
 				if ( $this->doing_ajax )
 					return $notices;
@@ -480,7 +491,7 @@ class DsgnWrksInstagram {
 		}
 
 		// Save the date/time to notify users of last import time
-		set_transient( sanitize_title( urldecode( $_GET['instaimport'] ) ) .'-instaimportdone', $time, 14400 );
+		set_transient( sanitize_title( urldecode( $this->userid ) ) .'-instaimportdone', $time, 14400 );
 
 	}
 
@@ -508,17 +519,23 @@ class DsgnWrksInstagram {
 			date_default_timezone_set( get_option( 'timezone_string' ) );
 		}
 
-		$this->api_url = isset( $this->next_url ) ? $this->next_url : $this->instagram_api . $opts[$this->userid]['id'] .'/media/recent?access_token='. $opts[$this->userid]['access_token'] .'&count=3';
+		// if ( $this->next_url = get_transient( 'dsgnwrks_next_url' ) )
+		// 	wp_send_json_error( '<div id="message" class="updated"><pre>'. htmlentities( print_r( $this->next_url, true ) ) .'</pre></div>' );
+
+		$this->api_url = isset( $this->next_url ) && $this->next_url ? $this->next_url : $this->instagram_api . $opts[$this->userid]['id'] .'/media/recent?access_token='. $opts[$this->userid]['access_token'] .'&count=2';
 		// trigger_error( $this->api_url );
 
 		// ok, let's access instagram's api
 		$messages = $this->import_messages( $this->api_url, $opts[$this->userid] );
 		// if the api gave us a "next" url, let's loop through till we've hit all pages
 		// while ( !empty( $messages['next_url'] ) && $loop ) {
+		if ( !empty( $messages['next_url'] ) )
+			update_option( 'dsgnwrks_next_url', $messages['next_url'] );
 		// 	$messages = $this->import_messages( $messages['next_url'], $opts[$this->userid], $messages['message'] );
 		// }
 
-		wp_send_json_error( '<div id="message" class="updated"><pre>'. htmlentities( print_r( $messages, true ) ) .'</pre></div>' );
+
+		// wp_send_json_error( '<div id="message" class="updated"><pre>'. htmlentities( print_r( $messages, true ) ) .'</pre></div>' );
 
 
 		// debug sent?
@@ -552,6 +569,8 @@ class DsgnWrksInstagram {
 
 		// otherwise, let's get our api and format our data to be useable
 		$data = json_decode( wp_remote_retrieve_body( $response ) );
+
+		// wp_send_json_error( '<div id="message" class="error"><p><pre>$data'. htmlentities( print_r( $data, true ) ) .'</pre></p></div>' );
 
 		if ( !$this->importDebugCheck() )
 			$this->debugsend( 'import_messages', $this->userid .' - $data', array(
@@ -587,7 +606,7 @@ class DsgnWrksInstagram {
 		// return an array of messages and our "next" url
 		if ( empty( $messages ) && empty( $prevmessages ) )
 			return array(
-				'message'  => array( '<li>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</li>' ),
+				'message'  => array( $this->message_wrap( __( 'No new Instagram shots to import', 'dsgnwrks' ) ) ),
 				'next_url' => $next_url,
 			);
 
@@ -608,6 +627,9 @@ class DsgnWrksInstagram {
 		// our individual user's settings
 		$settings = &$this->settings;
 
+		// 'Type' to be imported (images/video)
+		$settings['types'] = apply_filters( 'dsgnwrks_instagram_import_types', array( 'video', 'image' ), $this->userid );
+
 		// if we have invalid data, bail here
 		if ( !isset( $data->data ) || !is_array( $data->data ) )
 			return array();
@@ -617,6 +639,9 @@ class DsgnWrksInstagram {
 
 			// $this->pic is for other functions, $pic is for this function
 			$pic = &$this->pic;
+
+			if ( !in_array( $pic->type, $settings['types'] ) )
+				continue;
 
 			// if user has a date filter set, check it
 			if ( isset( $settings['date-filter'] ) && $settings['date-filter'] > $pic->created_time ) {
@@ -649,6 +674,7 @@ class DsgnWrksInstagram {
 				array(
 					'post_type'   => $pt,
 					'post_status' => 'any',
+					'no_found_rows'  => true,
 					'meta_query'  => array(
 						array(
 							'key'   => 'instagram_created_time',
@@ -725,8 +751,30 @@ class DsgnWrksInstagram {
 		// save instagram api data as postmeta
 		$this->savePostmeta();
 
-		// our post is properly saved, now let's bring the image over to WordPress
-		return $this->upload_img( $p->images->standard_resolution->url );
+
+		$attach_title = sprintf( __( '%s Video - %s', 'dsgnwrks' ), $attach_title );
+
+		// our post is properly saved, now let's bring the image/videos over to WordPress
+
+		$this->type = 'image';
+		// sideload image
+		$message = $this->upload_media( $p->images->standard_resolution->url );
+
+		// sideload videos
+		if ( $this->pic->type == 'video' ) {
+			$this->type = 'video';
+			// grab both video sizes and upload them
+			foreach ( array( 'low_resolution', 'standard_resolution' ) as $size ) {
+				$vid_size = (int) $p->videos->$size->width;
+				$message .= $this->upload_media(
+					$p->videos->$size->url,
+					sprintf( __( '%s Video', 'dsgnwrks' ), $vid_size .'x'. $vid_size ),
+					$size
+				);
+			}
+		}
+
+		return $this->message_wrap( $message );
 	}
 
 	/**
@@ -882,7 +930,9 @@ class DsgnWrksInstagram {
 			'instagram_filter_used'       => $this->pic->filter,
 			'instagram_attribution'       => $this->pic->attribution,
 			'instagram_location'          => $this->pic->location,
+			'instagram_users_in_photo'          => $this->pic->users_in_photo,
 			'instagram_link'              => esc_url( $this->pic->link ),
+			'instagram_type'              => esc_url( $this->pic->type ),
 			'instagram_user'              => $this->pic->user,
 		) as $key => $value )
 			update_post_meta( $this->import['post_id'], $key, $value );
@@ -890,16 +940,18 @@ class DsgnWrksInstagram {
 	}
 
 	/**
-	 * Sideloads an image to the currrent WordPress post
+	 * Sideloads an image/video to the currrent WordPress post
 	 * @since  1.1.0
 	 */
-	protected function upload_img( $imgurl = '' ) {
+	protected function upload_media( $media_url = '', $attach_title = '', $size = '' ) {
 
 		// get our import data
 		$import = &$this->import;
+		// image or video?
+		$is_image = ( $this->type == 'image' );
 
-		// bail here if we don't have an image url
-		if ( empty( $imgurl ) )
+		// bail here if we don't have a media url
+		if ( empty( $media_url ) )
 			return $this->upload_error();
 
 		if ( $this->doing_cron ) {
@@ -908,9 +960,14 @@ class DsgnWrksInstagram {
 			require_once (ABSPATH.'/wp-admin/includes/image.php');
 		}
 
-		$tmp = download_url( $imgurl );
+		$tmp = download_url( $media_url );
 
-		preg_match('/[^\?]+\.(jpg|JPG|jpe|JPE|jpeg|JPEG|gif|GIF|png|PNG)/', $imgurl, $matches);
+		// check for file extensions
+		$pattern = $is_image
+			? '/[^\?]+\.(jpg|JPG|jpe|JPE|jpeg|JPEG|gif|GIF|png|PNG)/'
+			: '/[^\?]+\.(mp4|MP4)/';
+
+		preg_match( $pattern, $media_url, $matches );
 		$file_array['name']     = basename( $matches[0] );
 		$file_array['tmp_name'] = $tmp;
 
@@ -919,26 +976,38 @@ class DsgnWrksInstagram {
 			$file_array['tmp_name'] = '';
 		}
 
-		$img_id = media_handle_sideload( $file_array, $import['post_id'], $import['post_title'] );
+		// post title or custom title
+		$attach_title = $attach_title ? $attach_title : $import['post_title'];
 
-		if ( is_wp_error( $img_id ) ) {
+		$attach_id = media_handle_sideload( $file_array, $import['post_id'], $attach_title );
+
+		if ( is_wp_error( $attach_id ) ) {
 			@unlink( $file_array['tmp_name'] );
-			return $this->upload_error( $imgurl );
+			// may return an error if they're on multisite and don't have mp4 enabled
+			return $this->upload_error( $media_url, $attach_id->get_error_message() );
+		}
+
+		if ( ! $is_image ) {
+
+			// Save our video attachement ID's and their urls as post-meta
+			update_post_meta( $import['post_id'], 'instagram_video_id_'. $size, $attach_id );
+			update_post_meta( $import['post_id'], 'instagram_video_url_'. $size, wp_get_attachment_url( $attach_id ) );
+			return '<em> '. sprintf( __( '%s imported.', 'dsgnwrks' ), '<b>'. $attach_title .'</b>' ) .'</em>';
 		}
 
 		if ( $import['featured'] )
-			set_post_thumbnail( $import['post_id'], $img_id );
+			set_post_thumbnail( $import['post_id'], $attach_id );
 
 		$imgsize = apply_filters( 'dsgnwrks_instagram_image_size', 'full' );
 		$imgsize = is_array( $imgsize ) || is_string( $imgsize ) ? $imgsize : 'full';
-		$img     = wp_get_attachment_image_src( $img_id, $imgsize );
+		$img     = wp_get_attachment_image_src( $attach_id, $imgsize );
 
 		// Replace URLs in post with uploaded image
 		if ( is_array( $img ) ) {
 			// init our var
 			$content     = &$import['post_content'];
 			// filter the image element
-			$insta_image = (string) apply_filters( 'dsgnwrks_instagram_insta_image', sprintf( '<img class="insta-image" width="%d" height="%d" src="%s"/>', $img[1], $img[2], $img[0] ), $img_id, $import['post_id'] );
+			$insta_image = (string) apply_filters( 'dsgnwrks_instagram_insta_image', sprintf( '<img class="insta-image" width="%d" height="%d" src="%s"/>', $img[1], $img[2], $img[0] ), $attach_id, $import['post_id'] );
 			// Add the instagram image element if requested
 			$content     = str_replace( '**insta-image**', $insta_image, $content );
 			// Add the instagram image source if requested
@@ -950,32 +1019,38 @@ class DsgnWrksInstagram {
 				'post_content' => $content,
 			) );
 		} else {
-			return $this->upload_error( $imgurl );
+			return $this->upload_error( $media_url );
 		}
 
 		// return a success message
-		return '<li>'. get_the_post_thumbnail( $import['post_id'], array( 50, 50 ) ) .'<strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em></li>';
+		return get_the_post_thumbnail( $import['post_id'], array( 50, 50 ) ) .'<strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em>';
 
 	}
 
 	/**
 	 * Returns an upload error message
 	 * @since  1.2.0
-	 * @param  string $imgurl (optional) url for image to be uploaded
+	 * @param  string $media_url (optional) url for image to be uploaded
 	 * @return string         Upload error message
 	 */
-	protected function upload_error( $imgurl = false ) {
+	protected function upload_error( $media_url = false, $error = '' ) {
 
 		$import = &$this->import;
 
-		if ( !$imgurl ) {
+		// Hanlde a video error a bit differently
+		if ( $this->type == 'video' ) {
+			$error = $error ? $error : __( 'There was an error with the video upload.', 'dsgnwrks' );
+			return '<div>'. $error .'</div>';
+		}
+
+		if ( ! $media_url ) {
 			$import['post_content'] = str_replace( '**insta-image**', __( 'image error', 'dsgnwrks' ), $import['post_content'] );
 			$import['post_content'] = str_replace( '**insta-image-link**', __( 'image error', 'dsgnwrks' ), $import['post_content'] );
 		} else {
 			// Add the instagram image source if requested
-			$content = str_replace( '**insta-image**', '<img src="'. $imgurl .'"/>', $content );
+			$content = str_replace( '**insta-image**', '<img src="'. $media_url .'"/>', $content );
 			// Add the instagram image url if requested
-			$content = str_replace( '**insta-image-link**', $imgurl, $content );
+			$content = str_replace( '**insta-image-link**', $media_url, $content );
 		}
 
 		// Update the post with updated image URLs or errors
@@ -985,7 +1060,7 @@ class DsgnWrksInstagram {
 		) );
 
 		// return an image upload error message
-		return '<li><strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em class="warning">'. __( 'created successfully but there was an error with the image upload.', 'dsgnwrks' ) .'</em></li>';
+		return '<div><strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em class="warning">'. __( 'created successfully but there was an error with the image upload.', 'dsgnwrks' ) .'</em></div>';
 	}
 
 	/**
@@ -995,9 +1070,20 @@ class DsgnWrksInstagram {
 	 */
 	protected function wp_error_message( $error, $array = true ) {
 
-		$message = '<li><strong>ERROR:</strong> '. $error->get_error_message() .'</li>';
+		$message = $this->message_wrap( '<strong>ERROR:</strong> '. $error->get_error_message() );
 		// return the wp_error message
 		return $array ? array( 'message' => $message ) : $message;
+
+	}
+
+	/**
+	 * Returns error message contained within wp_error
+	 * @since  1.2.6
+	 * @param  string $message_text
+	 * @return string               Message text wrapped in li markup
+	 */
+	protected function message_wrap( $message_text ) {
+		return '<li>'. $message_text .'</li>';
 
 	}
 
