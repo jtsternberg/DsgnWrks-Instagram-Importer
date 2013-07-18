@@ -45,6 +45,7 @@ class DsgnWrksInstagram {
 		);
 
 		add_action( 'admin_init', array( $this, 'init' ) );
+		add_action( 'init', array( $this, 'hook_shortcode' ) );
 		add_action( $this->pre.'cron', array( $this, 'cron_callback' ) );
 		add_action( 'admin_menu', array( $this, 'settings' ) );
 		add_action( 'wp_ajax_dsgnwrks_instagram_import', array( $this, 'ajax_import' ) );
@@ -227,6 +228,14 @@ class DsgnWrksInstagram {
 			// schedule a cron to pull updates from instagram
 			wp_schedule_event( time(), $opts['frequency'], $this->pre.'cron' );
 		}
+	}
+
+	/**
+	 * Hook our shotcode in
+	 * @since  1.2.6
+	 */
+	public function hook_shortcode() {
+		add_shortcode( 'dsgnwrks_instagram_embed', array( $this, 'embed_shortcode' ) );
 	}
 
 	/**
@@ -930,8 +939,9 @@ class DsgnWrksInstagram {
 			'instagram_filter_used'       => $this->pic->filter,
 			'instagram_attribution'       => $this->pic->attribution,
 			'instagram_location'          => $this->pic->location,
-			'instagram_users_in_photo'          => $this->pic->users_in_photo,
+			'instagram_users_in_photo'    => $this->pic->users_in_photo,
 			'instagram_link'              => esc_url( $this->pic->link ),
+			'instagram_embed_code'        => $this->instagram_embed(),
 			'instagram_type'              => esc_url( $this->pic->type ),
 			'instagram_user'              => $this->pic->user,
 		) as $key => $value )
@@ -940,8 +950,51 @@ class DsgnWrksInstagram {
 	}
 
 	/**
+	 * Wraps Instagram url in the iframe that Instagram provides for embedding
+	 * @since  1.2.6
+	 * @param  string $url Instagram media URL
+	 * @return string      Instagram embed iframe code
+	 */
+	protected function instagram_embed( $url = '' ) {
+
+		if ( !$url && !isset( $this->pic->link ) )
+			return false;
+		if ( !$url && isset( $this->pic->link ) )
+			$url = $this->pic->link;
+
+		$url = str_replace( 'embed/', '', str_replace( 'http://', '//', esc_url( $url ) ) );
+
+		return "\r\n".'<iframe src="'. $url .'embed/" width="612" height="710" frameborder="0" scrolling="no" allowtransparency="true"></iframe>'."\r\n";
+	}
+
+	/**
+	 * Returns Instagram embed shortcode
+	 * @since  1.2.6
+	 * @return string Instagram embed shortcode
+	 */
+	protected function instagram_embed_sc() {
+		return '[dsgnwrks_instagram_embed src="'. esc_url( $this->pic->link ) .'"]';
+	}
+
+	/**
+	 * Shortcode that displays Instagram embed iframe
+	 * @since  1.2.6
+	 * @param  array  $atts Attributes passed from shortcode
+	 * @return string       Concatenated shortcode output (Iframe embed code)
+	 */
+	public function embed_shortcode( $atts ) {
+		if ( !isset( $atts['src'] ) )
+			return '';
+		return $this->instagram_embed( $atts['src'] );
+	}
+
+	/**
 	 * Sideloads an image/video to the currrent WordPress post
 	 * @since  1.1.0
+	 * @param  string $media_url    URL of media to be sideloaded
+	 * @param  string $attach_title Optional title for uploaded media attachement
+	 * @param  string $size         Optional size of media
+	 * @return string               Error|Success message
 	 */
 	protected function upload_media( $media_url = '', $attach_title = '', $size = '' ) {
 
@@ -992,6 +1045,7 @@ class DsgnWrksInstagram {
 			// Save our video attachement ID's and their urls as post-meta
 			update_post_meta( $import['post_id'], 'instagram_video_id_'. $size, $attach_id );
 			update_post_meta( $import['post_id'], 'instagram_video_url_'. $size, wp_get_attachment_url( $attach_id ) );
+
 			return '<em> '. sprintf( __( '%s imported.', 'dsgnwrks' ), '<b>'. $attach_title .'</b>' ) .'</em>';
 		}
 
@@ -1012,6 +1066,8 @@ class DsgnWrksInstagram {
 			$content     = str_replace( '**insta-image**', $insta_image, $content );
 			// Add the instagram image source if requested
 			$content     = str_replace( '**insta-image-link**', $img[0], $content );
+			// Add the instagram embed shortcode if requested
+			$content     = str_replace( '**insta-embed**', $this->instagram_embed_sc(), $content );
 
 			// Update the post with updated image URLs
 			wp_update_post( array(
@@ -1046,11 +1102,16 @@ class DsgnWrksInstagram {
 		if ( ! $media_url ) {
 			$import['post_content'] = str_replace( '**insta-image**', __( 'image error', 'dsgnwrks' ), $import['post_content'] );
 			$import['post_content'] = str_replace( '**insta-image-link**', __( 'image error', 'dsgnwrks' ), $import['post_content'] );
+			// Add the instagram embed shortcode if requested
+			$import['post_content'] = str_replace( '**insta-embed**', $this->instagram_embed_sc(), $import['post_content'] );
 		} else {
 			// Add the instagram image source if requested
-			$content = str_replace( '**insta-image**', '<img src="'. $media_url .'"/>', $content );
+			$import['post_content'] = str_replace( '**insta-image**', '<img src="'. $media_url .'"/>', $import['post_content'] );
 			// Add the instagram image url if requested
-			$content = str_replace( '**insta-image-link**', $media_url, $content );
+			$import['post_content'] = str_replace( '**insta-image-link**', $media_url, $import['post_content'] );
+			// Add the instagram embed shortcode if requested
+			$import['post_content'] = str_replace( '**insta-embed**', $this->instagram_embed_sc(), $import['post_content'] );
+
 		}
 
 		// Update the post with updated image URLs or errors
