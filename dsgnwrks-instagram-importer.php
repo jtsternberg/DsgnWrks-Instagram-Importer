@@ -17,12 +17,12 @@ class DsgnWrksInstagram {
 	protected $pre           = 'dsgnwrks_instagram_';
 	protected $instagram_api = 'https://api.instagram.com/v1/users/';
 	protected $import        = array();
-	protected $plugin_page;
+	protected $plugin_page   = false;
 	protected $defaults;
 
 	/**
 	 * Sets up our plugin
-	 * @since  1.1.0
+	 * @since  0.1.0
 	 */
 	function __construct() {
 
@@ -50,6 +50,8 @@ class DsgnWrksInstagram {
 		add_action( 'admin_menu', array( $this, 'settings' ) );
 		add_action( 'wp_ajax_dsgnwrks_instagram_import', array( $this, 'ajax_import' ) );
 		register_uninstall_hook( __FILE__, array( 'DsgnWrksInstagram', 'uninstall' ) );
+		// Load the plugin settings link shortcut.
+		add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . 'dsgnwrks-instagram-importer.php' ), array( $this, 'settings_link' ) );
 		// @TODO
 		// add_action( 'before_delete_post', array( $this, 'save_id_on_delete' ), 10, 1 );
 		add_action( 'current_screen', array( $this, 'redirects' ) );
@@ -197,14 +199,23 @@ class DsgnWrksInstagram {
 		return $schedules;
 	}
 
+
+	/**
+	 * Get's the url for the plugin admin page
+	 * @since  1.2.6
+	 * @return string plugin admin page url
+	 */
+	public function plugin_page() {
+		// Set our plugin page parameter
+		$this->plugin_page = $this->plugin_page ? $this->plugin_page : add_query_arg( 'page', $this->plugin_id, admin_url( '/tools.php' ) );
+		return $this->plugin_page;
+	}
+
 	/**
 	 * Get the party started
 	 * @since  1.1.0
 	 */
 	public function init() {
-
-		// Set our plugin page parameter
-		$this->plugin_page = add_query_arg( 'page', $this->plugin_id, admin_url( '/tools.php' ) );
 
 		// A pseudo setting. redirects to instagram oauth
 		register_setting(
@@ -351,6 +362,22 @@ class DsgnWrksInstagram {
 		if ( __FILE__ != WP_UNINSTALL_PLUGIN )
 			return;
 		self::delete_options();
+	}
+
+	/**
+	 * Add Settings page to plugin action links in the Plugins table.
+	 *
+	 * @since 1.2.6
+	 * @param  array $links Default plugin action links.
+	 * @return array $links Amended plugin action links.
+	 */
+	public function settings_link( $links ) {
+
+		$setting_link = sprintf( '<a href="%s">%s</a>', $this->plugin_page(), __( 'Settings', 'dsgnwrks' ) );
+		array_unshift( $links, $setting_link );
+
+		return $links;
+
 	}
 
 	/**
@@ -972,8 +999,8 @@ class DsgnWrksInstagram {
 	 * @since  1.2.6
 	 * @return string Instagram embed shortcode
 	 */
-	protected function instagram_embed_sc() {
-		return '[dsgnwrks_instagram_embed src="'. esc_url( $this->pic->link ) .'"]';
+	protected function instagram_embed_src( $type = 'video' ) {
+		return '[dsgnwrks_instagram_embed src="'. esc_url( $this->pic->link ) .'" type="'. $type .'"]';
 	}
 
 	/**
@@ -1017,7 +1044,7 @@ class DsgnWrksInstagram {
 
 		// check for file extensions
 		$pattern = $is_image
-			? '/[^\?]+\.(jpg|JPG|jpe|JPE|jpeg|JPEG|gif|GIF|png|PNG)/'
+			? '/[^\?]+\.(jpe?g|jpe|gif|png)\b/i'
 			: '/[^\?]+\.(mp4|MP4)/';
 
 		preg_match( $pattern, $media_url, $matches );
@@ -1067,7 +1094,7 @@ class DsgnWrksInstagram {
 			// Add the instagram image source if requested
 			$content     = str_replace( '**insta-image-link**', $img[0], $content );
 			// Add the instagram embed shortcode if requested
-			$content     = str_replace( '**insta-embed**', $this->instagram_embed_sc(), $content );
+			$content     = str_replace( '**insta-embed**', $this->instagram_embed_src(), $content );
 
 			// Update the post with updated image URLs
 			wp_update_post( array(
@@ -1103,14 +1130,14 @@ class DsgnWrksInstagram {
 			$import['post_content'] = str_replace( '**insta-image**', __( 'image error', 'dsgnwrks' ), $import['post_content'] );
 			$import['post_content'] = str_replace( '**insta-image-link**', __( 'image error', 'dsgnwrks' ), $import['post_content'] );
 			// Add the instagram embed shortcode if requested
-			$import['post_content'] = str_replace( '**insta-embed**', $this->instagram_embed_sc(), $import['post_content'] );
+			$import['post_content'] = str_replace( '**insta-embed**', $this->instagram_embed_src(), $import['post_content'] );
 		} else {
 			// Add the instagram image source if requested
 			$import['post_content'] = str_replace( '**insta-image**', '<img src="'. $media_url .'"/>', $import['post_content'] );
 			// Add the instagram image url if requested
 			$import['post_content'] = str_replace( '**insta-image-link**', $media_url, $import['post_content'] );
 			// Add the instagram embed shortcode if requested
-			$import['post_content'] = str_replace( '**insta-embed**', $this->instagram_embed_sc(), $import['post_content'] );
+			$import['post_content'] = str_replace( '**insta-embed**', $this->instagram_embed_src(), $import['post_content'] );
 
 		}
 
@@ -1236,7 +1263,7 @@ class DsgnWrksInstagram {
 			// So notice isn't persistent past 60 seconds
 			set_transient( 'instagram_notification', true, 60 );
 			// redirect with notices
-			wp_redirect( add_query_arg( 'query_arg', 'updated', $this->plugin_page ), 307 );
+			wp_redirect( add_query_arg( 'query_arg', 'updated', $this->plugin_page() ), 307 );
 			exit;
 		}
 
