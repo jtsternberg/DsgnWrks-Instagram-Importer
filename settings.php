@@ -396,7 +396,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 										if ( $o['post_format'] && !in_array( $o['post_format'], $post_formats[0] ) )
 											$post_formats[0][] = $o['post_format'];
 										?>
-										<tr valign="top" class="taxonomies-add">
+										<tr valign="top" class="taxonomies-add taxonomy-post_format">
 										<th scope="row"><strong><?php _e( 'Select Imported Posts Format:', 'dsgnwrks' );?></strong></th>
 										<td>
 											<select id="dsgnwrks_insta_options[<?php echo $id; ?>][post_format]" name="dsgnwrks_insta_options[<?php echo $id; ?>][post_format]">
