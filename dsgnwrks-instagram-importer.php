@@ -22,7 +22,7 @@ class DsgnWrksInstagram {
 
 	/**
 	 * Sets up our plugin
-	 * @since  0.1.0
+	 * @since  1.1.0
 	 */
 	function __construct() {
 
@@ -111,6 +111,9 @@ class DsgnWrksInstagram {
 			background: #fff;
 			width: 350px;
 			float: left;
+		}
+		.updated.instagram-import-message li {
+			min-height: 60px;
 		}
 		.updated.instagram-import-message strong {
 			display: block;
@@ -870,22 +873,22 @@ class DsgnWrksInstagram {
 	}
 
 	/**
-	 * Remove hashtags from imported instagram title
+	 * Remove hashtags from imported instagram title/excerpt/content
 	 * @since  1.2.6
-	 * @param  string $title instagram photo title
-	 * @return string        modified title
+	 * @param  string $content Instagram photo content
+	 * @return string          Modified content
 	 */
-	public function remove_hashtags( $title ) {
+	public function remove_hashtags( $content ) {
 
 		// hashtag pattern match
 		$pattern = '/(^|[^0-9A-Z&\/\?]+)([#＃]+)([0-9A-Z_]*[A-Z_]+[a-z0-9_üÀ-ÖØ-öø-ÿ]*)/iu';
 		// replace them
-		$clean_title = trim( preg_replace( $pattern, '', $title ) );
+		$clean_content = trim( preg_replace( $pattern, '', $content ) );
 
 		// if the result is empty (only hashtags), remove only the hash symbol instead
-		$title = empty( $clean_title ) ? trim( str_replace( '#', '', $title ) ) : $clean_title;
+		$content = empty( $clean_content ) ? trim( str_replace( '#', '', $content ) ) : $clean_content;
 
-		return $title;
+		return $content;
 	}
 
 	/**
