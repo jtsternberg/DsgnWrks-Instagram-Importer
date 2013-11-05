@@ -121,7 +121,7 @@ class DsgnWrksInstagram {
 		.updated.instagram-import-message img {
 			width: 50px;
 			height: 50px;
-			margin-right: 8px;
+			margin: 0 8px 0 0;
 			vertical-align: middle;
 			float: left;
 		}
