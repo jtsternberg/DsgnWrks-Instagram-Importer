@@ -45,6 +45,11 @@
 	padding: 12px 0 0;
 }
 
+form.instagram-importer table {
+	background: transparent;
+	border-collapse: separate;
+	border-spacing: 0 10px;
+}
 .instagram-importer p, .instagram-importer .form-table {
 	width: auto;
 	max-width: 660px;
@@ -57,14 +62,28 @@
 }
 .instagram-importer .form-table th {
 	width: 410px;
+	padding: 10px;
+	font-weight: normal;
+	background: #eee;
+}
+#universal-options .form-table th {
+	width: 360px;
+}
+#universal-options .form-table td {
+	max-width: 280px;
 }
 .instagram-importer .form-table td {
 	max-width: 230px;
+	margin-bottom: 9px;
+	padding: 8px 10px;
+	line-height: 1.666666667em;
+	background: #eee;
+}
+.mp6 .instagram-importer .form-table th, .mp6 .instagram-importer .form-table td {
+	background: #fff;
 }
 .instagram-importer .form-table tr {
-	background: #eee;
 	border: none;
-	border-bottom: 10px solid #fff;
 }
 .instagram-importer .form-table .remove-hashtags label {
 	background: #FFF;
@@ -77,10 +96,12 @@
 .instagram-importer .form-table tr code {
 	background: #fff;
 }
-.instagram-importer .form-table tr.info {
+.instagram-importer .form-table tr.info th, .instagram-importer .form-table tr.info td {
 	background: transparent;
-	border: none;
-	border-bottom: 10px solid transparent;
+	border-bottom: 1px solid transparent;
+}
+.mp6 .instagram-importer .form-table tr.info th, .mp6 .instagram-importer .form-table tr.info td {
+	background: transparent;
 }
 .instagram-importer .form-table tr.info th {
 	padding: 0;
@@ -137,11 +158,11 @@
 	padding: 0 220px 0 20px;
 }
 
-
 .jtsocial a {
 	display: block;
 	margin-bottom: 10px;
 	text-align: right;
+	font-size: 90%;
 }
 .jtsocial a span {
 	background: url(../images/social.png) no-repeat top left;
