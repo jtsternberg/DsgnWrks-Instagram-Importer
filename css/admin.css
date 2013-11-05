@@ -19,6 +19,9 @@
 	width: 350px;
 	float: left;
 }
+.updated.instagram-import-message li {
+	min-height: 60px;
+}
 .updated.instagram-import-message strong {
 	display: block;
 }
