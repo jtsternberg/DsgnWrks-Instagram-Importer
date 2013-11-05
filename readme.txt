@@ -23,7 +23,7 @@ In the spirit of WordPress and "owning your data," this plugin will allow you to
 
 As of version 1.2.0, you can now import and backup your instagram photos automatically! The plugin gives you the option to choose from the default WordPress cron schedules, but if you wish to add a custom interval, you may want to add the [wp-crontrol plugin](http://wordpress.org/extend/plugins/wp-crontrol/).
 
-Version 1.2.6 is all about Instagram video. Your videos will now be imported to the WordPress media library, as well as the cover image. The new shortcode, `[dsgnwrks_instagram_embed src="INSTAGRAM_MEDIA_URL"]`, displays your imported media as an Instagram embed (works great for video!) and finally, you can now use the tag, `**insta-embed**`, in the Post Content template to save the `dsgnwrks_instagram_embed` shortcode to the post.
+Version 1.2.6 is all about Instagram video. Your videos will now be imported to the WordPress media library, as well as the cover image. The new shortcode, `[dsgnwrks_instagram_embed src="INSTAGRAM_MEDIA_URL"]`, displays your imported media as an Instagram embed (works great for video!) and finally, you can now use the tags, `**insta-embed-image**`, and `**insta-embed-video**`, in the Post Content template to save the `dsgnwrks_instagram_embed` shortcode to the post.
 
 Plugin is built with developers in mind and has many filters to manipulate the imported posts.
 
@@ -76,6 +76,13 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 2. After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.
 
 == Changelog ==
+
+= 1.2.6 =
+* New: Shortcode for displaying instagram embed, `dsgnwrks_instagram_embed`
+* New: `**insta-embed-image**`, and `**insta-embed-video**` import content tags to add the embed shortcode. Using these tags will negate the `**insta-image**` tag.
+* New: plugin option, Remove #hashtags when saving post's Title/Content/Excerpt.
+* Improvement: Better ajax importing of images/posts. Each imported post will show live feedback during the import process.
+* Fixed: Authenticating users with Emoji (or other special characters in their bios) would cause the plugin to break.
 
 = 1.2.5 =
 * Added: POT translation file.
@@ -130,6 +137,13 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 == Upgrade Notice ==
+
+= 1.2.6 =
+* New: Shortcode for displaying instagram embed, `dsgnwrks_instagram_embed`
+* New: `**insta-embed-image**`, and `**insta-embed-video**` import content tags to add the embed shortcode. Using these tags will negate the `**insta-image**` tag.
+* New: plugin option, Remove #hashtags when saving post's Title/Content/Excerpt.
+* Improvement: Better ajax importing of images/posts. Each imported post will show live feedback during the import process.
+* Fixed: Authenticating users with Emoji (or other special characters in their bios) would cause the plugin to break.
 
 = 1.2.5 =
 * Added: POT translation file.
