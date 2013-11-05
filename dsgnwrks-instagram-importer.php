@@ -1267,11 +1267,11 @@ class DsgnWrksInstagram {
 					$sanitized_user                           = sanitize_title( $_GET['username'] );
 					$users[]                                  = $sanitized_user;
 					$opts[$sanitized_user]['access_token']    = $_GET['access_token'];
-					$opts[$sanitized_user]['bio']             = isset( $_GET['bio'] ) ? $_GET['bio'] : '';
-					$opts[$sanitized_user]['website']         = isset( $_GET['website'] ) ? $_GET['website'] : '';
-					$opts[$sanitized_user]['profile_picture'] = isset( $_GET['profile_picture'] ) ? $_GET['profile_picture'] : '';
-					$opts[$sanitized_user]['full_name']       = isset( $_GET['full_name'] ) ? $_GET['full_name'] : '';
-					$opts[$sanitized_user]['id']              = isset( $_GET['id'] ) ? $_GET['id'] : '';
+					// $opts[$sanitized_user]['bio']             = isset( $_GET['bio'] ) ? $_GET['bio'] : ''; // more trouble than it's worth.
+					$opts[$sanitized_user]['website']         = isset( $_GET['website'] ) ? esc_url_raw( $_GET['website'] ) : '';
+					$opts[$sanitized_user]['profile_picture'] = isset( $_GET['profile_picture'] ) ? esc_url_raw( $_GET['profile_picture'] ) : '';
+					$opts[$sanitized_user]['full_name']       = isset( $_GET['full_name'] ) ? sanitize_text_field( $_GET['full_name'] ) : '';
+					$opts[$sanitized_user]['id']              = isset( $_GET['id'] ) ? sanitize_text_field( $_GET['id'] ) : '';
 					$opts[$sanitized_user]['full_username']   = $_GET['username'];
 
 					foreach ( $this->defaults as $key => $default ) {
