@@ -402,7 +402,7 @@ class DsgnWrksInstagram {
 	 * @since  1.1.0
 	 */
 	public function styles() {
-		wp_enqueue_style( 'dsgnwrks-instagram-importer-admin', plugins_url( 'css/admin.css', __FILE__ ), false, '1.2.5' );
+		wp_enqueue_style( 'dsgnwrks-instagram-importer-admin', plugins_url( 'css/admin.css', __FILE__ ), false, $this->plugin_version );
 	}
 
 	/**
@@ -410,7 +410,7 @@ class DsgnWrksInstagram {
 	 * @since  1.1.0
 	 */
 	public function scripts() {
-		wp_enqueue_script( 'dsgnwrks-instagram-importer-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ), '1.2.5' );
+		wp_enqueue_script( 'dsgnwrks-instagram-importer-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ), $this->plugin_version );
 
 		$data = array(
 			'delete_text' => __( 'Are you sure you want to delete user', 'dsgnwrks' ),
