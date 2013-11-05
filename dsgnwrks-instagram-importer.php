@@ -787,9 +787,6 @@ class DsgnWrksInstagram {
 		// save instagram api data as postmeta
 		$this->savePostmeta();
 
-
-		$attach_title = sprintf( __( '%s Video - %s', 'dsgnwrks' ), $attach_title );
-
 		// our post is properly saved, now let's bring the image/videos over to WordPress
 
 		$this->type = 'image';
@@ -809,6 +806,9 @@ class DsgnWrksInstagram {
 				);
 			}
 		}
+
+		// Update post content with our modified post content that replaces the custom tags.
+		$this->update_post_content();
 
 		return $this->message_wrap( $message );
 	}
@@ -1032,7 +1032,7 @@ class DsgnWrksInstagram {
 
 		// bail here if we don't have a media url
 		if ( empty( $media_url ) )
-			return $this->upload_error();
+			return $this->upload_error(__LINE__);
 
 		if ( $this->doing_cron ) {
 			require_once (ABSPATH.'/wp-admin/includes/file.php');
@@ -1064,7 +1064,7 @@ class DsgnWrksInstagram {
 		if ( is_wp_error( $attach_id ) ) {
 			@unlink( $file_array['tmp_name'] );
 			// may return an error if they're on multisite and don't have mp4 enabled
-			return $this->upload_error( $media_url, $attach_id->get_error_message() );
+			return $this->upload_error( __LINE__, $media_url, $attach_id->get_error_message() );
 		}
 
 		if ( ! $is_image ) {
@@ -1079,30 +1079,18 @@ class DsgnWrksInstagram {
 		if ( $import['featured'] )
 			set_post_thumbnail( $import['post_id'], $attach_id );
 
-		$imgsize = apply_filters( 'dsgnwrks_instagram_image_size', 'full' );
-		$imgsize = is_array( $imgsize ) || is_string( $imgsize ) ? $imgsize : 'full';
-		$img     = wp_get_attachment_image_src( $attach_id, $imgsize );
+		$imgsize   = apply_filters( 'dsgnwrks_instagram_image_size', 'full' );
+		$imgsize   = is_array( $imgsize ) || is_string( $imgsize ) ? $imgsize : 'full';
+		$this->img = wp_get_attachment_image_src( $attach_id, $imgsize );
 
 		// Replace URLs in post with uploaded image
-		if ( is_array( $img ) ) {
-			// init our var
-			$content     = &$import['post_content'];
-			// filter the image element
-			$insta_image = (string) apply_filters( 'dsgnwrks_instagram_insta_image', sprintf( '<img class="insta-image" width="%d" height="%d" src="%s"/>', $img[1], $img[2], $img[0] ), $attach_id, $import['post_id'] );
-			// Add the instagram image element if requested
-			$content     = str_replace( '**insta-image**', $insta_image, $content );
-			// Add the instagram image source if requested
-			$content     = str_replace( '**insta-image-link**', $img[0], $content );
-			// Add the instagram embed shortcode if requested
-			$content     = str_replace( '**insta-embed**', $this->instagram_embed_src(), $content );
+		if ( is_array( $this->img ) ) {
 
-			// Update the post with updated image URLs
-			wp_update_post( array(
-				'ID'           => $import['post_id'],
-				'post_content' => $content,
-			) );
+			// filter the image element
+			$this->insta_image = (string) apply_filters( 'dsgnwrks_instagram_insta_image', sprintf( '<img class="insta-image" width="%d" height="%d" src="%s"/>', $this->img[1], $this->img[2], $this->img[0] ), $attach_id, $import['post_id'] );
+
 		} else {
-			return $this->upload_error( $media_url );
+			return $this->upload_error( __LINE__, $media_url );
 		}
 
 		// return a success message
@@ -1113,12 +1101,15 @@ class DsgnWrksInstagram {
 	/**
 	 * Returns an upload error message
 	 * @since  1.2.0
+	 * @param  int    $line      Line number where error occurred.
 	 * @param  string $media_url (optional) url for image to be uploaded
 	 * @return string         Upload error message
 	 */
-	protected function upload_error( $media_url = false, $error = '' ) {
+	protected function upload_error( $line, $media_url = false, $error = '' ) {
 
 		$import = &$this->import;
+		// image or video?
+		$othertype = ( $this->type == 'image' ) ? 'video' : 'image';
 
 		// Hanlde a video error a bit differently
 		if ( $this->type == 'video' ) {
@@ -1126,29 +1117,65 @@ class DsgnWrksInstagram {
 			return '<div>'. $error .'</div>';
 		}
 
-		if ( ! $media_url ) {
-			$import['post_content'] = str_replace( '**insta-image**', __( 'image error', 'dsgnwrks' ), $import['post_content'] );
-			$import['post_content'] = str_replace( '**insta-image-link**', __( 'image error', 'dsgnwrks' ), $import['post_content'] );
-			// Add the instagram embed shortcode if requested
-			$import['post_content'] = str_replace( '**insta-embed**', $this->instagram_embed_src(), $import['post_content'] );
-		} else {
-			// Add the instagram image source if requested
-			$import['post_content'] = str_replace( '**insta-image**', '<img src="'. $media_url .'"/>', $import['post_content'] );
-			// Add the instagram image url if requested
-			$import['post_content'] = str_replace( '**insta-image-link**', $media_url, $import['post_content'] );
-			// Add the instagram embed shortcode if requested
-			$import['post_content'] = str_replace( '**insta-embed**', $this->instagram_embed_src(), $import['post_content'] );
 
-		}
+		if ( ! $media_url )
+			$replace = array( __( 'image error', 'dsgnwrks' ), __( 'image error', 'dsgnwrks' ) );
+		elseif ( $this->has_embed() )
+			$replace = array( '', $media_url );
+		else
+			$replace = array( '<img src="'. $media_url .'"/>', $media_url );
+
+		$import['post_content'] = str_replace( array(
+			// Add the instagram image element if requested
+			'**insta-image**',
+			// Add the instagram image source if requested
+			'**insta-image-link**',
+		), $replace, $import['post_content'] );
+
+
+		// return an image upload error message
+		return '<div><strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em class="warning">'. sprintf( __( 'created successfully but there was an error with the image upload. Line: %d', 'dsgnwrks' ), $line ) .'</em></div>';
+	}
+
+	/**
+	 * Replaces the embed tags with the appropriate type embed and updates post.
+	 * @since  1.2.6
+	 */
+	protected function update_post_content() {
+
+		$insta_img = ( $this->has_embed( 'image' ) ? '' : $this->insta_image );
+		$insta_img = ( $this->has_embed( 'video' ) && $this->type == 'video' ? '' : $this->insta_image );
+
+		error_log( print_r( array( __LINE__ .' $this->type' => $this->type, '$this->has_embed( image )' => $this->has_embed( 'image' ), '$this->has_embed( video )' => $this->has_embed( 'video' ), '$insta_img' => $insta_img ), true ) );
+
+		$this->import['post_content'] = str_replace( array(
+			// Add the instagram image element if requested
+			'**insta-image**',
+			// Add the instagram image source if requested
+			'**insta-image-link**',
+			// Add the instagram embed shortcode if requested
+			'**insta-embed-'. $this->type .'**',
+			'**insta-embed-'. ( $this->type == 'image' ? 'video' : 'image' ) .'**',
+		), array(
+			$insta_img,
+			( is_array( $this->img ) ? $this->img[0] : '' ),
+			$this->instagram_embed_src(),
+			'',
+		), $this->import['post_content'] );
 
 		// Update the post with updated image URLs or errors
 		wp_update_post( array(
-			'ID'           => $import['post_id'],
-			'post_content' => $import['post_content'],
+			'ID'           => $this->import['post_id'],
+			'post_content' => $this->import['post_content'],
 		) );
+	}
 
-		// return an image upload error message
-		return '<div><strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em class="warning">'. __( 'created successfully but there was an error with the image upload.', 'dsgnwrks' ) .'</em></div>';
+	/**
+	 * Checks if post content template contains the embed tags.
+	 * @since  1.2.6
+	 */
+	protected function has_embed( $type = '' ) {
+		return false !== stripos( $this->import['post_content'], '**insta-embed-'. $type );
 	}
 
 	/**
