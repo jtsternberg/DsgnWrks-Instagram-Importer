@@ -291,7 +291,7 @@ if ( !empty( $users ) && is_array( $users ) ) {
 
 								<tr valign="top">
 								<td colspan="2">
-									<p><strong><?php _e( 'Post Content:', 'dsgnwrks' ); ?></strong><br/><?php _e( 'Add the imported Instagram data using these custom tags:', 'dsgnwrks' ); ?><br/><code>**insta-text**</code>, <code>**insta-image**</code>, <code>**insta-embed**</code>, <code>**insta-image-link**</code>, <code>**insta-link**</code>, <code>**insta-location**</code>, <code>**insta-filter**</code></p>
+									<p><strong><?php _e( 'Post Content:', 'dsgnwrks' ); ?></strong><br/><?php _e( 'Add the imported Instagram data using these custom tags:', 'dsgnwrks' ); ?><br/><code>**insta-text**</code>, <code>**insta-image**</code>, <code>**insta-embed-image**</code>, <code>**insta-embed-video**</code>, <code>**insta-image-link**</code>, <code>**insta-link**</code>, <code>**insta-location**</code>, <code>**insta-filter**</code></p>
 									<p><?php _e( 'Or use these conditional tags:', 'dsgnwrks' ); ?><br/><code>[if-insta-text]<?php _e( 'Photo Caption:', 'dsgnwrks' ); ?> **insta-text**[/if-insta-text]</code><br/><code>[if-insta-location]<?php _e( 'Photo taken at:', 'dsgnwrks' ); ?> **insta-location**[/if-insta-location]</code></p>
 									<?php
 									$post_text = isset( $o['post_content'] ) ? $o['post_content'] : '';
