@@ -18,6 +18,8 @@ class DsgnWrksInstagram {
 	protected $instagram_api = 'https://api.instagram.com/v1/users/';
 	protected $import        = array();
 	protected $plugin_page   = false;
+	protected $opts          = false;
+	protected $users         = false;
 	protected $defaults;
 
 	/**
@@ -138,7 +140,7 @@ class DsgnWrksInstagram {
 	 * @since  1.2.0
 	 */
 	public function cron_callback() {
-		$opts = get_option( 'dsgnwrks_insta_options' );
+		$opts = $this->options();
 
 		if ( !empty( $opts ) && is_array( $opts ) ) : foreach ( $opts as $user => $useropts ) {
 			if ( isset( $useropts['auto_import'] ) && $useropts['auto_import'] == 'yes' )
@@ -230,14 +232,14 @@ class DsgnWrksInstagram {
 			array( $this, 'settings_validate' )
 		);
 
-		$opts = get_option( 'dsgnwrks_insta_options' );
-		if ( empty( $opts['frequency'] ) || $opts['frequency'] == 'never' )
+		$frequency = $this->options( 'frequency' );
+		if ( empty( $frequency ) || $frequency == 'never' )
 			return;
 
 		// if a auto-import frequency interval was saved,
 		if ( !wp_next_scheduled( $this->pre.'cron' ) ) {
 			// schedule a cron to pull updates from instagram
-			wp_schedule_event( time(), $opts['frequency'], $this->pre.'cron' );
+			wp_schedule_event( time(), $frequency, $this->pre.'cron' );
 		}
 	}
 
@@ -270,7 +272,7 @@ class DsgnWrksInstagram {
 	public function settings_validate( $opts ) {
 
 		// get existing saved options to check against
-		$old_opts = get_option( 'dsgnwrks_insta_options' );
+		$old_opts = $this->options();
 
 		// loop through options (users)
 		if ( !empty( $opts ) && is_array( $opts ) ) :
@@ -449,8 +451,7 @@ class DsgnWrksInstagram {
 		if ( !$userid && !isset( $_GET['instaimport'] ) )
 			return;
 		// get our options for use in the import
-		$opts             = get_option( 'dsgnwrks_insta_options' );
-		$this->opts       = &$opts;
+		$opts             = $this->options();
 		// instagram user id for pinging instagram
 		$this->userid     = $id = $userid ? $userid : sanitize_title( urldecode( $_GET['instaimport'] ) );
 		$this->doing_ajax = isset( $_REQUEST['instagram_user'] );
@@ -538,7 +539,7 @@ class DsgnWrksInstagram {
 	 */
 	public function do_import( $loop = false ) {
 
-		$opts = $this->opts;
+		$opts = $this->options();
 
 		if ( isset( $opts['remove_hashtags'] ) && is_array( $opts['remove_hashtags'] ) ) {
 			foreach ( $opts['remove_hashtags'] as $filter => $value ) {
@@ -1360,6 +1361,7 @@ class DsgnWrksInstagram {
 	 * Form element for setting universal plugin options (auto-import frequency, debug mode)
 	 */
 	protected function universal_options_form() {
+		$remove_hashtags = $this->options( 'remove_hashtags' );
 		?>
 		<table class="form-table">
 			<tbody>
@@ -1373,10 +1375,10 @@ class DsgnWrksInstagram {
 					<th scope="row"><strong><?php _e( 'Set Auto-import Frequency:', 'dsgnwrks' ); ?></strong></th>
 					<td>
 						<select name="dsgnwrks_insta_options[frequency]">
-							<option value="never" <?php echo selected( $this->opts['frequency'], 'never' ); ?>><?php _e( 'Manual', 'dsgnwrks' ); ?></option>
+							<option value="never" <?php echo selected( $this->options( 'frequency' ), 'never' ); ?>><?php _e( 'Manual', 'dsgnwrks' ); ?></option>
 							<?php
 							foreach ( $this->schedules as $key => $value ) {
-								echo '<option value="'. $key .'"'. selected( $this->opts['frequency'], $key, false ) .'>'. $value['display'] .'</option>';
+								echo '<option value="'. $key .'"'. selected( $this->options( 'frequency' ), $key, false ) .'>'. $value['display'] .'</option>';
 							}
 							?>
 						</select>
@@ -1385,13 +1387,13 @@ class DsgnWrksInstagram {
 				<tr valign="top" class="remove-hashtags">
 					<th scope="row"><strong><?php _e( 'Remove #hashtags when saving post:', 'dsgnwrks' ); ?></strong></th>
 					<td>
-						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_title]" <?php checked( isset( $this->opts['remove_hashtags']['post_title'] ) && $this->opts['remove_hashtags']['post_title'] ); ?> value="yes"/>&nbsp;Title</label>
-						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_content]" <?php checked( isset( $this->opts['remove_hashtags']['post_content'] ) && $this->opts['remove_hashtags']['post_content'] ); ?> value="yes"/>&nbsp;Content</label>
-						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_excerpt]" <?php checked( isset( $this->opts['remove_hashtags']['post_excerpt'] ) && $this->opts['remove_hashtags']['post_excerpt'] ); ?> value="yes"/>&nbsp;Excerpt</label>
+						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_title]" <?php checked( isset( $remove_hashtags['post_title'] ) && $remove_hashtags['post_title'] ); ?> value="yes"/>&nbsp;Title</label>
+						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_content]" <?php checked( isset( $remove_hashtags['post_content'] ) && $remove_hashtags['post_content'] ); ?> value="yes"/>&nbsp;Content</label>
+						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_excerpt]" <?php checked( isset( $remove_hashtags['post_excerpt'] ) && $remove_hashtags['post_excerpt'] ); ?> value="yes"/>&nbsp;Excerpt</label>
 
 					</td>
 				</tr>
-				<?php do_action( 'dsgnwrks_instagram_univeral_options', $this->opts ); ?>
+				<?php do_action( 'dsgnwrks_instagram_univeral_options', $this->options() ); ?>
 			</tbody>
 		</table>
 		<p class="submit">
@@ -1408,6 +1410,34 @@ class DsgnWrksInstagram {
 	 */
 	protected function instimport_link( $id ) {
 		return add_query_arg( array( 'page' => $this->plugin_id, 'instaimport' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) );
+	}
+
+	/**
+	 * Retrieve plugin's options (or optionally a specific value by key)
+	 * @param  string       $key key who's related value is desired
+	 * @return array|string      whole option array or specific value by key
+	 */
+	protected function options( $key = '' ) {
+		$this->opts = $this->opts ? $this->opts : get_option( 'dsgnwrks_insta_options' );
+
+		if ( $key )
+			return isset( $this->opts[$key] ) ? $this->opts[$key] : false;
+
+		return $this->opts;
+	}
+
+	/**
+	 * Retrieve plugin's user option (or optionally a specific value by key)
+	 * @param  string       $key key who's related value is desired
+	 * @return array|string      whole option array or specific value by key
+	 */
+	protected function users( $key = '' ) {
+		$this->users = $this->users ? $this->users : get_option( 'dsgnwrks_insta_users' );
+
+		if ( $key )
+			return isset( $this->users[$key] ) ? $this->users[$key] : false;
+
+		return $this->users;
 	}
 
 	/**
@@ -1429,7 +1459,7 @@ class DsgnWrksInstagram {
 	 * @return bool debug on or off
 	 */
 	public function debugEnabled() {
-		return isset( $this->opts['debugmode'] ) && $this->opts['debugmode'] == 'on';
+		return $this->options( 'debugmode' ) && $this->options( 'debugmode' ) == 'on';
 	}
 
 	/**
@@ -1464,7 +1494,7 @@ class DsgnWrksInstagram {
 		if ( !$this->debugEnabled() )
 			return;
 		// default $data is options and users
-		$data  = !$data ? print_r( array( 'opts' => $this->opts, 'users' => $this->users ), true ) : print_r( $data, true );
+		$data  = !$data ? print_r( array( 'opts' => $this->options(), 'users' => $this->users ), true ) : print_r( $data, true );
 		// default title
 		$title = !$title ? 'no $opts[$id] - $opts & $users' : esc_attr( $title );
 		wp_mail( 'justin@dsgnwrks.pro', 'Instagram Debug - '. $title .' - line '. $line, $data );

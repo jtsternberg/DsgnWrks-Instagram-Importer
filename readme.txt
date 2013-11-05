@@ -36,6 +36,7 @@ Plugin is built with developers in mind and has many filters to manipulate the i
 * [photos.jkudish.com](http://photos.jkudish.com/)
 * [aaronrutley.com](http://www.aaronrutley.com/)
 * [photos.jtsternberg.com](http://photos.jtsternberg.com)
+* [eightsevencentral.com](http://eightsevencentral.com/news/)
 
 (send me your site if you want to be featured here)
 
@@ -65,6 +66,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 = Is it possible to limit the length of the imported posts? =
 * Yes, use this gist: https://gist.github.com/jtsternberg/6148635
+
+= Is it possible to remove hashtags from the imported title? =
+* Yes, use this gist: https://gist.github.com/jtsternberg/6190621
 
 = ?? =
 * If you run into a problem or have a question, contact me ([contact form](http://j.ustin.co/scbo43) or [@jtsternberg on twitter](http://j.ustin.co/wUfBD3)). I'll add them here.

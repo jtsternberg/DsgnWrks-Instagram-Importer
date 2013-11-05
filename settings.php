@@ -4,10 +4,8 @@ if ( !current_user_can( 'manage_options' ) )  {
 }
 add_thickbox();
 
-$this->opts = get_option( 'dsgnwrks_insta_options' );
-$this->users = get_option( 'dsgnwrks_insta_users' );
-$opts = &$this->opts;
-$users = &$this->users;
+$opts = $this->options();
+$users = $this->users();
 $this->schedules = wp_get_schedules();
 $users = ( !empty( $users ) ) ? $users : array();
 
