@@ -78,11 +78,18 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 == Changelog ==
 
 = 1.2.6 =
-* New: Shortcode for displaying instagram embed, `dsgnwrks_instagram_embed`
+* New: Shortcode for displaying instagram embed, `dsgnwrks_instagram_embed`.
 * New: `**insta-embed-image**`, and `**insta-embed-video**` import content tags to add the embed shortcode. Using these tags will negate the `**insta-image**` tag.
-* New: plugin option, Remove #hashtags when saving post's Title/Content/Excerpt.
+* New: Plugin option for selecting to remove #hashtags when saving posts' Title/Content/Excerpt.
+* New: `dsgnwrks_instagram_import_types` filter - Modify to exclude images or video (or others?) from the import.
+* New: `dsgnwrks_instagram_post_excerpt` filter - Modifies the imported posts' excerpts.
+* New: `dsgnwrks_instagram_post_title` filter - Modifies the imported posts' titles.
+* New: `dsgnwrks_instagram_post_content` filter - Modifies the imported posts' content.
+* New: `dsgnwrks_instagram_{$tag}` filter - Allows granular modification of each content tag's replacement.
 * Improvement: Better ajax importing of images/posts. Each imported post will show live feedback during the import process.
+* Improvement: Better styling for users with MP6 installed.
 * Fixed: Authenticating users with Emoji (or other special characters in their bios) would cause the plugin to break.
+* Fixed: Post format selector didn't have correct class and so wasn't getting shown correctly.
 
 = 1.2.5 =
 * Added: POT translation file.
@@ -139,11 +146,18 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 == Upgrade Notice ==
 
 = 1.2.6 =
-* New: Shortcode for displaying instagram embed, `dsgnwrks_instagram_embed`
+* New: Shortcode for displaying instagram embed, `dsgnwrks_instagram_embed`.
 * New: `**insta-embed-image**`, and `**insta-embed-video**` import content tags to add the embed shortcode. Using these tags will negate the `**insta-image**` tag.
-* New: plugin option, Remove #hashtags when saving post's Title/Content/Excerpt.
+* New: Plugin option for selecting to remove #hashtags when saving posts' Title/Content/Excerpt.
+* New: `dsgnwrks_instagram_import_types` filter - Modify to exclude images or video (or others?) from the import.
+* New: `dsgnwrks_instagram_post_excerpt` filter - Modifies the imported posts' excerpts.
+* New: `dsgnwrks_instagram_post_title` filter - Modifies the imported posts' titles.
+* New: `dsgnwrks_instagram_post_content` filter - Modifies the imported posts' content.
+* New: `dsgnwrks_instagram_{$tag}` filter - Allows granular modification of each content tag's replacement.
 * Improvement: Better ajax importing of images/posts. Each imported post will show live feedback during the import process.
+* Improvement: Better styling for users with MP6 installed.
 * Fixed: Authenticating users with Emoji (or other special characters in their bios) would cause the plugin to break.
+* Fixed: Post format selector didn't have correct class and so wasn't getting shown correctly.
 
 = 1.2.5 =
 * Added: POT translation file.
