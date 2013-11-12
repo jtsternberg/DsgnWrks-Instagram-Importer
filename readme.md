@@ -1,5 +1,4 @@
-# Plugin Name #
-DsgnWrks Instagram Importer
+# DsgnWrks Instagram Importer #
 
 **Contributors:** jtsternberg  
 **Plugin Name:** DsgnWrks Instagram Importer  
