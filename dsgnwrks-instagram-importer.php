@@ -12,7 +12,7 @@ Version: 1.2.7
 class DsgnWrksInstagram {
 
 	public $plugin_name      = 'DsgnWrks Instagram Importer';
-	public $plugin_version   = '1.2.6';
+	public $plugin_version   = '1.2.7';
 	public $plugin_id        = 'dsgnwrks-instagram-importer-settings';
 	protected $pre           = 'dsgnwrks_instagram_';
 	protected $instagram_api = 'https://api.instagram.com/v1/users/';
@@ -171,7 +171,10 @@ class DsgnWrksInstagram {
 			trigger_error('$_REQUEST[\'next_url\'] used');
 		}
 
+		// Do not publicize these posts (Jetpack)
+		add_filter( 'wpas_submit_post?', '__return_false' );
 		$notices = $this->import( $_REQUEST['instagram_user'] );
+		remove_filter( 'wpas_submit_post?', '__return_false' );
 
 		if ( !$notices )
 			wp_send_json_error( '<div id="message" class="updated"><p>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</p></div>' );
