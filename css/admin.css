@@ -43,6 +43,7 @@
 .updated.instagram-import-message .clear {
 	clear: both;
 	padding: 12px 0 0;
+	min-width: 130px;
 }
 
 form.instagram-importer table {
