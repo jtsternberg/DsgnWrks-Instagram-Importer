@@ -171,7 +171,9 @@ class DsgnWrksInstagram {
 			trigger_error('$_REQUEST[\'next_url\'] used');
 		}
 
+		add_filter( 'wpas_submit_post?', '__return_false' );
 		$notices = $this->import( $_REQUEST['instagram_user'] );
+		remove_filter( 'wpas_submit_post?', '__return_false' );
 
 		if ( !$notices )
 			wp_send_json_error( '<div id="message" class="updated"><p>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</p></div>' );
