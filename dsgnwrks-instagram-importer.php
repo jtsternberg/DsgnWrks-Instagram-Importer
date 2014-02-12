@@ -1102,6 +1102,9 @@ class DsgnWrksInstagram {
 			update_post_meta( $import['post_id'], 'instagram_video_url_'. $size, wp_get_attachment_url( $attach_id ) );
 
 			return '<em> '. sprintf( __( '%s imported.', 'dsgnwrks' ), '<b>'. $attach_title .'</b>' ) .'</em>';
+		} else {
+			// Save our photo attachement ID as post-meta
+			update_post_meta( $import['post_id'], 'instagram_image_id', $attach_id );
 		}
 
 		if ( $import['featured'] )
@@ -1523,7 +1526,76 @@ class DsgnWrksInstagram {
 		wp_mail( 'justin@dsgnwrks.pro', 'Instagram Debug - '. $title .' - line '. $line, $data );
 	}
 
+	/**
+	 * Sets the 'dsgnwrks_instagram_id' post-meta on posts imported before 1.2.7
+	 * @since  1.2.7
+	 * @param  int   $post_id Post id
+	 * @return mixed          Image id on success
+	 */
+	public static function maybe_set_instagram_image_id( $post_id ) {
+		$is_instagram = get_post_meta( $post_id, 'dsgnwrks_instagram_id', 1 );
+
+		if ( ! $is_instagram )
+			return false;
+
+		$image_ids = array_keys(
+			get_children(
+				array(
+					'post_parent'    => $post_id,
+					'post_type'      => 'attachment',
+					'post_mime_type' => 'image',
+					'orderby'        => 'menu_order',
+					'order'          => 'ASC',
+					'numberposts'    => 1,
+				)
+			)
+		);
+
+		if ( isset( $image_ids[0] ) ) {
+			update_post_meta( $post_id, 'instagram_image_id', $image_ids[0] );
+			return $image_ids[0];
+		}
+		return false;
+
+	}
+
 }
 
 // init our class
 $DsgnWrksInstagram = new DsgnWrksInstagram;
+
+/**
+ * Template tag that returns html markup for instagram imported image. Works like `get_the_post_thumbnail`
+ * @since  1.2.7
+ * @param  int         $post_id Post ID
+ * @param string|array $size    Optional. Image size. Defaults to 'post-thumbnail', which theme sets using set_post_thumbnail_size( $width, $height, $crop_flag );.
+ * @param string|array $attr    Optional. Query string or array of attributes.
+ * @return string               Image html markup
+ */
+function dw_get_instagram_image( $post_id = null, $size = 'post-thumbnail', $attr = array() ) {
+
+	$post_id = null === $post_id
+		? get_the_ID()
+		: $post_id;
+
+	$img_id = get_post_meta( $post_id, 'instagram_image_id', 1 );
+	if ( ! $img_id ) {
+		$img_id = DsgnWrksInstagram::maybe_set_instagram_image_id( $post_id );
+	}
+
+	$html = $img_id
+		? wp_get_attachment_image( $img_id, $size, false, $attr )
+		: '';
+
+	return apply_filters( 'dw_get_instagram_image', $html, $post_id, $img_id, $size, $attr );
+}
+
+/**
+ * Template tag that displays instagram imported image. Works like `the_post_thumbnail`
+ * @since  1.2.7
+ * @param string|array $size Optional. Image size. Defaults to 'post-thumbnail', which theme sets using set_post_thumbnail_size( $width, $height, $crop_flag );.
+ * @param string|array $attr Optional. Query string or array of attributes.
+ */
+function dw_instagram_image( $size = 'post-thumbnail', $attr = '' ) {
+	echo dw_get_instagram_image( null, $size, $attr );
+}
