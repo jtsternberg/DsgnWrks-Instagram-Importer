@@ -6,7 +6,7 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.2.7
+Version: 1.2.8
 */
 
 class DsgnWrksInstagram {
@@ -688,11 +688,8 @@ class DsgnWrksInstagram {
 	 */
 	protected function pic_loop( $data = array() ) {
 
-		// our individual user's settings
-		$settings = &$this->settings;
-
 		// 'Type' to be imported (images/video)
-		$settings['types'] = apply_filters( 'dsgnwrks_instagram_import_types', array( 'video', 'image' ), $this->userid );
+		$this->settings['types'] = apply_filters( 'dsgnwrks_instagram_import_types', array( 'video', 'image' ), $this->userid );
 
 		// if we have invalid data, bail here
 		if ( !isset( $data->data ) || !is_array( $data->data ) )
@@ -701,54 +698,22 @@ class DsgnWrksInstagram {
 		// loop!
 		foreach ( $data->data as $this->pic ) {
 
-			// $this->pic is for other functions, $pic is for this function
-			$pic = &$this->pic;
-
-			if ( !in_array( $pic->type, $settings['types'] ) )
+			if ( ! in_array( $this->pic->type, $this->settings['types'] ) )
 				continue;
 
 			// if user has a date filter set, check it
-			if ( isset( $settings['date-filter'] ) && $settings['date-filter'] > $pic->created_time ) {
+			if ( isset( $this->settings['date-filter'] ) && $this->settings['date-filter'] > $this->pic->created_time ) {
 				// and stop if we've passed the date filter time
 				$messages['nexturl'] = 'halt';
 				break;
 			}
 
-			// if user has a tag filter set, check it
-			if ( !empty( $settings['tag-filter'] ) ) {
-				// get all tags saved for filtering
-				$tags = explode( ', ', $settings['tag-filter'] );
-				// init our var
-				$in_title = false;
-				// if we have tags...
-				if ( $tags ) {
-					// loop through them
-					foreach ($tags as $tag) {
-						// if we find one of them in the caption, we should import this one
-						if ( strpos( $pic->caption->text, $tag ) ) $in_title = true;
-					}
-				}
-				// if no tags are in the caption, move on to the next photo
-				if ( !$in_title ) continue;
-			}
+			// If we have tags to filter, and image does not contain the right tags, move on
+			if ( ! $this->has_tags( $this->pic->tags ) )
+				continue;
 
-			// get user's post-type setting or default to 'post'
-			$pt = isset( $settings['post-type'] ) ? $settings['post-type'] : 'post';
-			$alreadyInSystem = new WP_Query(
-				array(
-					'post_type'   => $pt,
-					'post_status' => 'any',
-					'no_found_rows'  => true,
-					'meta_query'  => array(
-						array(
-							'key'   => 'instagram_created_time',
-							'value' => $pic->created_time
-						)
-					)
-				)
-			);
 			// if the photo is already saved, move on
-			if ( $alreadyInSystem->have_posts() )
+			if ( $this->image_exists( $this->pic->created_time ) )
 				continue;
 
 			// if we've made it this far, let's save our post
@@ -839,6 +804,85 @@ class DsgnWrksInstagram {
 		$this->update_post_content();
 
 		return $this->message_wrap( $message );
+	}
+
+	/**
+	 * Gets hashtag filter setting and make an array
+	 * @since  1.2.8
+	 * @return array  Array of hashtags to filter by
+	 */
+	protected function get_settings_tags() {
+		if ( isset( $this->settings_tags ) ) {
+			return $this->settings_tags;
+		}
+		// if user doesn't have a tag filter set, bail
+		if ( empty( $this->settings['tag-filter'] ) )
+			return false;
+
+		// get all tags saved for filtering
+		$tags = explode( ', ', $this->settings['tag-filter'] );
+		$this->settings_tags = array();
+		// if we have tags...
+		if ( $tags ) {
+			// loop through them
+			foreach ( $tags as $tag ) {
+				// Remove hash symbol
+				$this->settings_tags[] = str_replace( '#', '', $tag );
+			}
+		}
+		return $this->settings_tags;
+	}
+
+	/**
+	 * Determines if list of tags on image lines up with any settings tags
+	 * @since  1.2.8
+	 * @param  array  $tags Array of tags to check against
+	 * @return boolean      Whether tags exist in settings
+	 */
+	protected function has_tags( $tags ) {
+		// If we have no saved tag filters, automatically passes
+		if ( ! $this->get_settings_tags() )
+			return true;
+
+		// If image has no tags, return false
+		if ( ! is_array( $tags ) || empty( $tags ) )
+			return false;
+
+		// Check if any tags in settings align with any tags in image
+		$tag_exists = array_intersect( $this->get_settings_tags(), $tags );
+
+		// if no tags match, return false
+		if ( empty( $tag_exists ) )
+			return false;
+
+		// Ok, tag exists
+		return true;
+	}
+
+	/**
+	 * Checks if intended image is already in WP
+	 * @since  1.2.8
+	 * @param  string $timestamp Image created time
+	 * @return bool              Whether image exists or not
+	 */
+	protected function image_exists( $timestamp ) {
+		// get user's post-type setting or default to 'post'
+		$pt = isset( $this->settings['post-type'] ) ? $this->settings['post-type'] : 'post';
+		$alreadyInSystem = new WP_Query(
+			array(
+				'post_type'      => $pt,
+				'post_status'    => 'any',
+				'no_found_rows'  => true,
+				'meta_query'     => array(
+					array(
+						'key'   => 'instagram_created_time',
+						'value' => $timestamp
+					)
+				)
+			)
+		);
+		// Returns whether photo already exists in WP
+		return $alreadyInSystem->have_posts();
 	}
 
 	/**

@@ -9,8 +9,8 @@
 **Donate link:** http://j.ustin.co/rYL89n 
 **Requires at least:** 3.1  
 **Tested up to:** 3.8.1  
-**Stable tag:** 1.2.7  
-**Version:** 1.2.7  
+**Stable tag:** 1.2.8  
+**Version:** 1.2.8  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -82,12 +82,14 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 ## Changelog ##
 
+### 1.2.8
+* Bug fix: Tag filter is now more reliable.
+
 ### 1.2.7
 * Bug fix: Adding a new user no longer resets the auto-import frequency setting.
 * Bug fix: User settings would occasionally not save correctly.
 * Conflict fix: Do not publicize imported posts via Jetpack.
 * New: Template tag for getting the instagram image, `dw_get_instagram_image`, and for displaying the image, `dw_instagram_image`.
-
 
 ### 1.2.6 ###
 * New: Shortcode for displaying instagram embed, `dsgnwrks_instagram_embed`.
@@ -156,6 +158,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 ## Upgrade Notice ##
+
+### 1.2.8
+* Bug fix: Tag filter is now more reliable.
 
 ### 1.2.7
 * Bug fix: Adding a new user no longer resets the auto-import frequency setting.
