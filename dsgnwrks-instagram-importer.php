@@ -6,13 +6,13 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.2.6
+Version: 1.2.7
 */
 
 class DsgnWrksInstagram {
 
 	public $plugin_name      = 'DsgnWrks Instagram Importer';
-	public $plugin_version   = '1.2.6';
+	public $plugin_version   = '1.2.7';
 	public $plugin_id        = 'dsgnwrks-instagram-importer-settings';
 	protected $pre           = 'dsgnwrks_instagram_';
 	protected $instagram_api = 'https://api.instagram.com/v1/users/';
@@ -171,6 +171,7 @@ class DsgnWrksInstagram {
 			trigger_error('$_REQUEST[\'next_url\'] used');
 		}
 
+		// Do not publicize these posts (Jetpack)
 		add_filter( 'wpas_submit_post?', '__return_false' );
 		$notices = $this->import( $_REQUEST['instagram_user'] );
 		remove_filter( 'wpas_submit_post?', '__return_false' );
@@ -280,37 +281,59 @@ class DsgnWrksInstagram {
 		// loop through options (users)
 		if ( !empty( $opts ) && is_array( $opts ) ) :
 			foreach ( $opts as $user => $useropts ) {
+
 				// loop through options (user's options)
 				if ( !empty( $useropts ) && is_array( $useropts ) ) : foreach ( $useropts as $key => $opt ) {
-					if ( $key === 'date-filter' ) {
-						if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
-							$opts[$user][$key] = 0;
-						}
-						else {
-							$opts[$user][$key] = strtotime( $opts[$user]['mm'] .'/'. $opts[$user]['dd'] .'/'. $opts[$user]['yy'] );
-						}
-					} elseif ( $key === 'pw' ) {
-						continue;
-					} elseif ( $key === 'post-type' ) {
-						$opts[$user][$key] = $this->filter( $opt, '', 'post' );
-					} elseif ( $key === 'draft' ) {
-						$opts[$user][$key] = $this->filter( $opt, '', 'draft' );
-					} elseif ( $key === 'yy' || $key === 'mm' || $key === 'dd' ) {
-						if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
-							$opts[$user][$key] = '';
-						}
-						else {
-							$opts[$user][$key] = $this->filter( $opt, 'absint', '' );
-						}
-					} elseif ( $key === 'post_content' ) {
-						$opts[$user][$key] = $this->filter( $opt, 'wp_kses_post' );
-					} elseif ( $key === 'feat_image' || $key === 'auto_import' ) {
-						// checkboxes
-						$opts[$user][$key] = $opts[$user][$key] == 'yes' ? 'yes' : false;
-					} else {
-						// defaults to esc_attr() validation
-						$opts[$user][$key] = $this->filter( $opt );
+
+					switch ( $key ) {
+						case 'date-filter':
+							if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
+								$opts[$user][$key] = 0;
+							}
+							else {
+								$opts[$user][$key] = strtotime( $opts[$user]['mm'] .'/'. $opts[$user]['dd'] .'/'. $opts[$user]['yy'] );
+							}
+							break;
+
+						case 'pw':
+							continue;
+							break;
+
+						case 'post-type':
+							$opts[$user][$key] = $this->filter( $opt, '', 'post' );
+							break;
+
+						case 'draft':
+							$opts[$user][$key] = $this->filter( $opt, '', 'draft' );
+							break;
+
+						case 'yy':
+						case 'mm':
+						case 'dd':
+							if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
+								$opts[$user][$key] = '';
+							}
+							else {
+								$opts[$user][$key] = $this->filter( $opt, 'absint', '' );
+							}
+							break;
+
+						case 'post_content':
+							$opts[$user][$key] = $this->filter( $opt, 'wp_kses_post' );
+							break;
+
+						case 'feat_image':
+						case 'auto_import':
+							// checkboxes
+							$opts[$user][$key] = $opts[$user][$key] == 'yes' ? 'yes' : false;
+							break;
+
+						default:
+							// defaults to esc_attr() validation
+							$opts[$user][$key] = $this->filter( $opt );
+							break;
 					}
+
 
 				} endif;
 
@@ -1079,6 +1102,9 @@ class DsgnWrksInstagram {
 			update_post_meta( $import['post_id'], 'instagram_video_url_'. $size, wp_get_attachment_url( $attach_id ) );
 
 			return '<em> '. sprintf( __( '%s imported.', 'dsgnwrks' ), '<b>'. $attach_title .'</b>' ) .'</em>';
+		} else {
+			// Save our photo attachement ID as post-meta
+			update_post_meta( $import['post_id'], 'instagram_image_id', $attach_id );
 		}
 
 		if ( $import['featured'] )
@@ -1113,8 +1139,6 @@ class DsgnWrksInstagram {
 	protected function upload_error( $line, $media_url = false, $error = '' ) {
 
 		$import = &$this->import;
-		// image or video?
-		$othertype = ( $this->type == 'image' ) ? 'video' : 'image';
 
 		// Hanlde a video error a bit differently
 		if ( $this->type == 'video' ) {
@@ -1284,7 +1308,7 @@ class DsgnWrksInstagram {
 					}
 
 					$opts['username']  = $sanitized_user;
-					$opts['frequency'] = 'daily';
+					$opts['frequency'] = isset( $opts['frequency'] ) ? $opts['frequency'] : 'never';
 
 					update_option( 'dsgnwrks_insta_users', $users );
 					update_option( 'dsgnwrks_insta_options', $opts );
@@ -1502,7 +1526,76 @@ class DsgnWrksInstagram {
 		wp_mail( 'justin@dsgnwrks.pro', 'Instagram Debug - '. $title .' - line '. $line, $data );
 	}
 
+	/**
+	 * Sets the 'dsgnwrks_instagram_id' post-meta on posts imported before 1.2.7
+	 * @since  1.2.7
+	 * @param  int   $post_id Post id
+	 * @return mixed          Image id on success
+	 */
+	public static function maybe_set_instagram_image_id( $post_id ) {
+		$is_instagram = get_post_meta( $post_id, 'dsgnwrks_instagram_id', 1 );
+
+		if ( ! $is_instagram )
+			return false;
+
+		$image_ids = array_keys(
+			get_children(
+				array(
+					'post_parent'    => $post_id,
+					'post_type'      => 'attachment',
+					'post_mime_type' => 'image',
+					'orderby'        => 'menu_order',
+					'order'          => 'ASC',
+					'numberposts'    => 1,
+				)
+			)
+		);
+
+		if ( isset( $image_ids[0] ) ) {
+			update_post_meta( $post_id, 'instagram_image_id', $image_ids[0] );
+			return $image_ids[0];
+		}
+		return false;
+
+	}
+
 }
 
 // init our class
 $DsgnWrksInstagram = new DsgnWrksInstagram;
+
+/**
+ * Template tag that returns html markup for instagram imported image. Works like `get_the_post_thumbnail`
+ * @since  1.2.7
+ * @param  int         $post_id Post ID
+ * @param string|array $size    Optional. Image size. Defaults to 'post-thumbnail', which theme sets using set_post_thumbnail_size( $width, $height, $crop_flag );.
+ * @param string|array $attr    Optional. Query string or array of attributes.
+ * @return string               Image html markup
+ */
+function dw_get_instagram_image( $post_id = null, $size = 'post-thumbnail', $attr = array() ) {
+
+	$post_id = null === $post_id
+		? get_the_ID()
+		: $post_id;
+
+	$img_id = get_post_meta( $post_id, 'instagram_image_id', 1 );
+	if ( ! $img_id ) {
+		$img_id = DsgnWrksInstagram::maybe_set_instagram_image_id( $post_id );
+	}
+
+	$html = $img_id
+		? wp_get_attachment_image( $img_id, $size, false, $attr )
+		: '';
+
+	return apply_filters( 'dw_get_instagram_image', $html, $post_id, $img_id, $size, $attr );
+}
+
+/**
+ * Template tag that displays instagram imported image. Works like `the_post_thumbnail`
+ * @since  1.2.7
+ * @param string|array $size Optional. Image size. Defaults to 'post-thumbnail', which theme sets using set_post_thumbnail_size( $width, $height, $crop_flag );.
+ * @param string|array $attr Optional. Query string or array of attributes.
+ */
+function dw_instagram_image( $size = 'post-thumbnail', $attr = '' ) {
+	echo dw_get_instagram_image( null, $size, $attr );
+}

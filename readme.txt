@@ -5,13 +5,13 @@ Contributors: jtsternberg
 Plugin Name: DsgnWrks Instagram Importer
 Plugin URI: http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer
 Tags: instagram, import, backup, photo, photos, importer
-Author URI: http://about.me/jtsternberg
+Author URI: http://jtsternberg.com/about
 Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
-Tested up to: 3.6
-Stable tag: 1.2.6
-Version: 1.2.6
+Tested up to: 3.8.1
+Stable tag: 1.2.7
+Version: 1.2.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,7 +23,7 @@ In the spirit of WordPress and "owning your data," this plugin will allow you to
 
 As of version 1.2.0, you can now import and backup your instagram photos automatically! The plugin gives you the option to choose from the default WordPress cron schedules, but if you wish to add a custom interval, you may want to add the [wp-crontrol plugin](http://wordpress.org/extend/plugins/wp-crontrol/).
 
-Version 1.2.6 is all about Instagram video. Your videos will now be imported to the WordPress media library, as well as the cover image. The new shortcode, `[dsgnwrks_instagram_embed src="INSTAGRAM_MEDIA_URL"]`, displays your imported media as an Instagram embed (works great for video!) and finally, you can now use the tags, `**insta-embed-image**`, and `**insta-embed-video**`, in the Post Content template to save the `dsgnwrks_instagram_embed` shortcode to the post.
+Version 1.2.6 introduced many new features for Instagram video. Your videos will now be imported to the WordPress media library, as well as the cover image. The new shortcode, `[dsgnwrks_instagram_embed src="INSTAGRAM_MEDIA_URL"]`, displays your imported media as an Instagram embed (works great for video!) and finally, you can now use the tags, `**insta-embed-image**`, and `**insta-embed-video**`, in the Post Content template to save the `dsgnwrks_instagram_embed` shortcode to the post.
 
 Plugin is built with developers in mind and has many filters to manipulate the imported posts.
 
@@ -76,6 +76,11 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 2. After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.
 
 == Changelog ==
+
+= 1.2.7 =
+* Bug fix: Adding a new user no longer resets the auto-import frequency setting.
+* Bug fix: User settings would occasionally not save correctly.
+* New: Template tag for getting the instagram image, `dw_get_instagram_image`, and for displaying the image, `dw_instagram_image`.
 
 = 1.2.6 =
 * New: Shortcode for displaying instagram embed, `dsgnwrks_instagram_embed`.
@@ -144,6 +149,11 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 == Upgrade Notice ==
+
+= 1.2.7 =
+* Bug fix: Adding a new user no longer resets the auto-import frequency setting.
+* Bug fix: User settings would occasionally not save correctly.
+* New: Template tag for getting the instagram image, `dw_get_instagram_image`, and for displaying the image, `dw_instagram_image`.
 
 = 1.2.6 =
 * New: Shortcode for displaying instagram embed, `dsgnwrks_instagram_embed`.
