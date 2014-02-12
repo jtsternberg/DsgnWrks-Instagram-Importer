@@ -150,7 +150,6 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									if ( !$complete[$id] ) echo '<div id="message" class="error"><p>'. __( 'Please select full date.', 'dsgnwrks' ) .'</p></div>';
 								}
 							}
-
 							?>
 
 							<table class="form-table">
@@ -461,21 +460,25 @@ if ( !empty( $users ) && is_array( $users ) ) {
 									}
 								}
 
-								echo '<input type="hidden" name="dsgnwrks_insta_options[username]" value="replaceme" />';
 								$userdata = array( 'access_token', 'bio', 'website', 'profile_picture', 'full_name', 'id', 'full_username' ) ;
-								foreach ( $userdata as $data ) {
-									echo '<input type="hidden" name="dsgnwrks_insta_options['.$id.']['.$data.']" value="'. $o[$data] .'" />';
-								}
 								$trans = get_transient( $id .'-instaimportdone' );
 
-								if ( $trans ) { ?>
-									<tr valign="top" class="info">
+								?>
+								<tr valign="top" class="info">
 									<th colspan="2">
-										<?php echo '<p>'. sprintf( __( 'Last updated: %s', 'dsgnwrks' ), $trans ) .'</p>'; ?>
+									<input type="hidden" name="dsgnwrks_insta_options[username]" value="replaceme" />
+									<?php
+									foreach ( $userdata as $data ) {
+										$val = isset( $o[$data] ) ? $o[$data] : '';
+										echo '<input type="hidden" name="dsgnwrks_insta_options['.$id.']['.$data.']" value="'. $val .'" />';
+									}
 
+									if ( $trans ) {
+										echo '<p>'. sprintf( __( 'Last updated: %s', 'dsgnwrks' ), $trans ) .'</p>';
+									}
+									?>
 									</th>
-									</tr>
-								<?php } ?>
+								</tr>
 							</table>
 							<p class="save-warning warning user-<?php echo $id; ?>"><?php _e( 'You\'ve changed settings.', 'dsgnwrks' );?> <strong><?php _e( 'please "Save" them before importing.', 'dsgnwrks' ); ?></strong></p>
 							<p class="submit">
