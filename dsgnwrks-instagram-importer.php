@@ -281,37 +281,59 @@ class DsgnWrksInstagram {
 		// loop through options (users)
 		if ( !empty( $opts ) && is_array( $opts ) ) :
 			foreach ( $opts as $user => $useropts ) {
+
 				// loop through options (user's options)
 				if ( !empty( $useropts ) && is_array( $useropts ) ) : foreach ( $useropts as $key => $opt ) {
-					if ( $key === 'date-filter' ) {
-						if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
-							$opts[$user][$key] = 0;
-						}
-						else {
-							$opts[$user][$key] = strtotime( $opts[$user]['mm'] .'/'. $opts[$user]['dd'] .'/'. $opts[$user]['yy'] );
-						}
-					} elseif ( $key === 'pw' ) {
-						continue;
-					} elseif ( $key === 'post-type' ) {
-						$opts[$user][$key] = $this->filter( $opt, '', 'post' );
-					} elseif ( $key === 'draft' ) {
-						$opts[$user][$key] = $this->filter( $opt, '', 'draft' );
-					} elseif ( $key === 'yy' || $key === 'mm' || $key === 'dd' ) {
-						if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
-							$opts[$user][$key] = '';
-						}
-						else {
-							$opts[$user][$key] = $this->filter( $opt, 'absint', '' );
-						}
-					} elseif ( $key === 'post_content' ) {
-						$opts[$user][$key] = $this->filter( $opt, 'wp_kses_post' );
-					} elseif ( $key === 'feat_image' || $key === 'auto_import' ) {
-						// checkboxes
-						$opts[$user][$key] = $opts[$user][$key] == 'yes' ? 'yes' : false;
-					} else {
-						// defaults to esc_attr() validation
-						$opts[$user][$key] = $this->filter( $opt );
+
+					switch ( $key ) {
+						case 'date-filter':
+							if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
+								$opts[$user][$key] = 0;
+							}
+							else {
+								$opts[$user][$key] = strtotime( $opts[$user]['mm'] .'/'. $opts[$user]['dd'] .'/'. $opts[$user]['yy'] );
+							}
+							break;
+
+						case 'pw':
+							continue;
+							break;
+
+						case 'post-type':
+							$opts[$user][$key] = $this->filter( $opt, '', 'post' );
+							break;
+
+						case 'draft':
+							$opts[$user][$key] = $this->filter( $opt, '', 'draft' );
+							break;
+
+						case 'yy':
+						case 'mm':
+						case 'dd':
+							if ( empty( $opts[$user]['mm'] ) && empty( $opts[$user]['dd'] ) && empty( $opts[$user]['yy'] ) || !empty( $opts[$user]['remove-date-filter'] ) ) {
+								$opts[$user][$key] = '';
+							}
+							else {
+								$opts[$user][$key] = $this->filter( $opt, 'absint', '' );
+							}
+							break;
+
+						case 'post_content':
+							$opts[$user][$key] = $this->filter( $opt, 'wp_kses_post' );
+							break;
+
+						case 'feat_image':
+						case 'auto_import':
+							// checkboxes
+							$opts[$user][$key] = $opts[$user][$key] == 'yes' ? 'yes' : false;
+							break;
+
+						default:
+							// defaults to esc_attr() validation
+							$opts[$user][$key] = $this->filter( $opt );
+							break;
 					}
+
 
 				} endif;
 
@@ -1283,7 +1305,7 @@ class DsgnWrksInstagram {
 					}
 
 					$opts['username']  = $sanitized_user;
-					$opts['frequency'] = 'daily';
+					$opts['frequency'] = isset( $opts['frequency'] ) ? $opts['frequency'] : 'never';
 
 					update_option( 'dsgnwrks_insta_users', $users );
 					update_option( 'dsgnwrks_insta_options', $opts );
