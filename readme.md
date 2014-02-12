@@ -85,6 +85,7 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 ### 1.2.7
 * Bug fix: Adding a new user no longer resets the auto-import frequency setting.
 * Bug fix: User settings would occasionally not save correctly.
+* Conflict fix: Do not publicize imported posts via Jetpack.
 * New: Template tag for getting the instagram image, `dw_get_instagram_image`, and for displaying the image, `dw_instagram_image`.
 
 
@@ -159,6 +160,7 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 ### 1.2.7
 * Bug fix: Adding a new user no longer resets the auto-import frequency setting.
 * Bug fix: User settings would occasionally not save correctly.
+* Conflict fix: Do not publicize imported posts via Jetpack.
 * New: Template tag for getting the instagram image, `dw_get_instagram_image`, and for displaying the image, `dw_instagram_image`.
 
 ### 1.2.6 ###
