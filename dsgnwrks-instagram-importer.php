@@ -1041,10 +1041,12 @@ class DsgnWrksInstagram {
 			'instagram_users_in_photo'    => $this->pic->users_in_photo,
 			'instagram_link'              => esc_url( $this->pic->link ),
 			'instagram_embed_code'        => $this->instagram_embed(),
-			'instagram_type'              => esc_url( $this->pic->type ),
+			'instagram_type'              => $this->pic->type,
 			'instagram_user'              => $this->pic->user,
-		) as $key => $value )
+			'instagram_username'          => $this->pic->user->username,
+		) as $key => $value ) {
 			update_post_meta( $this->import['post_id'], $key, $value );
+		}
 
 	}
 
