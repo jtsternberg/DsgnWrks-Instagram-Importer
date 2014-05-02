@@ -12,7 +12,7 @@ Version: 1.2.8
 class DsgnWrksInstagram {
 
 	public $plugin_name      = 'DsgnWrks Instagram Importer';
-	public $plugin_version   = '1.2.7';
+	public $plugin_version   = '1.2.8';
 	public $plugin_id        = 'dsgnwrks-instagram-importer-settings';
 	protected $pre           = 'dsgnwrks_instagram_';
 	protected $instagram_api = 'https://api.instagram.com/v1/users/';
