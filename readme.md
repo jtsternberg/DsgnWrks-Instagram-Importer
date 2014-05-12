@@ -8,9 +8,9 @@
 **Author:** Jtsternberg  
 **Donate link:** http://j.ustin.co/rYL89n 
 **Requires at least:** 3.1  
-**Tested up to:** 3.8.1  
-**Stable tag:** 1.2.8  
-**Version:** 1.2.8  
+**Tested up to:** 3.9.1  
+**Stable tag:** 1.2.9  
+**Version:** 1.2.9  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -81,6 +81,10 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 ## Changelog ##
+
+### 1.2.9
+* Bug fix: Made the auto-import feature off by default. Would sometimes be triggered on plugin activation.
+* Saved the Instagram username to post-meta (`instagram_username`) along with the entire Instagram user object (`instagram_user`).
 
 ### 1.2.8
 * Bug fix: Tag filter is now more reliable.
@@ -155,80 +159,3 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 ### 1.0 ###
 * Launch.
-
-
-## Upgrade Notice ##
-
-### 1.2.8
-* Bug fix: Tag filter is now more reliable.
-
-### 1.2.7
-* Bug fix: Adding a new user no longer resets the auto-import frequency setting.
-* Bug fix: User settings would occasionally not save correctly.
-* Conflict fix: Do not publicize imported posts via Jetpack.
-* New: Template tag for getting the instagram image, `dw_get_instagram_image`, and for displaying the image, `dw_instagram_image`.
-
-### 1.2.6 ###
-* New: Shortcode for displaying instagram embed, `dsgnwrks_instagram_embed`.
-* New: `**insta-embed-image**`, and `**insta-embed-video**` import content tags to add the embed shortcode. Using these tags will negate the `**insta-image**` tag.
-* New: Plugin option for selecting to remove #hashtags when saving posts' Title/Content/Excerpt.
-* New: `dsgnwrks_instagram_import_types` filter - Modify to exclude images or video (or others?) from the import.
-* New: `dsgnwrks_instagram_post_excerpt` filter - Modifies the imported posts' excerpts.
-* New: `dsgnwrks_instagram_post_title` filter - Modifies the imported posts' titles.
-* New: `dsgnwrks_instagram_post_content` filter - Modifies the imported posts' content.
-* New: `dsgnwrks_instagram_{$tag}` filter - Allows granular modification of each content tag's replacement.
-* Improvement: Better ajax importing of images/posts. Each imported post will show live feedback during the import process.
-* Improvement: Better styling for users with MP6 installed.
-* Fixed: Authenticating users with Emoji (or other special characters in their bios) would cause the plugin to break.
-* Fixed: Post format selector didn't have correct class and so wasn't getting shown correctly.
-
-### 1.2.5 ###
-* Added: POT translation file.
-* Improvement: Import now runs via AJAX, and imported post messages have improved styling.
-* Fixed: Previously had no uninstall hook. Now deletes plugin option data (not imported posts) when uninstalling plugin.
-
-### 1.2.4 ###
-* Fixed: `**insta-image-link**` now pulls in the full 612x612 image size.
-* Added: dsgnwrks_instagram_image_size filter for changing from 'full' to any registered image size.
-* Added: dsgnwrks_instagram_insta_image filter to allow manipulation of the `**insta-image**` html markup (add classes, etc).
-
-### 1.2.3 ###
-* Fixed: Better SSL management
-
-### 1.2.2 ###
-* Added: Option to save Instagram hashtags as taxonomy terms (tags, categories, etc).
-* Added: Filter on Settings page to allow other plugins/themes to add extra settings fields.
-* Added: More of the Instagram photo data is saved to post_meta. props [csenf](https://github.com/csenf/DsgnWrks-Instagram-Importer-WordPress-Plugin/commit/5816ddade00b92fa0975fb47b49ca8467779e2a4)
-* Fixed: Better management and display of API connection errors. props [csenf](https://github.com/csenf/DsgnWrks-Instagram-Importer-WordPress-Plugin/commit/6fec092cafc7d241c1b1d75e4a80b42d28eff2d5)
-
-### 1.2.1 ###
-* Added: Internationalization (i18n) translation support, and debugging infrastructure.
-
-### 1.2.0 ###
-* Added: It's finally here! Option to auto-import/backup your instagram shots.
-
-### 1.1.4 ###
-* Added: Option to conditionally add "insta-text" & "insta-location."
-* Updated: Default options when first adding a user, including the "insta-location" conditional in the post content.
-* Fixed: When unchecking "set as featured image," the posts would still add the featured image.
-
-### 1.1.3 ###
-* Fixed: When unchecking "set as featured image" the input would still display as checked
-
-### 1.1.2 ###
-* Fix infinite redirect when adding a new user
-
-### 1.1.1 ###
-* Update plugin instructions that state setting the image as featured is required for images to be backed-up. As of version 1.1, this is no longer a requirement.
-
-### 1.1 ###
-* Convert plugin to an OOP class and remove amazon S3 links from post content. Props to [@UltraNurd](https://github.com/UltraNurd).
-
-### 1.0.2 ###
-* Fixes a bug with new user profile images not showing correctly
-
-### 1.0.1 ###
-* Fixed a bug where imported instagram times could be set to the future
-
-### 1.0 ###
-* Launch

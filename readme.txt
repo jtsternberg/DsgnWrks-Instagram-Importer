@@ -9,9 +9,9 @@ Author URI: http://jtsternberg.com/about
 Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
-Tested up to: 3.8.1
-Stable tag: 1.2.8
-Version: 1.2.8
+Tested up to: 3.9.1
+Stable tag: 1.2.9
+Version: 1.2.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,14 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 2. After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.
 
 == Changelog ==
+
+= 1.2.9 =
+* Bug fix: Made the auto-import feature off by default. Would sometimes be triggered on plugin activation.
+* Saved the Instagram username to post-meta (`instagram_username`) along with the entire Instagram user object (`instagram_user`).
+
+= 1.2.9 =
+* Bug fix: Made the auto-import feature off by default. Would sometimes be triggered on plugin activation.
+* Saved the Instagram username to post-meta (`instagram_username`) along with the entire Instagram user object (`instagram_user`).
 
 = 1.2.8 =
 * Bug fix: Tag filter is now more reliable.
@@ -153,6 +161,10 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 == Upgrade Notice ==
+
+= 1.2.9 =
+* Bug fix: Made the auto-import feature off by default. Would sometimes be triggered on plugin activation.
+* Saved the Instagram username to post-meta (`instagram_username`) along with the entire Instagram user object (`instagram_user`).
 
 = 1.2.8 =
 * Bug fix: Tag filter is now more reliable.
