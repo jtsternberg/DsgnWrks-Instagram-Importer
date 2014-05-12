@@ -165,10 +165,8 @@ class DsgnWrksInstagram {
 
 		if ( isset( $_REQUEST['next_url'] ) && $trans = get_option( 'dsgnwrks_next_url' ) ) {
 			$this->next_url = $trans;
-			trigger_error('transient used');
 		} elseif ( isset( $_REQUEST['next_url'] ) && $_REQUEST['next_url'] ) {
 			$this->next_url = $_REQUEST['next_url'];
-			trigger_error('$_REQUEST[\'next_url\'] used');
 		}
 
 		// Do not publicize these posts (Jetpack)
@@ -587,7 +585,6 @@ class DsgnWrksInstagram {
 		// 	wp_send_json_error( '<div id="message" class="updated"><pre>'. htmlentities( print_r( $this->next_url, true ) ) .'</pre></div>' );
 
 		$this->api_url = isset( $this->next_url ) && $this->next_url ? $this->next_url : $this->instagram_api . $opts[$this->userid]['id'] .'/media/recent?access_token='. $opts[$this->userid]['access_token'] .'&count=2';
-		// trigger_error( $this->api_url );
 
 		// ok, let's access instagram's api
 		$messages = $this->import_messages( $this->api_url, $opts[$this->userid] );
