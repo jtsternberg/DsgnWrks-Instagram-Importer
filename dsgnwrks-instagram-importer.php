@@ -33,7 +33,7 @@ class DsgnWrksInstagram {
 		$this->defaults = array(
 			'tag-filter'   => false,
 			'feat_image'   => 'yes',
-			'auto_import'  => 'yes',
+			'auto_import'  => false,
 			'date-filter'  => 0,
 			'mm'           => date( 'm', strtotime( '-1 month' ) ),
 			'dd'           => date( 'd', strtotime( '-1 month' ) ),
