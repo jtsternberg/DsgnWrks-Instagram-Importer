@@ -6,7 +6,7 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.2.8
+Version: 1.2.9
 */
 
 class DsgnWrksInstagram {
@@ -887,8 +887,15 @@ class DsgnWrksInstagram {
 	 * @since 1.2.2
 	 */
 	protected function formatTitle() {
-		// Check for a title, or use 'Untitled'
-		$this->insta_title          = !empty( $this->pic->caption->text ) ? $this->pic->caption->text : __( 'Untitled', 'dsgnwrks' );
+		// get date and time format options (used for title fallback)
+		$date_format 				= get_option( 'date_format' );
+		$time_format 				= get_option( 'time_format' );
+
+		// format insta-pic-created time (per user prefrence as title) as a title fallback
+		$date_fallback				= date($date_format.' ('.$time_format.')', $this->pic->created_time);
+
+		// Check for a title, or use human readable date format
+		$this->insta_title          = !empty( $this->pic->caption->text ) ? $this->pic->caption->text : $date_fallback;
 		// Set post title to caption by default
 		$this->import['post_title'] = $this->insta_title;
 
@@ -1035,6 +1042,9 @@ class DsgnWrksInstagram {
 			'instagram_filter_used'       => $this->pic->filter,
 			'instagram_attribution'       => $this->pic->attribution,
 			'instagram_location'          => $this->pic->location,
+			'instagram_location_lat'      => $this->pic->location->latitude,
+			'instagram_location_long'     => $this->pic->location->longitude,
+			'instagram_location_name'     => $this->pic->location->name,
 			'instagram_users_in_photo'    => $this->pic->users_in_photo,
 			'instagram_link'              => esc_url( $this->pic->link ),
 			'instagram_embed_code'        => $this->instagram_embed(),
