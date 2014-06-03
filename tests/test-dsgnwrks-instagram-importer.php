@@ -16,36 +16,16 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 		$this->assertTrue( class_exists( 'DsgnWrksInstagram' ) );
 	}
 
-	function test_version_exists() {
-		$this->assertTrue( isset( $this->importer->plugin_version ) && $this->importer->plugin_version > 0 );
+	function test_important_bits_exist() {
+		$this->assertTrue(
+			isset( $this->importer->plugin_version ) && $this->importer->plugin_version > 0
+			&& isset( $this->importer->plugin_name )
+			&& isset( $this->importer->plugin_id )
+		);
 	}
 
 	function test_debug_enabled() {
 		$this->assertFalse( $this->importer->debugEnabled() );
-	}
-
-	/**
-	 * If these tests are being run on Travis CI, verify that the version of
-	 * WordPress installed is the version that we requested.
-	 */
-	function test_wp_version() {
-
-		if ( ! getenv( 'TRAVIS_PHP_VERSION' ) )
-			$this->markTestSkipped( 'Test skipped since Travis CI was not detected.' );
-
-		//grab the requested version
-		$requested_version = getenv( 'WP_VERSION' );
-
-		// trunk is always "master" in github terms, but WordPress has a specific way of describing it
-		// grab the exact version number to verify that we're on trunk
-		if ( $requested_version == 'master' ) {
-			$file = file_get_contents( 'https://raw.github.com/WordPress/WordPress/master/wp-includes/version.php' );
-			preg_match( '#\$wp_version = \'([^\']+)\';#', $file, $matches );
-			$requested_version = $matches[1];
-		}
-
-		$this->assertEquals( get_bloginfo( 'version' ), $requested_version );
-
 	}
 
 }
