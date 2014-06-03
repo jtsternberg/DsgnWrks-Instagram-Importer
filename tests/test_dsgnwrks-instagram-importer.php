@@ -8,7 +8,7 @@
 class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 
 	function test_version_exists() {
-		global $DsgnWrksInstagram;
+		$DsgnWrksInstagram = new DsgnWrksInstagram;
 		$this->assertTrue( $DsgnWrksInstagram->plugin_version > 0 );
 	}
 
