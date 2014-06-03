@@ -7,10 +7,18 @@
  */
 class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 
-	function test_version_exists() {
+	function __construct() {
 		require_once( dirname( __FILE__ ) . '/../dsgnwrks-instagram-importer.php' );
 		global $DsgnWrksInstagram;
-		$this->assertTrue( $DsgnWrksInstagram->plugin_version > 0 );
+		$this->importer = $DsgnWrksInstagram;
+	}
+
+	function test_is_object() {
+		$this->assertTrue( is_object( $this->importer ) );
+	}
+
+	function test_version_exists() {
+		$this->assertTrue( isset( $this->importer->plugin_version ) && $this->importer->plugin_version > 0 );
 	}
 
 	/**
