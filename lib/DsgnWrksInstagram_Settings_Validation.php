@@ -116,13 +116,9 @@ class DsgnWrksInstagram_Settings_Validation {
 	public function save_frequency_setting( $user, $useropts ) {
 		$this->validate_opts[ $user ] = $this->filter( $useropts );
 
-		if ( !wp_next_scheduled( $this->pre.'cron' ) ) {
-					// schedule a cron to pull updates from instagram
-					wp_schedule_event( time(), $opts['frequency'], $this->pre.'cron' );
-				}
 		// and if our newly saved 'frequency' is different
 		// clear the previously scheduled hook
-		if ( $this->validate_opts[ $user ] != $this->old_options['frequency'] ) {
+		if ( ! isset( $this->old_options['frequency'] ) || $this->validate_opts[ $user ] != $this->old_options['frequency'] ) {
 			wp_clear_scheduled_hook( $this->core->getter( 'pre' ) .'cron' );
 		}
 	}
