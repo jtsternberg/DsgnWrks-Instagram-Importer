@@ -46,6 +46,9 @@ class DsgnWrksInstagram {
 		$this->plugin_path = trailingslashit( plugin_dir_path( __FILE__ ) );
 		// Get the url for the plugin admin page
 		$this->plugin_page = add_query_arg( 'page', $this->plugin_id, admin_url( '/tools.php' ) );
+
+		require_once( $this->plugin_path . 'lib/DsgnWrksInstagram_Embed.php' );
+		$this->embed = new DsgnWrksInstagram_Embed( $this );
 	}
 
 	/**
@@ -58,7 +61,7 @@ class DsgnWrksInstagram {
 
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'schedule_frequency' ) );
-		add_action( 'init', array( $this, 'hook_shortcode' ) );
+		add_action( 'init', array( $this->embed, 'hook_shortcode' ) );
 		add_action( $this->pre .'cron', array( $this, 'cron_callback' ) );
 		add_action( 'admin_menu', array( $this, 'settings' ) );
 		add_action( 'wp_ajax_dsgnwrks_instagram_import', array( $this, 'ajax_import' ) );
@@ -199,14 +202,6 @@ class DsgnWrksInstagram {
 			// schedule a cron to pull updates from instagram
 			wp_schedule_event( time(), $frequency, $this->pre .'cron' );
 		}
-	}
-
-	/**
-	 * Hook our shotcode in
-	 * @since  1.2.6
-	 */
-	public function hook_shortcode() {
-		add_shortcode( 'dsgnwrks_instagram_embed', array( $this, 'embed_shortcode' ) );
 	}
 
 	/**
@@ -940,7 +935,7 @@ class DsgnWrksInstagram {
 			'instagram_location_name'     => $this->pic->location->name,
 			'instagram_users_in_photo'    => $this->pic->users_in_photo,
 			'instagram_link'              => esc_url( $this->pic->link ),
-			'instagram_embed_code'        => $this->instagram_embed(),
+			'instagram_embed_code'        => $this->embed->instagram_embed(),
 			'instagram_type'              => $this->pic->type,
 			'instagram_user'              => $this->pic->user,
 			'instagram_username'          => $this->pic->user->username,
@@ -948,45 +943,6 @@ class DsgnWrksInstagram {
 			update_post_meta( $this->import['post_id'], $key, $value );
 		}
 
-	}
-
-	/**
-	 * Wraps Instagram url in the iframe that Instagram provides for embedding
-	 * @since  1.2.6
-	 * @param  string $url Instagram media URL
-	 * @return string      Instagram embed iframe code
-	 */
-	protected function instagram_embed( $url = '' ) {
-
-		if ( !$url && !isset( $this->pic->link ) )
-			return false;
-		if ( !$url && isset( $this->pic->link ) )
-			$url = $this->pic->link;
-
-		$url = str_replace( 'embed/', '', str_replace( 'http://', '//', esc_url( $url ) ) );
-
-		return "\r\n".'<iframe src="'. $url .'embed/" width="612" height="710" frameborder="0" scrolling="no" allowtransparency="true"></iframe>'."\r\n";
-	}
-
-	/**
-	 * Returns Instagram embed shortcode
-	 * @since  1.2.6
-	 * @return string Instagram embed shortcode
-	 */
-	protected function instagram_embed_src( $type = 'video' ) {
-		return '[dsgnwrks_instagram_embed src="'. esc_url( $this->pic->link ) .'" type="'. $type .'"]';
-	}
-
-	/**
-	 * Shortcode that displays Instagram embed iframe
-	 * @since  1.2.6
-	 * @param  array  $atts Attributes passed from shortcode
-	 * @return string       Concatenated shortcode output (Iframe embed code)
-	 */
-	public function embed_shortcode( $atts ) {
-		if ( !isset( $atts['src'] ) )
-			return '';
-		return $this->instagram_embed( $atts['src'] );
 	}
 
 	/**
@@ -1095,7 +1051,7 @@ class DsgnWrksInstagram {
 
 		if ( ! $media_url )
 			$replace = array( __( 'image error', 'dsgnwrks' ), __( 'image error', 'dsgnwrks' ) );
-		elseif ( $this->has_embed() )
+		elseif ( $this->embed->has_embed() )
 			$replace = array( '', $media_url );
 		else
 			$replace = array( '<img src="'. $media_url .'"/>', $media_url );
@@ -1118,10 +1074,8 @@ class DsgnWrksInstagram {
 	 */
 	protected function update_post_content() {
 
-		$insta_img = ( $this->has_embed( 'image' ) ? '' : $this->insta_image );
-		$insta_img = ( $this->has_embed( 'video' ) && $this->type == 'video' ? '' : $this->insta_image );
-
-		error_log( print_r( array( __LINE__ .' $this->type' => $this->type, '$this->has_embed( image )' => $this->has_embed( 'image' ), '$this->has_embed( video )' => $this->has_embed( 'video' ), '$insta_img' => $insta_img ), true ) );
+		$insta_img = ( $this->embed->has_embed( 'image' ) ? '' : $this->insta_image );
+		$insta_img = ( $this->embed->has_embed( 'video' ) && $this->type == 'video' ? '' : $this->insta_image );
 
 		$this->import['post_content'] = str_replace( array(
 			// Add the instagram image element if requested
@@ -1134,7 +1088,7 @@ class DsgnWrksInstagram {
 		), array(
 			$insta_img,
 			( is_array( $this->img ) ? $this->img[0] : '' ),
-			$this->instagram_embed_src(),
+			$this->embed->instagram_embed_src(),
 			'',
 		), $this->import['post_content'] );
 
@@ -1143,14 +1097,6 @@ class DsgnWrksInstagram {
 			'ID'           => $this->import['post_id'],
 			'post_content' => $this->import['post_content'],
 		) );
-	}
-
-	/**
-	 * Checks if post content template contains the embed tags.
-	 * @since  1.2.6
-	 */
-	protected function has_embed( $type = '' ) {
-		return false !== stripos( $this->import['post_content'], '**insta-embed-'. $type );
 	}
 
 	/**
