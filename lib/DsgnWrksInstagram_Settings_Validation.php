@@ -15,7 +15,7 @@ class DsgnWrksInstagram_Settings_Validation {
 		$this->core          = $core;
 		$this->validate_opts = $opts;
 		// get existing saved options to check against
-		$this->old_options = $this->core->get_options();
+		$this->old_options = $this->core->settings->get_options();
 	}
 	/**
 	 * Validate each of our user options with an appropriate filter

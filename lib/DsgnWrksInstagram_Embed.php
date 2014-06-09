@@ -40,7 +40,7 @@ class DsgnWrksInstagram_Embed {
 	 * @param  string $url Instagram media URL
 	 * @return string      Instagram embed iframe code
 	 */
-	protected function instagram_embed( $url = '' ) {
+	public function instagram_embed( $url = '' ) {
 
 		if ( !$url && !isset( $this->core->pic->link ) )
 			return false;
@@ -57,7 +57,7 @@ class DsgnWrksInstagram_Embed {
 	 * @since  1.2.6
 	 * @return string Instagram embed shortcode
 	 */
-	protected function instagram_embed_src( $type = 'video' ) {
+	public function instagram_embed_src( $type = 'video' ) {
 		return '[dsgnwrks_instagram_embed src="'. esc_url( $this->core->pic->link ) .'" type="'. $type .'"]';
 	}
 
@@ -65,7 +65,7 @@ class DsgnWrksInstagram_Embed {
 	 * Checks if post content template contains the embed tags.
 	 * @since  1.2.6
 	 */
-	protected function has_embed( $type = '' ) {
+	public function has_embed( $type = '' ) {
 		return false !== stripos( $this->core->import['post_content'], '**insta-embed-'. $type );
 	}
 

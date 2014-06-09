@@ -13,11 +13,11 @@ class DsgnWrksInstagram {
 
 	public $plugin_version   = '1.2.9';
 	public $plugin_id        = 'dsgnwrks-instagram-importer-settings';
-	protected $pre           = 'dsgnwrks_instagram_';
-	protected $instagram_api = 'https://api.instagram.com/v1/users/';
-	protected $import        = array();
-	protected $plugin_page   = false;
-	protected $defaults;
+	public $pre           = 'dsgnwrks_instagram_';
+	public $instagram_api = 'https://api.instagram.com/v1/users/';
+	public $import        = array();
+	public $plugin_page   = false;
+	public $defaults;
 
 	/**
 	 * Sets up our plugin
@@ -41,14 +41,17 @@ class DsgnWrksInstagram {
 		);
 
 		// i18n
-		$this->plugin_name = 'DsgnWrks '. __( 'Instagram Importer', 'dsgnwrks' );
-		$this->plugin_url  = plugins_url( '/', __FILE__ );
-		$this->plugin_path = trailingslashit( plugin_dir_path( __FILE__ ) );
+		$this->plugin_name   = 'DsgnWrks '. __( 'Instagram Importer', 'dsgnwrks' );
+		$this->plugin_url    = plugins_url( '/', __FILE__ );
+		$this->plugin_path   = trailingslashit( plugin_dir_path( __FILE__ ) );
 		// Get the url for the plugin admin page
-		$this->plugin_page = add_query_arg( 'page', $this->plugin_id, admin_url( '/tools.php' ) );
+		$this->plugin_page   = add_query_arg( 'page', $this->plugin_id, admin_url( '/tools.php' ) );
+		$this->manual_import = isset( $_GET['instaimport'] ) ? sanitize_title( urldecode( $_GET['instaimport'] ) ) : false;
 
 		require_once( $this->plugin_path . 'lib/DsgnWrksInstagram_Embed.php' );
 		$this->embed = new DsgnWrksInstagram_Embed( $this );
+		require_once( $this->plugin_path . 'lib/DsgnWrksInstagram_Settings.php' );
+		$this->settings = new DsgnWrksInstagram_Settings( $this );
 	}
 
 	/**
@@ -61,10 +64,10 @@ class DsgnWrksInstagram {
 
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'schedule_frequency' ) );
-		add_action( 'init', array( $this->embed, 'hook_shortcode' ) );
-		add_action( $this->pre .'cron', array( $this, 'cron_callback' ) );
-		add_action( 'admin_menu', array( $this, 'settings' ) );
 		add_action( 'wp_ajax_dsgnwrks_instagram_import', array( $this, 'ajax_import' ) );
+		add_action( $this->pre .'cron', array( $this, 'cron_import' ) );
+		add_action( 'init', array( $this->embed, 'hook_shortcode' ) );
+		add_action( 'admin_menu', array( $this->settings, 'settings' ) );
 		register_uninstall_hook( __FILE__, array( 'DsgnWrksInstagram', 'uninstall' ) );
 		// Load the plugin settings link shortcut.
 		add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . 'dsgnwrks-instagram-importer.php' ), array( $this, 'settings_link' ) );
@@ -73,7 +76,6 @@ class DsgnWrksInstagram {
 		add_action( 'current_screen', array( $this, 'redirects' ) );
 		add_filter( 'wp_default_editor', array( $this, 'html_default' ) );
 		add_action( 'all_admin_notices', array( $this, 'show_cron_notice' ) );
-
 		// @DEV adds a minutely schedule for testing cron
 		// add_filter( 'cron_schedules', function( $schedules ) {
 		// 	$schedules['minutely'] = array(
@@ -85,36 +87,47 @@ class DsgnWrksInstagram {
 	}
 
 	/**
-	 * Hooks to 'all_admin_notices' and displays auto-imported photo messages
-	 * @since  1.2.0
+	 * Get the party started
+	 * @since  1.1.0
 	 */
-	function show_cron_notice() {
+	public function register_settings() {
 
-		// check if we have any saved notices from our cron auto-import
-		if ( ! ( $notices = get_option( 'dsgnwrks_imported_photo_notices' ) ) ) {
-			return;
-		}
+		// A pseudo setting. redirects to instagram oauth
+		register_setting(
+			$this->pre .'importer_users',
+			'dsgnwrks_insta_registration',
+			array( $this, 'instagram_oauth_redirect' )
+		);
+		// validate user options settings
+		register_setting(
+			$this->pre .'importer_settings',
+			'dsgnwrks_insta_options',
+			array( $this, 'settings_validate' )
+		);
 
-		wp_enqueue_style( 'dsgnwrks-instagram-messages', $this->plugin_url . 'css/message-css.css', null, $this->plugin_version );
-		// if so, loop through and display them
-		echo '<div id="message" class="updated instagram-import-message">';
-		foreach ( $notices as $userid => $notice ) {
-			echo '<h3>'. $userid .' &mdash; '. __( 'imported:', 'dsgnwrks' ) .' '. $notice['time'] .'</h3><ol>';
-			echo $notice['notice'];
-			echo '</ol><div style="clear: both; padding-top: 10px;"></div>';
-			echo '<hr/>';
+	}
+
+	/**
+	 * If a frequency has been set, schedule the import
+	 * @since  1.3.0
+	 */
+	public function schedule_frequency() {
+
+		$frequency = $this->settings->get_option( 'frequency' );
+
+		// if a auto-import frequency interval was saved,
+		if ( $frequency && 'never' !== $frequency && ! wp_next_scheduled( $this->pre .'cron' ) ) {
+			// schedule a cron to pull updates from instagram
+			wp_schedule_event( time(), $frequency, $this->pre .'cron' );
 		}
-		echo '<br><a href="'. add_query_arg( array() ) .'">'. __( 'Hide', 'dsgnwrks' ) .'</a></div>';
-		// reset notices
-		update_option( 'dsgnwrks_imported_photo_notices', '' );
 	}
 
 	/**
 	 * Add import function to cron
 	 * @since  1.2.0
 	 */
-	public function cron_callback() {
-		foreach ( $this->get_options() as $user => $useropts ) {
+	public function cron_import() {
+		foreach ( $this->settings->get_options() as $user => $useropts ) {
 			if ( isset( $useropts['auto_import'] ) && $useropts['auto_import'] == 'yes' ) {
 				$this->import( $user );
 			}
@@ -169,39 +182,28 @@ class DsgnWrksInstagram {
 	}
 
 	/**
-	 * Get the party started
-	 * @since  1.1.0
+	 * Hooks to 'all_admin_notices' and displays auto-imported photo messages
+	 * @since  1.2.0
 	 */
-	public function register_settings() {
+	function show_cron_notice() {
 
-		// A pseudo setting. redirects to instagram oauth
-		register_setting(
-			$this->pre .'importer_users',
-			'dsgnwrks_insta_registration',
-			array( $this, 'instagram_oauth_redirect' )
-		);
-		// validate user options settings
-		register_setting(
-			$this->pre .'importer_settings',
-			'dsgnwrks_insta_options',
-			array( $this, 'settings_validate' )
-		);
-
-	}
-
-	/**
-	 * If a frequency has been set, schedule the import
-	 * @since  1.3.0
-	 */
-	public function schedule_frequency() {
-
-		$frequency = $this->get_option( 'frequency' );
-
-		// if a auto-import frequency interval was saved,
-		if ( $frequency && 'never' !== $frequency && ! wp_next_scheduled( $this->pre .'cron' ) ) {
-			// schedule a cron to pull updates from instagram
-			wp_schedule_event( time(), $frequency, $this->pre .'cron' );
+		// check if we have any saved notices from our cron auto-import
+		if ( ! ( $notices = get_option( 'dsgnwrks_imported_photo_notices' ) ) ) {
+			return;
 		}
+
+		wp_enqueue_style( 'dsgnwrks-instagram-messages', $this->plugin_url . 'css/message-css.css', null, $this->plugin_version );
+		// if so, loop through and display them
+		echo '<div id="message" class="updated instagram-import-message">';
+		foreach ( $notices as $userid => $notice ) {
+			echo '<h3>'. $userid .' &mdash; '. __( 'imported:', 'dsgnwrks' ) .' '. $notice['time'] .'</h3><ol>';
+			echo $notice['notice'];
+			echo '</ol><div style="clear: both; padding-top: 10px;"></div>';
+			echo '<hr/>';
+		}
+		echo '<br><a href="'. add_query_arg( array() ) .'">'. __( 'Hide', 'dsgnwrks' ) .'</a></div>';
+		// reset notices
+		update_option( 'dsgnwrks_imported_photo_notices', '' );
 	}
 
 	/**
@@ -226,21 +228,6 @@ class DsgnWrksInstagram {
 		require_once( $this->plugin_path . 'lib/DsgnWrksInstagram_Settings_Validation.php' );
 		$validate = new DsgnWrksInstagram_Settings_Validation( $this, $opts );
 		return $validate->clean();
-	}
-
-	/**
-	 * hooks to 'admin_menu', adds our submenu page and corresponding scripts/styles
-	 * @since  1.1.0
-	 */
-	public function settings() {
-		// create admin page
-		$plugin_page_hook = add_submenu_page( 'tools.php', $this->plugin_name, __( 'Instagram Importer', 'dsgnwrks' ), 'manage_options', $this->plugin_id, array( $this, 'settings_page' ) );
-		// enqueue styles
-		add_action( 'admin_print_styles-' . $plugin_page_hook, array( $this, 'styles' ) );
-		// enqueue scripts
-		add_action( 'admin_print_scripts-' . $plugin_page_hook, array( $this, 'scripts' ) );
-		// run our importer only on our admin page when clicking "import"
-		add_action( 'admin_head-'. $plugin_page_hook, array( $this, 'fire_importer' ) );
 	}
 
 	/**
@@ -287,53 +274,6 @@ class DsgnWrksInstagram {
 	}
 
 	/**
-	 * Creates our admin page
-	 * @since  1.1.0
-	 */
-	public function settings_page() { require_once( $this->plugin_path . 'lib/settings.php' ); }
-
-	/**
-	 * Enqueue our admin page's CSS
-	 * @since  1.1.0
-	 */
-	public function styles() {
-		wp_enqueue_style( 'dsgnwrks-instagram-importer-admin', $this->plugin_url .'css/admin.css', false, $this->plugin_version );
-	}
-
-	/**
-	 * Enqueue our admin page's JS
-	 * @since  1.1.0
-	 */
-	public function scripts() {
-		wp_enqueue_script( 'dsgnwrks-instagram-importer-admin', $this->plugin_url .'js/admin.js', array( 'jquery' ), $this->plugin_version );
-
-		$data = array(
-			'delete_text' => __( 'Are you sure you want to delete user', 'dsgnwrks' ),
-			'logout_text' => __( 'Logging out of Instagram', 'dsgnwrks' )
-		);
-		// get registered post-types
-		$cpts = get_post_types( array( 'public' => true ) );
-		foreach ($cpts as $key => $cpt) {
-			// get registered taxonomies
-			$taxes = get_object_taxonomies( $cpt );
-			if ( !empty( $taxes ) )
-				$data['cpts'][ $cpt ][] = $taxes;
-		}
-		// and save that data for use in our script
-		if ( !empty( $data ) )
-			wp_localize_script( 'dsgnwrks-instagram-importer-admin', 'dwinstagram', $data );
-	}
-
-	/**
-	 * hooks into our admin page's head and fires the importer if requested
-	 * @since  1.1.0
-	 */
-	public function fire_importer() {
-		if ( isset( $_GET['instaimport'] ) )
-			add_action( 'all_admin_notices', array( $this, 'import' ) );
-	}
-
-	/**
 	 * Do not publicize imported posts
 	 * @since  1.1.0
 	 * @param  string $userid Instagram user id
@@ -342,13 +282,13 @@ class DsgnWrksInstagram {
 
 		// If filtered to be true, do not bypass publicize
 		if ( apply_filters( 'dsgnwrks_instagram_jetpack_publicize', false ) ) {
-			return $this->_import( $user );
+			return $this->_import( $userid );
 		}
 
 		// Do not publicize these posts (Jetpack)
 		add_filter( 'wpas_submit_post?', '__return_false' );
 
-		return $this->_import( $user );
+		return $this->_import( $userid );
 
 		remove_filter( 'wpas_submit_post?', '__return_false' );
 	}
@@ -361,14 +301,14 @@ class DsgnWrksInstagram {
 	public function _import( $userid = false ) {
 
 		// Only import if the correct flags have been set
-		if ( ! $userid && ! isset( $_GET['instaimport'] ) ) {
+		if ( ! $userid && ! $this->manual_import ) {
 			return;
 		}
 
 		// instagram user id for pinging instagram
-		$this->userid     = $id = $userid ? $userid : sanitize_title( urldecode( $_GET['instaimport'] ) );
+		$this->settings->userid     = $id = $userid ? $userid : $this->manual_import;
 		// get our options for use in the import
-		$user_opts        = $this->get_option( $id );
+		$user_opts        = $this->settings->get_option( $id );
 		$this->doing_ajax = isset( $_REQUEST['instagram_user'] );
 		// if a $userid was passed in, & no ajax $_REQUEST data we know we're doing a cron scheduled event
 		$this->doing_cron = $userid && !$this->doing_ajax ? true : false;
@@ -445,7 +385,7 @@ class DsgnWrksInstagram {
 		}
 
 		// Save the date/time to notify users of last import time
-		set_transient( sanitize_title( urldecode( $this->userid ) ) .'-instaimportdone', $time, 14400 );
+		set_transient( sanitize_title( urldecode( $this->settings->userid ) ) .'-instaimportdone', $time, 14400 );
 
 	}
 
@@ -456,7 +396,7 @@ class DsgnWrksInstagram {
 	 */
 	public function do_import( $loop = false ) {
 
-		if ( ( $remove = $this->get_option( 'remove_hashtags' ) ) && is_array( $remove ) ) {
+		if ( ( $remove = $this->settings->get_option( 'remove_hashtags' ) ) && is_array( $remove ) ) {
 			foreach ( $remove as $filter => $value ) {
 				if ( $value ) {
 					add_filter( 'dsgnwrks_instagram_'.$filter, array( $this, 'remove_hashtags' ) );
@@ -472,18 +412,19 @@ class DsgnWrksInstagram {
 			date_default_timezone_set( get_option( 'timezone_string' ) );
 		}
 
-		$user = $this->get_option( $this->userid );
 
-		$this->api_url = isset( $this->next_url ) && $this->next_url ? $this->next_url : $this->instagram_api . $user['id'] .'/media/recent?access_token='. $user['access_token'] .'&count=2';
+		$user = $this->settings->get_option( $this->settings->userid );
+
+		$this->api_url = isset( $this->next_url ) && $this->next_url ? $this->next_url : $this->instagram_api . $this->settings->user_option( 'id' ) .'/media/recent?access_token='. $this->settings->user_option( 'access_token' ) .'&count=2';
 
 		// ok, let's access instagram's api
-		$messages = $this->import_messages( $this->api_url, $user );
+		$messages = $this->import_messages( $this->api_url );
 		// if the api gave us a "next" url, let's loop through till we've hit all pages
 		// while ( !empty( $messages['next_url'] ) && $loop ) {
 		if ( ! empty( $messages['next_url'] ) ) {
 			update_option( 'dsgnwrks_next_url', $messages['next_url'] );
 		}
-		// 	$messages = $this->import_messages( $messages['next_url'], $user, $messages['message'] );
+		// 	$messages = $this->import_messages( $messages['next_url'], $messages['message'] );
 		// }
 
 		// debug sent?
@@ -502,19 +443,17 @@ class DsgnWrksInstagram {
 	 * pings instagram with our user's feed url to retrieve photos
 	 * @since  1.1.0
 	 * @param  string $api_url      Instagram's api url
-	 * @param  array  $settings     our user's saved settings
 	 * @param  array  $prevmessages Previous messages from the api pagination loop
 	 * @return array                messages array
 	 */
-	protected function import_messages( $api_url, $settings, $prevmessages = array() ) {
+	protected function import_messages( $api_url, $prevmessages = array() ) {
 
-		// our individual user's settings
-		$this->settings = $settings;
 		// get instagram feed
-		$response       = wp_remote_get( $api_url, array( 'sslverify' => false ) );
+		$response = wp_remote_get( $api_url, array( 'sslverify' => false ) );
 		// if feed causes a wp_error object, send the error back
-		if ( is_wp_error( $response ) )
+		if ( is_wp_error( $response ) ) {
 			return $this->wp_error_message( $response );
+		}
 
 		// otherwise, let's get our api and format our data to be useable
 		$data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -522,13 +461,13 @@ class DsgnWrksInstagram {
 		// wp_send_json_error( '<div id="message" class="error"><p><pre>$data'. htmlentities( print_r( $data, true ) ) .'</pre></p></div>' );
 
 		if ( !$this->importDebugCheck() )
-			$this->debugsend( 'import_messages', $this->userid .' - $data', array(
+			$this->debugsend( 'import_messages', $this->settings->userid .' - $data', array(
 				'$api_url' => $api_url,
-				'$this->userid' => $this->userid,
+				'$this->settings->userid' => $this->settings->userid,
 				'$response[headers]' => $response['headers'],
 				'json_decode( wp_remote_retrieve_body( $response ) )' => $data,
 				'$prevmessages' => $prevmessages,
-				'$settings' => $settings
+				'$settings' => $this->settings->get_option( $this->settings->userid )
 			) );
 
 		// load WP files to use functions in them
@@ -574,7 +513,7 @@ class DsgnWrksInstagram {
 	protected function pic_loop( $data = array() ) {
 
 		// 'Type' to be imported (images/video)
-		$this->settings['types'] = apply_filters( 'dsgnwrks_instagram_import_types', array( 'video', 'image' ), $this->userid );
+		$this->settings->all_opts[ $this->settings->userid ]['types'] = (array) apply_filters( 'dsgnwrks_instagram_import_types', array( 'video', 'image' ), $this->settings->userid );
 
 		// if we have invalid data, bail here
 		if ( !isset( $data->data ) || !is_array( $data->data ) )
@@ -583,11 +522,11 @@ class DsgnWrksInstagram {
 		// loop!
 		foreach ( $data->data as $this->pic ) {
 
-			if ( ! in_array( $this->pic->type, $this->settings['types'] ) )
+			if ( ! in_array( $this->pic->type, $this->settings->user_option( 'types', array() ) ) )
 				continue;
 
 			// if user has a date filter set, check it
-			if ( isset( $this->settings['date-filter'] ) && $this->settings['date-filter'] > $this->pic->created_time ) {
+			if ( $this->settings->user_option( 'date-filter' ) && $this->settings->user_option( 'date-filter' ) > $this->pic->created_time ) {
 				// and stop if we've passed the date filter time
 				$messages['nexturl'] = 'halt';
 				break;
@@ -617,12 +556,9 @@ class DsgnWrksInstagram {
 
 		global $user_ID;
 
-		$settings                = &$this->settings;
 		$p                       = &$this->pic;
 		// init our $import settings array var
 		$import                  = &$this->import;
-		// in case we haven't gotten our settings yet. (unlikely)
-		$settings                = ( empty( $settings ) ) ? $this->get_options() : $settings;
 		// check for a location saved
 		$this->loc               = ( isset( $p->location->name ) ) ? $p->location->name : '';
 
@@ -630,24 +566,24 @@ class DsgnWrksInstagram {
 		$this->formatTitle();
 
 		// save photo as featured?
-		$import['featured']      = ( isset( $settings['feat_image'] ) && $settings['feat_image'] == true ) ? true : false;
+		$import['featured']      = $this->settings->user_option( 'feat_image' );
 		// save instagram photo caption as post excerpt
 		$import['post_excerpt']  = !empty( $p->caption->text ) ? apply_filters( 'dsgnwrks_instagram_post_excerpt', $p->caption->text ) : '';
 
 		$this->formatContent();
 
 		// post author, default to current user
-		$import['post_author']   = isset( $settings['author'] ) ? $settings['author'] : $user_ID;
+		$import['post_author']   = $this->settings->user_option( 'author', $user_ID );
 		// post date, default to photo's created time
 		$import['post_date']     = date( 'Y-m-d H:i:s', $p->created_time );
 		$import['post_date_gmt'] = $import['post_date'];
 		// post status, default to 'draft'
-		$import['post_status']   = isset( $settings['draft'] ) ? $settings['draft'] : 'draft';
+		$import['post_status']   = $this->settings->user_option( 'draft', 'draft' );
 		// post type, default to 'post'
-		$import['post_type']     = isset( $settings['post-type'] ) ? $settings['post-type'] : 'post';
+		$import['post_type']     = $this->settings->user_option( 'post-type', 'post' );
 
 		// A filter so filter-savvy devs can modify the data before the post is created
-		$import                  = apply_filters( 'dsgnwrks_instagram_pre_save', $import, $p, $settings );
+		$import                  = apply_filters( 'dsgnwrks_instagram_pre_save', $import, $p, $this->settings->get_option( $this->settings->userid ) );
 
 		// and insert our new post
 		$import['post_id']       = $this->insertPost();
@@ -657,7 +593,7 @@ class DsgnWrksInstagram {
 			return $this->wp_error_message( $import['post_id'], false );
 
 		// an action to fire after each post is created.
-		do_action( 'dsgnwrks_instagram_post_save', $import['post_id'], $p, $import, $settings );
+		do_action( 'dsgnwrks_instagram_post_save', $import['post_id'], $p, $import, $this->settings->get_option( $this->settings->userid ) );
 
 		// Save terms from settings
 		$this->saveTerms();
@@ -701,18 +637,19 @@ class DsgnWrksInstagram {
 			return $this->settings_tags;
 		}
 		// if user doesn't have a tag filter set, bail
-		if ( empty( $this->settings['tag-filter'] ) )
+		if ( ! $this->settings->user_option( 'tag-filter' ) ) {
 			return false;
+		}
 
 		// get all tags saved for filtering
-		$tags = explode( ', ', $this->settings['tag-filter'] );
+		$tags = explode( ',', $this->settings->user_option( 'tag-filter' ) );
 		$this->settings_tags = array();
 		// if we have tags...
 		if ( $tags ) {
 			// loop through them
 			foreach ( $tags as $tag ) {
 				// Remove hash symbol
-				$this->settings_tags[] = str_replace( '#', '', $tag );
+				$this->settings_tags[] = str_replace( '#', '', trim( $tag ) );
 			}
 		}
 		return $this->settings_tags;
@@ -752,7 +689,7 @@ class DsgnWrksInstagram {
 	 */
 	protected function image_exists( $timestamp ) {
 		// get user's post-type setting or default to 'post'
-		$pt = isset( $this->settings['post-type'] ) ? $this->settings['post-type'] : 'post';
+		$pt = $this->settings->user_option( 'post-type', 'post' );
 		$alreadyInSystem = new WP_Query(
 			array(
 				'post_type'      => $pt,
@@ -788,10 +725,11 @@ class DsgnWrksInstagram {
 		$this->import['post_title'] = $this->insta_title;
 
 		// if our user's post-title option is saved
-		if ( empty( $this->settings['post-title'] ) )
+		if ( ! $this->settings->user_option( 'post-title' ) ) {
 			return;
+		}
 		// check for insta-text conditionals
-		$t = $this->conditional( 'insta-text', $this->settings['post-title'], $this->import['post_title'] );
+		$t = $this->conditional( 'insta-text', $this->settings->user_option( 'post-title' ), $this->import['post_title'] );
 		// check for insta-location conditionals
 		$t = $this->conditional( 'insta-location', $t, $this->loc );
 		// Add the instagram filter name if requested
@@ -806,7 +744,7 @@ class DsgnWrksInstagram {
 	 */
 	protected function formatContent() {
 		// if our user's post-content option is NOT saved
-		if ( empty( $this->settings['post_content'] ) ) {
+		if ( ! $this->settings->user_option( 'post_content' ) ) {
 
 			$imgurl = $this->pic->images->standard_resolution->url;
 			// we'll add some default content
@@ -820,7 +758,7 @@ class DsgnWrksInstagram {
 		}
 		// if our user's post-content option is saved
 		else {
-			$c = $this->settings['post_content'];
+			$c = $this->settings->user_option( 'post_content' );
 			// Add the instagram photo url if requested
 			$c = str_replace( '**insta-link**', $this->pic->link, $c );
 			// check for insta-text conditionals
@@ -882,8 +820,8 @@ class DsgnWrksInstagram {
 			if ( $tax->label == __( 'Format' ) && !current_theme_supports( 'post-formats' ) )
 				continue;
 			// get user saved taxonomy terms
-			$this->settings[ $tax->name ] = !empty( $this->settings[ $tax->name ] ) ? esc_attr( $this->settings[ $tax->name ] ) : '';
-			$terms = explode( ', ', $this->settings[ $tax->name ] );
+			$taxnames = esc_attr( $this->settings->user_option( $tax->name, '' ) );
+			$terms = explode( ', ', $taxnames );
 			// If requested, set photo hashtags as taxonomy terms
 			$terms = array_merge( $terms, $this->saveHashtags( $tax->name ) );
 
@@ -909,8 +847,9 @@ class DsgnWrksInstagram {
 	 */
 	protected function saveHashtags( $taxonomy_name ) {
 
-		if ( isset( $this->settings['hashtags_as_tax'] ) && $this->settings['hashtags_as_tax'] == $taxonomy_name )
+		if ( $this->settings->user_option( 'hashtags_as_tax' ) && $taxonomy_name == $this->settings->user_option( 'hashtags_as_tax' ) ) {
 			return (array) $this->pic->tags;
+		}
 
 		return array();
 	}
@@ -930,15 +869,15 @@ class DsgnWrksInstagram {
 			'instagram_filter_used'       => $this->pic->filter,
 			'instagram_attribution'       => $this->pic->attribution,
 			'instagram_location'          => $this->pic->location,
-			'instagram_location_lat'      => $this->pic->location->latitude,
-			'instagram_location_long'     => $this->pic->location->longitude,
-			'instagram_location_name'     => $this->pic->location->name,
+			'instagram_location_lat'      => isset( $this->pic->location->latitude ) ? $this->pic->location->latitude : '',
+			'instagram_location_long'     => isset( $this->pic->location->longitude ) ? $this->pic->location->longitude : '',
+			'instagram_location_name'     => isset( $this->pic->location->name ) ? $this->pic->location->name : '',
 			'instagram_users_in_photo'    => $this->pic->users_in_photo,
 			'instagram_link'              => esc_url( $this->pic->link ),
 			'instagram_embed_code'        => $this->embed->instagram_embed(),
 			'instagram_type'              => $this->pic->type,
 			'instagram_user'              => $this->pic->user,
-			'instagram_username'          => $this->pic->user->username,
+			'instagram_username'          => isset( $this->pic->user->username ) ? $this->pic->user->username : '',
 		) as $key => $value ) {
 			update_post_meta( $this->import['post_id'], $key, $value );
 		}
@@ -961,8 +900,9 @@ class DsgnWrksInstagram {
 		$is_image = ( $this->type == 'image' );
 
 		// bail here if we don't have a media url
-		if ( empty( $media_url ) )
+		if ( empty( $media_url ) ) {
 			return $this->upload_error(__LINE__);
+		}
 
 		if ( $this->doing_cron ) {
 			require_once( ABSPATH .'/wp-admin/includes/file.php' );
@@ -1009,8 +949,9 @@ class DsgnWrksInstagram {
 			update_post_meta( $import['post_id'], 'instagram_image_id', $attach_id );
 		}
 
-		if ( $import['featured'] )
+		if ( $import['featured'] ) {
 			set_post_thumbnail( $import['post_id'], $attach_id );
+		}
 
 		$imgsize   = apply_filters( 'dsgnwrks_instagram_image_size', 'full' );
 		$imgsize   = is_array( $imgsize ) || is_string( $imgsize ) ? $imgsize : 'full';
@@ -1027,7 +968,7 @@ class DsgnWrksInstagram {
 		}
 
 		// return a success message
-		return get_the_post_thumbnail( $import['post_id'], array( 50, 50 ) ) .'<strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em>';
+		return dw_get_instagram_image( $import['post_id'], array( 50, 50 ) ) .'<strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em>';
 
 	}
 
@@ -1170,7 +1111,7 @@ class DsgnWrksInstagram {
 		// if we have an error or access token
 		if ( isset( $_GET['error'] ) || isset( $_GET['access_token'] ) )  {
 
-			$opts   = $this->get_options();
+			$opts   = $this->settings->get_options();
 			$users  = get_option( 'dsgnwrks_insta_users' );
 			$users  = ( !empty( $users ) ) ? $users : array();
 			$notice = array(
@@ -1229,7 +1170,7 @@ class DsgnWrksInstagram {
 		update_option( 'dsgnwrks_insta_users', $users );
 
 		// delete the user's data
-		$opts = $this->get_options();
+		$opts = $this->settings->get_options();
 		unset( $opts[urldecode( $_GET['delete-insta-user'] )] );
 		if ( isset( $opts['username'] ) && $opts['username'] == sanitize_title( urldecode( $_GET['delete-insta-user'] ) ) )
 		unset( $opts['username'] );
@@ -1255,99 +1196,20 @@ class DsgnWrksInstagram {
 		// get_post_meta( $post_id, 'instagram_created_time', true );
 	}
 
-	/**
-	 * Form element for an "add a user" admin section with a user authentication button
-	 */
-	protected function settings_user_form( $users = array(), $message = '' ) {
-
-		$message = $message ? $message : '<p>'. __( 'Click to be taken to Instagram\'s site to securely authorize this plugin for use with your account.', 'dsgnwrks' ) .'</p><p><em>'. __( '(If you have already authorized an account, You will first be logged out of Instagram.)', 'dsgnwrks' ) .'</em></p>'; ?>
-		<form class="instagram-importer user-authenticate" method="post" action="options.php">
-			<?php
-			settings_fields('dsgnwrks_instagram_importer_users');
-			echo $message;
-			$class = !empty( $users ) ? 'logout' : '';
-			?>
-			<p class="submit">
-				<input type="submit" name="save" class="button-primary authenticate <?php echo $class; ?>" value="<?php _e( 'Secure Authentication with Instagram', 'dsgnwrks' ); ?>" />
-			</p>
-		</form>
-		<?php
-	}
-
-	/**
-	 * Form element for setting universal plugin options (auto-import frequency, debug mode)
-	 */
-	protected function universal_options_form() {
-		$remove_hashtags = $this->get_option( 'remove_hashtags' );
-		?>
-		<table class="form-table">
-			<tbody>
-				<tr valign="top" class="info">
-					<th colspan="2">
-						<h3><img class="alignleft" src="<?php echo $this->plugin_url .'images/merge.png'; ?>" width="83" height="66"><?php _e( 'Universal Import Options', 'dsgnwrks' ); ?></h3>
-						<p><?php _e( 'Please select the general import options below.', 'dsgnwrks' ); ?></p>
-					</th>
-				</tr>
-				<tr valign="top">
-					<th scope="row"><strong><?php _e( 'Set Auto-import Frequency:', 'dsgnwrks' ); ?></strong></th>
-					<td>
-						<select name="dsgnwrks_insta_options[frequency]">
-							<option value="never" <?php echo selected( $this->get_option( 'frequency' ), 'never' ); ?>><?php _e( 'Manual', 'dsgnwrks' ); ?></option>
-							<?php
-							foreach ( $this->schedules as $key => $value ) {
-								echo '<option value="'. $key .'"'. selected( $this->get_option( 'frequency' ), $key, false ) .'>'. $value['display'] .'</option>';
-							}
-							?>
-						</select>
-					</td>
-				</tr>
-				<tr valign="top" class="remove-hashtags">
-					<th scope="row"><strong><?php _e( 'Remove #hashtags when saving post:', 'dsgnwrks' ); ?></strong></th>
-					<td>
-						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_title]" <?php checked( isset( $remove_hashtags['post_title'] ) && $remove_hashtags['post_title'] ); ?> value="yes"/>&nbsp;Title</label>
-						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_content]" <?php checked( isset( $remove_hashtags['post_content'] ) && $remove_hashtags['post_content'] ); ?> value="yes"/>&nbsp;Content</label>
-						<label><input type="checkbox" name="dsgnwrks_insta_options[remove_hashtags][post_excerpt]" <?php checked( isset( $remove_hashtags['post_excerpt'] ) && $remove_hashtags['post_excerpt'] ); ?> value="yes"/>&nbsp;Excerpt</label>
-
-					</td>
-				</tr>
-				<?php do_action( 'dsgnwrks_instagram_univeral_options', $this->get_options() ); ?>
-			</tbody>
-		</table>
-		<p class="submit">
-			<input type="submit" name="save" class="button-primary save" value="<?php _e( 'Save', 'dsgnwrks' ) ?>" />
-		</p>
-		<?php
-	}
-
-	/**
-	 * a link to instagram import admin page with user pre-selected
-	 * @since  1.1.0
-	 * @param  string $id Instagram user id
-	 * @return string     Instagram importer options page with selected user
-	 */
-	protected function instimport_link( $id ) {
-		return add_query_arg( array( 'page' => $this->plugin_id, 'instaimport' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) );
-	}
-
 	public function getter( $property ) {
 		if ( isset( $this->$property ) ) {
 			return $this->$property;
 		}
 	}
 
-	public function get_option( $key ) {
-		$this->get_options();
-		return array_key_exists( $key, $this->all_opts ) ? $this->all_opts[ $key ] : false;
-	}
-
-	public function get_options() {
-		if ( isset( $this->all_opts ) ) {
-			return $this->all_opts;
+	public function get_users() {
+		if ( isset( $this->users ) ) {
+			return $this->users;
 		}
-		$this->all_opts = get_option( 'dsgnwrks_insta_options', array() );
-		$this->all_opts = empty( $this->all_opts ) || ! is_array( $this->all_opts ) ? array() : (array) $this->all_opts;
+		$this->users = get_option( 'dsgnwrks_insta_users', array() );
+		$this->users = empty( $this->users ) || ! is_array( $this->users ) ? array() : (array) $this->users;
 
-		return $this->all_opts;
+		return $this->users;
 	}
 
 	/**
@@ -1369,7 +1231,7 @@ class DsgnWrksInstagram {
 	 * @return bool debug on or off
 	 */
 	public function debugEnabled() {
-		return 'on' == $this->get_option( 'debugmode' );
+		return 'on' == $this->settings->get_option( 'debugmode' );
 	}
 
 	/**
@@ -1404,7 +1266,7 @@ class DsgnWrksInstagram {
 		if ( !$this->debugEnabled() )
 			return;
 		// default $data is options and users
-		$data  = !$data ? print_r( array( 'opts' => $this->get_options(), 'users' => $this->users ), true ) : print_r( $data, true );
+		$data  = !$data ? print_r( array( 'opts' => $this->settings->get_options(), 'users' => $this->get_users() ), true ) : print_r( $data, true );
 		// default title
 		$title = !$title ? 'no $opts[ $id ] - $opts & $users' : esc_attr( $title );
 		wp_mail( 'justin@dsgnwrks.pro', 'Instagram Debug - '. $title .' - line '. $line, $data );
