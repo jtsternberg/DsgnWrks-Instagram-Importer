@@ -383,6 +383,16 @@ class DsgnWrksInstagram {
 				update_option( 'dsgnwrks_imported_photo_notices', $notices );
 			}
 		}
+		// Get older items
+		// http://wordpress.org/support/topic/imports-timing-out?replies=7
+		// else {
+		// 	// set next url to continue importing
+		// 	if ( ! empty( $messages['next_url'] ) ) {
+		// 		set_transient( 'get_option', $messages['next_url'] );
+		// 		$notices['next_url'] = $messages['next_url'];
+		// 		return $notices;
+		// 	}
+		// }
 
 		// Save the date/time to notify users of last import time
 		set_transient( sanitize_title( urldecode( $this->settings->userid ) ) .'-instaimportdone', $time, 14400 );

@@ -66,6 +66,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 = Is it possible to limit the length of the imported posts? =
 * Yes, use this gist: https://gist.github.com/jtsternberg/6148635
 
+= Can I save my own post-meta fields for each post? =
+* Yes, use this gist: https://gist.github.com/jtsternberg/f784e8d0e8c2da371702
+
 = ?? =
 * If you run into a problem or have a question, contact me ([contact form](http://j.ustin.co/scbo43) or [@jtsternberg on twitter](http://j.ustin.co/wUfBD3)). I'll add them here.
 
