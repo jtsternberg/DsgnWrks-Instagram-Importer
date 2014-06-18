@@ -69,6 +69,7 @@ class DsgnWrksInstagram {
 		add_action( 'init', array( $this->embed, 'hook_shortcode' ) );
 		add_action( 'admin_menu', array( $this->settings, 'settings' ) );
 		register_uninstall_hook( __FILE__, array( 'DsgnWrksInstagram', 'uninstall' ) );
+		register_deactivation_hook( __FILE__, array( 'DsgnWrksInstagram', 'deactivate' ) );
 		// Load the plugin settings link shortcut.
 		add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . 'dsgnwrks-instagram-importer.php' ), array( $this, 'settings_link' ) );
 		// @TODO
@@ -231,18 +232,35 @@ class DsgnWrksInstagram {
 	}
 
 	/**
+	 * Runs when plugin is deactivated.
+	 * @since 1.2.9
+	 */
+	static function deactivate() {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
+
+		if ( $timestamp = wp_next_scheduled( $this->pre .'cron' ) ) {
+			$frequency = $this->settings->get_option( 'frequency' );
+			wp_unschedule_event( $timestamp, $frequency, $this->pre .'cron' );
+		}
+	}
+
+	/**
 	 * Runs when plugin is uninstalled. deletes users and options
 	 * @since 1.2.5
 	 */
 	static function uninstall() {
-		if ( ! current_user_can( 'activate_plugins' ) )
+		if ( ! current_user_can( 'activate_plugins' ) ) {
 			return;
+		}
 		check_admin_referer( 'bulk-plugins' );
 
 		// Important: Check if the file is the one
 		// that was registered during the uninstall hook.
-		if ( __FILE__ != WP_UNINSTALL_PLUGIN )
+		if ( __FILE__ != WP_UNINSTALL_PLUGIN ) {
 			return;
+		}
 		self::delete_options();
 	}
 
