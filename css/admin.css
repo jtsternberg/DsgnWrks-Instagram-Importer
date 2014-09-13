@@ -87,7 +87,6 @@ form.instagram-importer table {
 	border: none;
 }
 .instagram-importer .form-table .remove-hashtags label {
-	background: #FFF;
 	padding: 4px 6px;
 	margin: 0 2px;
 }
@@ -223,7 +222,11 @@ img.alignleft {
 
 
 @media (max-width: 1150px) {
-	.instagram-importer .form-table th, .instagram-importer .form-table td {
+	.instagram-importer .form-table {
+		max-width: 100%;
+		width: 100%;
+	}
+	.instagram-importer .form-table th, .instagram-importer .form-table td, #universal-options .form-table th, #universal-options .form-table td {
 		width: auto;
 		max-width: 100%;
 		display: block;
@@ -240,6 +243,26 @@ img.alignleft {
 }
 
 @media (max-width: 700px) {
+	.tools_page_dsgnwrks-instagram-importer-settings #wpbody-content > .wrap {
+		padding: 0;
+	}
+	#dw-instagram-wrap #contextual-help-wrap {
+		width: 100%;
+		overflow: hidden;
+	}
+	#dw-instagram-wrap .contextual-help-tabs-wrap {
+		padding: 0;
+	}
+	#dw-instagram-wrap .help-tab-content {
+		margin-right: 0;
+	}
+	.instagram-importer .form-table tr.info th, #dw-instagram-wrap .instagram-importer.user-options .submit, .instagram-importer.user-authenticate {
+		padding: 0 15px;
+	}
+
+	.instagram-importer .form-table th, .instagram-importer .form-table td {
+		padding: 15px 15px;
+	}
 	#dw-instagram-wrap #contextual-help-back {
 		right: 0;
 		left: 0;
