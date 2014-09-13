@@ -12,7 +12,7 @@ $current_user = $this->get_option( 'username' );
 	<div id="icon-tools" class="icon32"><br></div>
 	<h2>DsgnWrks <?php _e( 'Instagram Importer Options', 'dsgnwrks' ); ?></h2>
 	<div class="updated instagram-import-message hidden"><ol></ol><div class="spinner"></div></div>
-	<div id="screen-meta" style="display: block; ">
+	<div id="dw-instagram-wrap" style="display: block; ">
 	<?php $this->display_notices(); ?>
 	<div class="clear"></div>
 

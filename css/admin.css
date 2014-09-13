@@ -143,16 +143,21 @@ form.instagram-importer table {
 .contextual-help-tabs a:hover {
 	overflow: visible;
 }
-#screen-options-link-wrap, #contextual-help-link-wrap, #screen-meta {
+#screen-options-link-wrap, #contextual-help-link-wrap, #dw-instagram-wrap {
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
 	-khtml-border-radius: 3px;
 	border-radius: 3px;
 }
-#screen-meta {
-	margin: 10px 15px 0 5px;
-	border-width: 1px;
-	border-style: solid;
+#dw-instagram-wrap {
+	display: none;
+	margin: 10px 0 0 0;
+	position: relative;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	border-top: none;
+	-webkit-box-shadow: 0 1px 0 rgba(0,0,0,.025);
+	box-shadow: 0 1px 0 rgba(0,0,0,.025);
 }
 .contextual-help-tabs-wrap {
 	position: relative;
@@ -214,4 +219,38 @@ img.alignleft {
 
 .instagram-importer .warning.hidden {
 	padding-left: 10px;
+}
+
+
+@media (max-width: 1150px) {
+	.instagram-importer .form-table th, .instagram-importer .form-table td {
+		width: auto;
+		max-width: 100%;
+		display: block;
+	}
+	#dw-instagram-wrap .contextual-help-sidebar {
+		display: none;
+	}
+	#dw-instagram-wrap .contextual-help-tabs-wrap {
+		padding: 0 20px;
+	}
+	#dw-instagram-wrap #contextual-help-back {
+		right: 0;
+	}
+}
+
+@media (max-width: 700px) {
+	#dw-instagram-wrap #contextual-help-back {
+		right: 0;
+		left: 0;
+		display: none;
+	}
+	#dw-instagram-wrap .contextual-help-tabs {
+		width: auto;
+		max-width: 100%;
+		width: 100%;
+		display: block;
+		clear: both;
+		float: none;
+	}
 }
