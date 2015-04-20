@@ -202,7 +202,7 @@ class DsgnWrksInstagram {
 			echo '</ol><div style="clear: both; padding-top: 10px;"></div>';
 			echo '<hr/>';
 		}
-		echo '<br><a href="'. add_query_arg( array() ) .'">'. __( 'Hide', 'dsgnwrks' ) .'</a></div>';
+		echo '<br><a href="'. esc_url( add_query_arg( array() ) ) .'">'. __( 'Hide', 'dsgnwrks' ) .'</a></div>';
 		// reset notices
 		update_option( 'dsgnwrks_imported_photo_notices', '' );
 	}
