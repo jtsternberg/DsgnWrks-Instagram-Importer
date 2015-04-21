@@ -5,27 +5,40 @@ language: php
 
 # Versions of PHP to test against
 php:
-    - "5.2"
-    - "5.3"
-    - "5.4"
+    - 5.2
+    - 5.3
+    - 5.4
+    - 5.5
+    - 5.6
+    - hhvm
+    - nightly
 
 # Specify versions of WordPress to test against
 # WP_VERSION = WordPress version number (use "master" for SVN trunk)
 # WP_MULTISITE = whether to test multisite (use either "0" or "1")
 env:
-    - WP_VERSION=master WP_MULTISITE=0
+    - WP_VERSION=latest WP_MULTISITE=0
+    - WP_VERSION=latest WP_MULTISITE=1
+    - WP_VERSION=3.8 WP_MULTISITE=0
+    - WP_VERSION=3.8 WP_MULTISITE=1
     - WP_VERSION=3.4.2 WP_MULTISITE=0
-    - WP_VERSION=3.3.3 WP_MULTISITE=0
-    - WP_VERSION=3.2.1 WP_MULTISITE=0
-    - WP_VERSION=master WP_MULTISITE=1
     - WP_VERSION=3.4.2 WP_MULTISITE=1
+    - WP_VERSION=3.3.3 WP_MULTISITE=0
     - WP_VERSION=3.3.3 WP_MULTISITE=1
+    - WP_VERSION=3.2.1 WP_MULTISITE=0
     - WP_VERSION=3.2.1 WP_MULTISITE=1
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: WP_VERSION=3.8 WP_MULTISITE=0
+      php: nightly
+    - env: WP_VERSION=3.8 WP_MULTISITE=1
+      php: nightly
 
 # Grab the setup script and execute
 before_script:
-    - wget https://raw.github.com/tierra/wordpress-plugin-tests/setup/setup.sh
-    - source setup.sh
+    - bash tests/bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
 
 script: phpunit
 
