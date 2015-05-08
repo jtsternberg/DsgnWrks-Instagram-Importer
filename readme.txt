@@ -66,6 +66,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 = Is it possible to limit the length of the imported posts? =
 * Yes, use this gist: https://gist.github.com/jtsternberg/6148635
 
+= Is it possible to set the title of the imported posts to the date of the image? =
+* Yes, use this gist: https://gist.github.com/jtsternberg/1b83e43348cfe4ec08a3
+
 = Can I save my own post-meta fields for each post? =
 * Yes, use this gist: https://gist.github.com/jtsternberg/f784e8d0e8c2da371702
 
