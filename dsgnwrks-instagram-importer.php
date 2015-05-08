@@ -612,7 +612,20 @@ class DsgnWrksInstagram {
 
 		// A filter so filter-savvy devs can modify the data before the post is created
 		$import                  = apply_filters( 'dsgnwrks_instagram_pre_save', $import, $p, $this->settings->get_option( $this->settings->userid ) );
+add_filter( 'dsgnwrks_instagram_pre_save', 'dsgnwrks_qa_make_title_excerpted' );
+function dsgnwrks_qa_make_title_excerpted( $import ) {
 
+	if ( isset( $import['post_title'] ) ) {
+
+		// feel free to edit these 2 values
+		$number_of_words = 5;
+		$more = '...';
+
+		$import['post_title'] = wp_trim_words( $import['post_title'], $number_of_words, $more );
+	}
+
+	return $import;
+}
 		// and insert our new post
 		$import['post_id']       = $this->insertPost();
 
@@ -741,14 +754,14 @@ class DsgnWrksInstagram {
 	 */
 	protected function formatTitle() {
 		// get date and time format options (used for title fallback)
-		$date_format 				= get_option( 'date_format' );
-		$time_format 				= get_option( 'time_format' );
+		$date_format = get_option( 'date_format' );
+		$time_format = get_option( 'time_format' );
 
 		// format insta-pic-created time (per user prefrence as title) as a title fallback
-		$date_fallback				= date($date_format.' ('.$time_format.')', $this->pic->created_time);
+		$date_fallback = date( $date_format .' ('. $time_format .')', $this->pic->created_time );
 
 		// Check for a title, or use human readable date format
-		$this->insta_title          = !empty( $this->pic->caption->text ) ? $this->pic->caption->text : $date_fallback;
+		$this->insta_title = ! empty( $this->pic->caption->text ) ? $this->pic->caption->text : $date_fallback;
 		// Set post title to caption by default
 		$this->import['post_title'] = $this->insta_title;
 
@@ -763,7 +776,7 @@ class DsgnWrksInstagram {
 		// Add the instagram filter name if requested
 		$t = str_replace( '**insta-filter**', $this->pic->filter, $t );
 
-		$this->import['post_title'] = apply_filters( 'dsgnwrks_instagram_post_title', $t );
+		$this->import['post_title'] = apply_filters( 'dsgnwrks_instagram_post_title', $t, $this->pic );
 	}
 
 	/**
