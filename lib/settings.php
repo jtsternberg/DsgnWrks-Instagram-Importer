@@ -339,7 +339,7 @@ $current_user = $this->get_option( 'username' );
 
 
 								<?php
-								if ( current_theme_supports( 'post-formats' ) && post_type_supports( 'post', 'post-formats' ) ) {
+								if ( current_theme_supports( 'post-formats' ) && post_type_supports( ( $cur_post_type ? $cur_post_type : 'post' ), 'post-formats' ) ) {
 									$post_formats = get_theme_support( 'post-formats' );
 
 									if ( is_array( $post_formats[0] ) ) {
