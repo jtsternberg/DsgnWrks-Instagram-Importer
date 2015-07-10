@@ -18,38 +18,48 @@ class DsgnWrksInstagram_Embed {
 	 * @since 1.3.0
 	 */
 	public function hook_shortcode() {
-		add_shortcode( 'dsgnwrks_instagram_embed', array( $this, 'shortcode_handler' ) );
+		add_shortcode( 'dsgnwrks_instagram_embed', array( $this, 'instagram_embed' ) );
 	}
 
 	/**
-	 * Shortcode that displays Instagram embed iframe
+	 * Shortcode handler that displays Instagram embed iframe
+	 * Wraps Instagram url in the iframe that Instagram provides for embedding
+	 *
 	 * @since  1.2.6
 	 * @param  array  $atts Attributes passed from shortcode
-	 * @return string       Concatenated shortcode output (Iframe embed code)
+	 * @return string       Instagram embed iframe code
 	 */
-	public function shortcode_handler( $atts ) {
+	public function instagram_embed( $atts = array() ) {
 		if ( ! isset( $atts['src'] ) ) {
 			return '';
 		}
-		return $this->instagram_embed( $atts['src'] );
-	}
 
-	/**
-	 * Wraps Instagram url in the iframe that Instagram provides for embedding
-	 * @since  1.2.6
-	 * @param  string $url Instagram media URL
-	 * @return string      Instagram embed iframe code
-	 */
-	public function instagram_embed( $url = '' ) {
+		$atts = shortcode_atts( array(
+			'src'               => '',
+			'width'             => '612',
+			'height'            => '710',
+			'frameborder'       => '0',
+			'scrolling'         => 'no',
+			'allowtransparency' => 'true',
+			'class'             => 'insta-image-embed',
+		), $atts, 'dsgnwrks_instagram_embed' );
 
-		if ( !$url && !isset( $this->core->pic->link ) )
-			return false;
-		if ( !$url && isset( $this->core->pic->link ) )
-			$url = $this->core->pic->link;
+		$atts['src'] = esc_url( str_replace( 'embed/', '', str_replace( 'http://', '//', $atts['src'] ) ) . 'embed/' );
 
-		$url = str_replace( 'embed/', '', str_replace( 'http://', '//', esc_url( $url ) ) );
+		if ( isset( $atts['type'] ) ) {
+			$atts['class'] = 'video' == $atts['type'] ? str_replace( 'insta-image-embed', 'insta-video-embed', $atts['class'] ) : $atts['class'];
+			unset( $atts['type'] );
+		}
 
-		return "\r\n".'<iframe src="'. $url .'embed/" width="612" height="710" frameborder="0" scrolling="no" allowtransparency="true"></iframe>'."\r\n";
+		$iframe_attributes = '';
+
+		foreach ( $atts as $key => $value ) {
+			$iframe_attributes .= ' ' . esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
+		}
+
+		$embed_iframe = "\r\n".'<iframe'. $iframe_attributes .'></iframe>'."\r\n";
+
+		return apply_filters( 'dsgnwrks_instagram_embed', $embed_iframe, $atts );
 	}
 
 	/**

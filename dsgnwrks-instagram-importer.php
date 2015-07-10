@@ -915,7 +915,7 @@ function dsgnwrks_qa_make_title_excerpted( $import ) {
 			'instagram_location_name'     => isset( $this->pic->location->name ) ? $this->pic->location->name : '',
 			'instagram_users_in_photo'    => $this->pic->users_in_photo,
 			'instagram_link'              => esc_url( $this->pic->link ),
-			'instagram_embed_code'        => $this->embed->instagram_embed(),
+			'instagram_embed_code'        => $this->embed->instagram_embed( array( 'src' => $this->pic->link, 'type' => $this->type ) ),
 			'instagram_type'              => $this->pic->type,
 			'instagram_user'              => $this->pic->user,
 			'instagram_username'          => isset( $this->pic->user->username ) ? $this->pic->user->username : '',
