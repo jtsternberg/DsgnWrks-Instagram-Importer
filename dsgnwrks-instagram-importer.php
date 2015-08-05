@@ -612,20 +612,7 @@ class DsgnWrksInstagram {
 
 		// A filter so filter-savvy devs can modify the data before the post is created
 		$import                  = apply_filters( 'dsgnwrks_instagram_pre_save', $import, $p, $this->settings->get_option( $this->settings->userid ) );
-add_filter( 'dsgnwrks_instagram_pre_save', 'dsgnwrks_qa_make_title_excerpted' );
-function dsgnwrks_qa_make_title_excerpted( $import ) {
 
-	if ( isset( $import['post_title'] ) ) {
-
-		// feel free to edit these 2 values
-		$number_of_words = 5;
-		$more = '...';
-
-		$import['post_title'] = wp_trim_words( $import['post_title'], $number_of_words, $more );
-	}
-
-	return $import;
-}
 		// and insert our new post
 		$import['post_id']       = $this->insertPost();
 
