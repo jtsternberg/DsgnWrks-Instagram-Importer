@@ -64,13 +64,16 @@ function YOURPREFIX_instagram_img_size( $size ) {
 That is a filter on the $size parameter passed to `wp_get_attachment_image_src()` so you can use any values you would use there. `wp_get_attachment_image_src()` on the codex: http://codex.wordpress.org/Function_Reference/wp_get_attachment_image_src
 
 = Is it possible to limit the length of the imported posts? =
-* Yes, use this gist: https://gist.github.com/jtsternberg/6148635
+* Yes, use this gist: [gist.github.com/jtsternberg/6148635](https://gist.github.com/jtsternberg/6148635)
 
 = Is it possible to set the title of the imported posts to the date of the image? =
-* Yes, use this gist: https://gist.github.com/jtsternberg/1b83e43348cfe4ec08a3
+* Yes, use this gist: [gist.github.com/jtsternberg/1b83e43348cfe4ec08a3](https://gist.github.com/jtsternberg/1b83e43348cfe4ec08a3)
 
 = Can I save my own post-meta fields for each post? =
-* Yes, use this gist: https://gist.github.com/jtsternberg/f784e8d0e8c2da371702
+* Yes, use this gist: [gist.github.com/jtsternberg/f784e8d0e8c2da371702](https://gist.github.com/jtsternberg/f784e8d0e8c2da371702)
+
+= Is it possible to automatically center align the imported images? =
+* Yes, use this gist: [gist.github.com/jtsternberg/60e201662691ec9d4a8e](https://gist.github.com/jtsternberg/60e201662691ec9d4a8e) (will only work if your theme supports the 'aligncenter' class)
 
 = Can I remove the text from the excerpt field? =
 * Yes, you can do so by adding this to your theme's functions.php file:
