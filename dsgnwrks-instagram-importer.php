@@ -6,19 +6,20 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.2.9
+Version: 1.3.0
 */
 
 class DsgnWrksInstagram {
 
-	public $plugin_version   = '1.2.9';
+	public $plugin_version   = '1.3.0';
 	public $plugin_id        = 'dsgnwrks-instagram-importer-settings';
 	public $pre           = 'dsgnwrks_instagram_';
 	public $instagram_api = 'https://api.instagram.com/v1/users/';
+	public $type          = 'image';
 	public $import        = array();
 	public $plugin_page   = false;
+	public $doing_cron    = false;
 	public $defaults;
-
 	/**
 	 * Sets up our plugin
 	 * @since  1.1.0
@@ -927,6 +928,12 @@ class DsgnWrksInstagram {
 		// image or video?
 		$is_image = ( $this->type == 'image' );
 
+		if ( $is_image ) {
+			$_media_url = $media_url;
+			// Attempt to get full-resolution images
+			$media_url = str_replace( '640x640', '1080x1080', $media_url );
+		}
+
 		// bail here if we don't have a media url
 		if ( empty( $media_url ) ) {
 			return $this->upload_error(__LINE__);
@@ -939,6 +946,11 @@ class DsgnWrksInstagram {
 		}
 
 		$tmp = download_url( $media_url );
+
+		if ( is_wp_error( $tmp ) && 'http_404' == $tmp->get_error_code() && $_media_url != $media_url ) {
+			$media_url = $_media_url;
+			$tmp = download_url( $media_url );
+		}
 
 		// check for file extensions
 		$pattern = $is_image

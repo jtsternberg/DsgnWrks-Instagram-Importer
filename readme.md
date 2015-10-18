@@ -8,9 +8,9 @@
 **Author:** Jtsternberg  
 **Donate link:** http://j.ustin.co/rYL89n 
 **Requires at least:** 3.1  
-**Tested up to:** 3.9.1  
-**Stable tag:** 1.2.9  
-**Version:** 1.2.9  
+**Tested up to:** 4.4  
+**Stable tag:** 1.3.0  
+**Version:** 1.3.0  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -90,6 +90,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 ## Changelog ##
+
+### 1.3.0
+* When possible, import the full-resolution instagram images (1080x1080).
 
 ### 1.2.9
 * Bug fix: Made the auto-import feature off by default. Would sometimes be triggered on plugin activation.

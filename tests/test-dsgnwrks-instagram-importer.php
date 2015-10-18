@@ -7,9 +7,18 @@
  */
 class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 
-	function __construct() {
-		require_once( dirname( __FILE__ ) . '/../dsgnwrks-instagram-importer.php' );
-		$this->importer = new DsgnWrksInstagram;
+	/**
+	 * Set up the test fixture
+	 */
+	public function setUp() {
+		parent::setUp();
+
+		$this->importer = new Test_DsgnWrksInstagram;
+		$this->post_id = $this->factory->post->create();
+	}
+
+	public function tearDown() {
+		parent::tearDown();
 	}
 
 	function test_class_exists() {
@@ -64,6 +73,68 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 
 		$opts = $this->importer->settings_validate( $pre_opts );
 		$this->assertEquals( $pre_opts, $opts );
+	}
+
+	public function test_upload_media() {
+		update_option( 'uploads_use_yearmonth_folders', false );
+		$wp_upload_dir = wp_upload_dir();
+		$path = $wp_upload_dir['path'];
+		foreach ( scandir( $path ) as $file ) {
+			if ( 0 === strpos( $file, '.' ) ) {
+				continue;
+			}
+			$file = $path . '/' . $file;
+			if ( is_dir( $file ) ) {
+				deleteDirectory( $file );
+			} else {
+				unlink( $file );
+			}
+		}
+
+		$media_url = 'https://scontent.cdninstagram.com/hphotos-xaf1/t51.2885-15/s640x640/sh0.08/e35/11849181_754675274659968_461486155_n.jpg';
+		// $media_url = 'https://scontent.cdninstagram.com/hphotos-xaf1/s320x320/d.jpg';
+		$this->importer->import = array(
+			'post_id'      => $this->post_id,
+			'post_title'   => 'Test upload',
+			'post_content' => '',
+			'featured'     => false,
+		);
+
+		$result = $this->importer->upload_media( $media_url );
+
+		$expected = '<img width="50" height="50" src="http://example.org/wp-content/uploads/11849181_754675274659968_461486155_n-150x150.jpg" class="attachment-50x50" alt="Test upload" /><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>';
+		$this->assertEquals( $expected, $result );
+	}
+
+}
+
+function deleteDirectory($dir) {
+    if (!file_exists($dir)) {
+        return true;
+    }
+
+    if (!is_dir($dir)) {
+        return unlink($dir);
+    }
+
+    foreach (scandir($dir) as $item) {
+        if ($item == '.' || $item == '..') {
+            continue;
+        }
+
+        if (!deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+            return false;
+        }
+
+    }
+
+    return rmdir($dir);
+}
+
+class Test_DsgnWrksInstagram extends DsgnWrksInstagram {
+
+	public function upload_media( $media_url = '', $attach_title = '', $size = '' ) {
+		return parent::upload_media( $media_url, $attach_title, $size );
 	}
 
 }
