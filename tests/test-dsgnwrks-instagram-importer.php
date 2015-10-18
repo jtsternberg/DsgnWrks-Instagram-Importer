@@ -91,7 +91,9 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 			}
 		}
 
-		$media_url = 'https://scontent.cdninstagram.com/hphotos-xaf1/t51.2885-15/s640x640/sh0.08/e35/11849181_754675274659968_461486155_n.jpg';
+		// $media_url = 'https://scontent.cdninstagram.com/hphotos-xaf1/t51.2885-15/s320x320/sh0.08/e35/11849181_754675274659968_461486155_n.jpg';
+		$media_url = 'http://photos.jtsternberg.com/files/2015/09/IMG_3990-300x300.jpg';
+
 		// $media_url = 'https://scontent.cdninstagram.com/hphotos-xaf1/s320x320/d.jpg';
 		$this->importer->import = array(
 			'post_id'      => $this->post_id,
@@ -102,7 +104,7 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 
 		$result = $this->importer->upload_media( $media_url );
 
-		$expected = '<img width="50" height="50" src="http://example.org/wp-content/uploads/11849181_754675274659968_461486155_n-150x150.jpg" class="attachment-50x50" alt="Test upload" /><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>';
+		$expected = '<img width="50" height="50" src="http://example.org/wp-content/uploads/IMG_3990-300x300-150x150.jpg" class="attachment-50x50" alt="Test upload" /><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>';
 		$this->assertEquals( $expected, $result );
 	}
 
