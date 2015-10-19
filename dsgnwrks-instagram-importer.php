@@ -636,7 +636,7 @@ class DsgnWrksInstagram {
 
 		$this->type = 'image';
 		// sideload image
-		$message = $this->upload_media( $p->images->standard_resolution->url );
+		$message = $this->upload_media( array( $p->images->thumbnail->url, $p->images->standard_resolution->url ), $p->created_time );
 
 		// sideload videos
 		if ( $this->pic->type == 'video' ) {
@@ -644,9 +644,11 @@ class DsgnWrksInstagram {
 			// grab both video sizes and upload them
 			foreach ( array( 'low_resolution', 'standard_resolution' ) as $size ) {
 				$vid_size = (int) $p->videos->$size->width;
+				$title = sprintf( __( '%s Video', 'dsgnwrks' ), $vid_size .'x'. $vid_size );
 				$message .= $this->upload_media(
 					$p->videos->$size->url,
-					sprintf( __( '%s Video', 'dsgnwrks' ), $vid_size .'x'. $vid_size ),
+					$title . ' ' . $p->created_time,
+					$title,
 					$size
 				);
 			}
@@ -918,23 +920,18 @@ class DsgnWrksInstagram {
 	/**
 	 * Sideloads an image/video to the currrent WordPress post
 	 * @since  1.1.0
-	 * @param  string $media_url    URL of media to be sideloaded
-	 * @param  string $attach_title Optional title for uploaded media attachement
-	 * @param  string $size         Optional size of media
-	 * @return string               Error|Success message
+	 * @param  string|array $media_url    URL(s) of media to be sideloaded
+	 * @param  string       $filename     What to name the file. File extension will be added automatically.
+	 * @param  string       $attach_title Optional title for uploaded media attachement
+	 * @param  string       $size         Optional size of media
+	 * @return string                     Error|Success message
 	 */
-	protected function upload_media( $media_url = '', $attach_title = '', $size = '' ) {
+	protected function upload_media( $media_url = '', $filename = '', $attach_title = '', $size = '' ) {
 
 		// get our import data
 		$import = &$this->import;
 		// image or video?
-		$is_image = ( $this->type == 'image' );
-
-		if ( $is_image ) {
-			$_media_url = $media_url;
-			// Attempt to get full-resolution images
-			$media_url = str_replace( '640x640', '1080x1080', $media_url );
-		}
+		$is_image = is_array( $media_url );
 
 		// bail here if we don't have a media url
 		if ( empty( $media_url ) ) {
@@ -947,12 +944,9 @@ class DsgnWrksInstagram {
 			require_once( ABSPATH .'/wp-admin/includes/image.php' );
 		}
 
-		$tmp = download_url( $media_url );
+		$tmp = $this->download_media_url( $media_url );
 
-		if ( is_wp_error( $tmp ) && 'http_404' == $tmp->get_error_code() && $_media_url != $media_url ) {
-			$media_url = $_media_url;
-			$tmp = download_url( $media_url );
-		}
+		$media_url = is_array( $media_url ) ? $media_url[1] : $media_url;
 
 		// check for file extensions
 		$pattern = $is_image
@@ -960,8 +954,11 @@ class DsgnWrksInstagram {
 			: '/[^\?]+\.(mp4|MP4)/';
 
 		preg_match( $pattern, $media_url, $matches );
-		$file_array['name']     = basename( $matches[0] );
+
 		$file_array['tmp_name'] = $tmp;
+		$file_array['name']     = $filename
+			? sanitize_title_with_dashes( $filename ) . '.' . $matches[1]
+			: basename( $matches[0] );
 
 		if ( is_wp_error( $tmp ) ) {
 			@unlink( $file_array['tmp_name'] );
@@ -1017,6 +1014,51 @@ class DsgnWrksInstagram {
 		// return a success message
 		return dw_get_instagram_image( $import['post_id'], array( 50, 50 ) ) .'<strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em>';
 
+	}
+
+	/**
+	 * Attempts to fetch the largest resolution image available.
+	 *
+	 * Uses some hacks based on known FB/Instagram cdn URL structures.
+	 *
+	 * @since  1.3.2
+	 *
+	 * @param  string $instagram_urls The instagram media thumbnail and standard URLs.
+	 *
+	 * @return mixed                  Results of download_url
+	 */
+	public function download_media_url( $instagram_urls ) {
+		if ( ! is_array( $instagram_urls ) ) {
+			return download_url( $instagram_urls );
+		}
+
+		$tmp = false;
+		list( $thumb_url, $instagram_url ) = $instagram_urls;
+
+		// Attempt to get full-resolution, non-square images.. this is a hack as it's not in the API
+		$parts = parse_url( $thumb_url );
+		if ( isset( $parts['scheme'], $parts['host'], $parts['path'] ) ) {
+
+			$full_url = trailingslashit( $parts['scheme'] . '://' . $parts['host'] );
+			$parts = array_filter( explode( '/', $parts['path'] ) );
+			$full_url .= trailingslashit( array_shift( $parts ) );
+			$full_url .= array_pop( $parts );
+
+			if ( $instagram_url != $full_url ) {
+				$tmp = download_url( $full_url );
+			}
+		}
+
+		if ( ! $tmp || is_wp_error( $tmp ) ) {
+			// Attempt to get full-resolution square images
+			$tmp = download_url( str_replace( '640x640', '1080x1080', $instagram_url ) );
+		}
+
+		if ( is_wp_error( $tmp ) ) {
+			$tmp = download_url( $instagram_url );
+		}
+
+		return $tmp;
 	}
 
 	/**
