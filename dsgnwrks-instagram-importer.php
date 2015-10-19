@@ -6,12 +6,12 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.3.2
+Version: 1.3.3
 */
 
 class DsgnWrksInstagram {
 
-	public $plugin_version   = '1.3.2';
+	public $plugin_version   = '1.3.3';
 	public $plugin_id        = 'dsgnwrks-instagram-importer-settings';
 	public $pre           = 'dsgnwrks_instagram_';
 	public $instagram_api = 'https://api.instagram.com/v1/users/';
@@ -215,10 +215,10 @@ class DsgnWrksInstagram {
 	 * @since  1.1.0
 	 */
 	public function instagram_oauth_redirect( $opts ) {
-		$return = add_query_arg( array( 'page' => $this->plugin_id ), admin_url('/tools.php') );
+		$return = add_query_arg( array( 'page' => $this->plugin_id ), admin_url( '/tools.php' ) );
 		$uri    = add_query_arg( 'return_uri', urlencode( $return ), 'http://dsgnwrks.pro/insta_oauth/' );
 		// Send them on with our redirect uri set.
-		wp_redirect( $uri, 307 );
+		wp_redirect( $uri );
 		exit;
 	}
 

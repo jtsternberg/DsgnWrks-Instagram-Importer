@@ -217,13 +217,21 @@ class DsgnWrksInstagram_Settings {
 		if ( ! isset( $this->userid ) ) {
 			wp_die( 'Missing User' );
 		}
-		return $this->get_user_option( $this->userid, $key )
-			? $this->get_user_option( $this->userid, $key )
-			: $default;
+
+		$option = $this->get_user_option( $this->userid, $key );
+
+		return $option ? $option : $default;
 	}
 
 	public function get_user_option( $user, $key ) {
 		$opts = $this->get_option( $user );
+
+		$user_data = $this->get_cached_user_data( $opts );
+
+		if ( $user_data && isset( $user_data->{$key} ) ) {
+			return $user_data->{$key};
+		}
+
 		return $opts && array_key_exists( $key, $opts ) ? $opts[ $key ] : false;
 	}
 
@@ -240,6 +248,41 @@ class DsgnWrksInstagram_Settings {
 		$this->all_opts = empty( $this->all_opts ) || ! is_array( $this->all_opts ) ? array() : (array) $this->all_opts;
 
 		return $this->all_opts;
+	}
+
+	/**
+	 * Attempt to get user profile data from actual API to augment the settings (and keep them updated)
+	 *
+	 * @since  1.3.3
+	 *
+	 * @param  array $opts  Array of user options
+	 *
+	 * @return object|false User data object or false
+	 */
+	public function get_cached_user_data( $opts ) {
+		$user_data = false;
+
+		if ( ! isset( $opts['access_token'], $opts['id'] ) ) {
+			return $user_data;
+		}
+
+		if ( $user_data = get_transient( 'dw_instauser_'. $opts['id'] ) ) {
+			return $user_data;
+		}
+
+		$url = $this->core->instagram_api . $opts['id'] . '?access_token=' . $opts['access_token'];
+		$response = wp_remote_retrieve_body( wp_remote_get( $url ) );
+
+		if ( $response ) {
+			$response = json_decode( $response );
+			if ( isset( $response->data ) ) {
+				$user_data = isset( $response->data );
+				// Store to transient for a week.
+				set_transient( 'dw_instauser_'. $opts['id'], $user_data, WEEK_IN_SECONDS );
+			}
+		}
+
+		return $user_data;
 	}
 
 }

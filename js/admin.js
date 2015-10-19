@@ -95,7 +95,7 @@ jQuery(document).ready(function($) {
 	});
 
 	$('.button-primary.authenticate.logout').click( function(event) {
-		tb_show( window.dwinstagram.logout_text, 'https://instagr.am/accounts/logout/?TB_iframe=true');
+		tb_show( window.dwinstagram.logout_text, 'https://instagram.com/accounts/logout/?TB_iframe=true');
 		setTimeout(function(){
 			tb_remove();
 			$('.user-authenticate').submit();
