@@ -19,6 +19,8 @@ class DsgnWrksInstagram {
 	public $import        = array();
 	public $plugin_page   = false;
 	public $doing_cron    = false;
+	public $insta_image   = '';
+	public $img_src       = '';
 	public $defaults;
 	/**
 	 * Sets up our plugin
@@ -993,15 +995,20 @@ class DsgnWrksInstagram {
 			set_post_thumbnail( $import['post_id'], $attach_id );
 		}
 
-		$imgsize   = apply_filters( 'dsgnwrks_instagram_image_size', 'full' );
-		$imgsize   = is_array( $imgsize ) || is_string( $imgsize ) ? $imgsize : 'full';
-		$this->img = wp_get_attachment_image_src( $attach_id, $imgsize );
+		// Get image markup
+		$img_element = $this->get_image_el( $attach_id );
 
 		// Replace URLs in post with uploaded image
-		if ( is_array( $this->img ) ) {
+		if ( $img_element ) {
 
-			// filter the image element
-			$this->insta_image = (string) apply_filters( 'dsgnwrks_instagram_insta_image', sprintf( '<img class="insta-image" width="%d" height="%d" src="%s"/>', $this->img[1], $this->img[2], $this->img[0] ), $attach_id, $import['post_id'] );
+			/**
+			 * Filters the image element.
+			 *
+			 * @param string|array $img_element The Image html markup.
+			 * @param int          $attach_id   The attachment ID.
+			 * @param int          $post_id     The attachment's parent ID.
+			 */
+			$this->insta_image = (string) apply_filters( 'dsgnwrks_instagram_insta_image', $img_element, $attach_id, $import['post_id'] );
 
 		} else {
 			return $this->upload_error( __LINE__, $media_url );
@@ -1010,6 +1017,49 @@ class DsgnWrksInstagram {
 		// return a success message
 		return dw_get_instagram_image( $import['post_id'], array( 50, 50 ) ) .'<strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em>';
 
+	}
+
+	/**
+	 * Retrieves the image markup
+	 *
+	 * @since  1.3.1
+	 *
+	 * @uses   wp_get_attachment_image
+	 * @param  int  $attach_id Attachment ID
+	 *
+	 * @return string          Image html markup
+	 */
+	public function get_image_el( $attach_id ) {
+
+		/**
+		 * The WordPress image size of the **insta-image** image (used in wp_get_attachment_image).
+		 *
+		 * @param string|array $imgsize The default size for the imported **insta-image** images.
+		 */
+		$imgsize = apply_filters( 'dsgnwrks_instagram_image_size', 'full' );
+		$imgsize = is_array( $imgsize ) || is_string( $imgsize ) ? $imgsize : 'full';
+
+		add_filter( 'wp_get_attachment_image_attributes', array( $this, 'cb_store_img_src' ) );
+		$img_element = wp_get_attachment_image( $attach_id, $imgsize, false, array(
+			'class' => 'insta-image',
+		) );
+		remove_filter( 'wp_get_attachment_image_attributes', array( $this, 'cb_store_img_src' ) );
+
+		return $img_element;
+	}
+
+	/**
+	 * Stores the image source attribute to a class property for future use
+	 *
+	 * @since  1.3.1
+	 *
+	 * @param  array  $attr Array of attributes for the image element
+	 *
+	 * @return array        Return same array (simply caching a property)
+	 */
+	public function cb_store_img_src( $attr ) {
+		$this->img_src = $attr['src'];
+		return $attr;
 	}
 
 	/**
@@ -1068,7 +1118,7 @@ class DsgnWrksInstagram {
 			'**insta-embed-'. ( $this->type == 'image' ? 'video' : 'image' ) .'**',
 		), array(
 			$insta_img,
-			( is_array( $this->img ) ? $this->img[0] : '' ),
+			( $this->img_src ? $this->img_src : '' ),
 			$this->embed->instagram_embed_src(),
 			'',
 		), $this->import['post_content'] );
