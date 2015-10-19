@@ -9,8 +9,8 @@
 **Donate link:** http://j.ustin.co/rYL89n 
 **Requires at least:** 3.1  
 **Tested up to:** 4.4  
-**Stable tag:** 1.3.0  
-**Version:** 1.3.0  
+**Stable tag:** 1.3.1  
+**Version:** 1.3.1  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -90,6 +90,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 ## Changelog ##
+
+### 1.3.1
+* Update importer image markup to support coming responsive images update to WordPress core.
 
 ### 1.3.0
 * When possible, import the full-resolution instagram images (1080x1080).
