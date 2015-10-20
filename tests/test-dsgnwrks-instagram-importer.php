@@ -97,9 +97,10 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 
 		// $media_url = 'https://scontent.cdninstagram.com/hphotos-xaf1/s320x320/d.jpg';
 		$media_urls = array(
-			'https://scontent.cdninstagram.com/hphotos-xaf1/t51.2885-15/s150x150/e35/c0.135.1080.1080/11918035_1621101038161944_392676932_n.jpg',
-			'https://scontent.cdninstagram.com/hphotos-xfa1/t51.2885-15/s640x640/sh0.08/e35/11809886_522557891228211_366546471_n.jpg',
+			'http://jtsternberg.com/file-drop/test-image-v2.jpg',
+			'http://jtsternberg.com/file-drop/test-image-v2.jpg',
 		);
+
 		$this->importer->import = array(
 			'post_id'      => $this->post_id,
 			'post_title'   => 'Test upload',
@@ -109,10 +110,10 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 
 		$result = $this->importer->upload_media( $media_urls, '1440878973' );
 
-		$expected = '<img width="50" height="50" src="http://example.org/wp-content/uploads/1440878973-150x150.jpg" class="attachment-50x50" alt="Test upload" /><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>';
-		$this->assertEquals( $expected, $result );
+		$expected = '<img width="50" height="50" src="http://example.org/wp-content/uploads/1440878973.jpg" class="attachment-50x50" alt="Test upload" /><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>';
+		$this->assertEquals( $expected, str_replace( '-150x150.jpg', '.jpg', $result ) );
 
-		$expected = '<img width="1080" height="1350" src="http://example.org/wp-content/uploads/1440878973.jpg" class="insta-image" alt="Test upload" />';
+		$expected = '<img width="640" height="640" src="http://example.org/wp-content/uploads/1440878973.jpg" class="insta-image" alt="Test upload" />';
 		$this->assertEquals( $expected, $this->importer->insta_image );
 
 		$this->assertEquals( 'http://example.org/wp-content/uploads/1440878973.jpg', $this->importer->img_src );

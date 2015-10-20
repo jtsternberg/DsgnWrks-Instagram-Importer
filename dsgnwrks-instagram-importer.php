@@ -1451,7 +1451,7 @@ $DsgnWrksInstagram->hooks();
  * @param string|array $attr    Optional. Query string or array of attributes.
  * @return string               Image html markup
  */
-function dw_get_instagram_image( $post_id = null, $size = 'thumbnail', $attr = array() ) {
+function dw_get_instagram_image( $post_id = null, $size = 'post-thumbnail', $attr = array() ) {
 
 	$post_id = null === $post_id
 		? get_the_ID()
