@@ -11,16 +11,16 @@ Version: 1.3.3
 
 class DsgnWrksInstagram {
 
-	public $plugin_version   = '1.3.3';
-	public $plugin_id        = 'dsgnwrks-instagram-importer-settings';
-	public $pre           = 'dsgnwrks_instagram_';
-	public $instagram_api = 'https://api.instagram.com/v1/users/';
-	public $type          = 'image';
-	public $import        = array();
-	public $plugin_page   = false;
-	public $doing_cron    = false;
-	public $insta_image   = '';
-	public $img_src       = '';
+	public $plugin_version = '1.3.3';
+	public $plugin_id      = 'dsgnwrks-instagram-importer-settings';
+	public $pre            = 'dsgnwrks_instagram_';
+	public $instagram_api  = 'https://api.instagram.com/v1/users/';
+	public $type           = 'image';
+	public $import         = array();
+	public $plugin_page    = false;
+	public $doing_cron     = false;
+	public $insta_image    = '';
+	public $img_src        = '';
 	public $defaults;
 	/**
 	 * Sets up our plugin
@@ -71,8 +71,8 @@ class DsgnWrksInstagram {
 		add_action( $this->pre .'cron', array( $this, 'cron_import' ) );
 		add_action( 'init', array( $this->embed, 'hook_shortcode' ) );
 		add_action( 'admin_menu', array( $this->settings, 'settings' ) );
-		register_uninstall_hook( __FILE__, array( 'DsgnWrksInstagram', 'uninstall' ) );
-		register_deactivation_hook( __FILE__, array( 'DsgnWrksInstagram', 'deactivate' ) );
+		register_uninstall_hook( __FILE__, array( __CLASS__, 'uninstall' ) );
+		register_deactivation_hook( __FILE__, array( __CLASS__, 'deactivate' ) );
 		// Load the plugin settings link shortcut.
 		add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . 'dsgnwrks-instagram-importer.php' ), array( $this, 'settings_link' ) );
 		// @TODO
@@ -238,14 +238,17 @@ class DsgnWrksInstagram {
 	 * Runs when plugin is deactivated.
 	 * @since 1.2.9
 	 */
-	static function deactivate() {
-		if ( ! current_user_can( 'activate_plugins' ) ) {
+	public static function deactivate() {
+		global $DsgnWrksInstagram;
+
+		if ( ! current_user_can( 'activate_plugins' ) || ! isset( $DsgnWrksInstagram->pre ) ) {
 			return;
 		}
 
-		if ( $timestamp = wp_next_scheduled( $this->pre .'cron' ) ) {
-			$frequency = $this->settings->get_option( 'frequency' );
-			wp_unschedule_event( $timestamp, $frequency, $this->pre .'cron' );
+
+		if ( $timestamp = wp_next_scheduled( $DsgnWrksInstagram->pre .'cron' ) ) {
+			$frequency = $DsgnWrksInstagram->settings->get_option( 'frequency' );
+			wp_unschedule_event( $timestamp, $frequency, $DsgnWrksInstagram->pre .'cron' );
 		}
 	}
 
@@ -253,7 +256,7 @@ class DsgnWrksInstagram {
 	 * Runs when plugin is uninstalled. deletes users and options
 	 * @since 1.2.5
 	 */
-	static function uninstall() {
+	public static function uninstall() {
 		if ( ! current_user_can( 'activate_plugins' ) ) {
 			return;
 		}
@@ -1440,8 +1443,8 @@ class DsgnWrksInstagram {
 }
 
 // init our class
-$DsgnWrksInstagram = new DsgnWrksInstagram;
-$DsgnWrksInstagram->hooks();
+$GLOBALS['DsgnWrksInstagram'] = new DsgnWrksInstagram;
+$GLOBALS['DsgnWrksInstagram']->hooks();
 
 /**
  * Template tag that returns html markup for instagram imported image. Works like `get_the_post_thumbnail`

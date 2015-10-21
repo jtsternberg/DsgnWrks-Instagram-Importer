@@ -92,6 +92,7 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 = 1.3.3 =
 * Occasionally update the stored user's data from the instagram API to keep it fresh.
+* Fix fatal error when deactivating the plugin.
 
 = 1.3.2 =
 * When possible, import the full-resolution non-square instagram images.
@@ -185,6 +186,7 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 = 1.3.3 =
 * Occasionally update the stored user's data from the instagram API to keep it fresh.
+* Fix fatal error when deactivating the plugin.
 
 = 1.3.2 =
 * When possible, import the full-resolution non-square instagram images.
