@@ -213,7 +213,7 @@ $current_user = $this->get_option( 'username' );
 								<tr valign="top">
 								<th scope="row"><strong><?php _e( 'Save Instagram photo as post\'s featured image:', 'dsgnwrks' ); ?></strong></th>
 								<td>
-									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $user; ?>][feat_image]" <?php checked( $this->user_option( 'feat_image' ) ); ?> value="yes"/>
+									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $user; ?>][feat_image]" <?php checked( 'yes' === $this->user_option( 'feat_image' ) ); ?> value="yes"/>
 								</td>
 								</tr>
 
@@ -232,7 +232,7 @@ $current_user = $this->get_option( 'username' );
 									endif; ?>
 								</th>
 								<td>
-									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $user; ?>][auto_import]" <?php checked( $this->user_option( 'auto_import' ) ); ?> value="yes"/>
+									<input type="checkbox" name="dsgnwrks_insta_options[<?php echo $user; ?>][auto_import]" <?php checked( 'yes' === $this->user_option( 'auto_import' ) ); ?> value="yes"/>
 								</td>
 								</tr>
 

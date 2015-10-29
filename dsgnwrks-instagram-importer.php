@@ -6,12 +6,12 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.3.3
+Version: 1.3.4
 */
 
 class DsgnWrksInstagram {
 
-	public $plugin_version = '1.3.3';
+	public $plugin_version = '1.3.4';
 	public $plugin_id      = 'dsgnwrks-instagram-importer-settings';
 	public $pre            = 'dsgnwrks_instagram_';
 	public $instagram_api  = 'https://api.instagram.com/v1/users/';
