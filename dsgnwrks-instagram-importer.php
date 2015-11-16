@@ -1355,8 +1355,16 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 * @return string      		modified view
 	 */
 	public function html_default( $default ) {
-		if ( get_current_screen()->id == 'tools_page_dsgnwrks-instagram-importer-settings' )
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return $default;
+		}
+
+		$screen = get_current_screen();
+
+		if ( isset( $screen->id ) && 'tools_page_dsgnwrks-instagram-importer-settings' === $screen->id ) {
 			$default = 'html';
+		}
+
 		return $default;
 	}
 
