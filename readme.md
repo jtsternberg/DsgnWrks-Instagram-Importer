@@ -9,7 +9,7 @@
 **Donate link:** http://j.ustin.co/rYL89n 
 **Requires at least:** 3.1  
 **Tested up to:** 4.4  
-**Version:** 1.3.4  
+**Version:** 1.3.5  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -89,6 +89,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 ## Changelog ##
+
+### 1.3.5
+* Bug fix: Fix "Call to undefined method DsgnWrksInstagram_Settings::debugsend()" error.
 
 ### 1.3.4
 * Bug fix: Some checkboxes were not displaying the saved value.

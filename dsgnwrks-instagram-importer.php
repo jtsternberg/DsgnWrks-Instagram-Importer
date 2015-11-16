@@ -6,12 +6,12 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.3.4
+Version: 1.3.5
 */
 
-class DsgnWrksInstagram {
+class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
-	public $plugin_version = '1.3.4';
+	public $plugin_version = '1.3.5';
 	public $plugin_id      = 'dsgnwrks-instagram-importer-settings';
 	public $pre            = 'dsgnwrks_instagram_';
 	public $instagram_api  = 'https://api.instagram.com/v1/users/';
@@ -117,7 +117,7 @@ class DsgnWrksInstagram {
 	 */
 	public function schedule_frequency() {
 
-		$frequency = $this->settings->get_option( 'frequency' );
+		$frequency = $this->get_option( 'frequency' );
 
 		// if a auto-import frequency interval was saved,
 		if ( $frequency && 'never' !== $frequency && ! wp_next_scheduled( $this->pre .'cron' ) ) {
@@ -131,7 +131,7 @@ class DsgnWrksInstagram {
 	 * @since  1.2.0
 	 */
 	public function cron_import() {
-		foreach ( $this->settings->get_options() as $user => $useropts ) {
+		foreach ( $this->get_options() as $user => $useropts ) {
 			if ( isset( $useropts['auto_import'] ) && $useropts['auto_import'] == 'yes' ) {
 				$this->import( $user );
 			}
@@ -332,10 +332,10 @@ class DsgnWrksInstagram {
 		// instagram user id for pinging instagram
 		$this->settings->userid     = $id = $userid ? $userid : $this->manual_import;
 		// get our options for use in the import
-		$user_opts        = $this->settings->get_option( $id );
+		$user_opts        = $this->get_option( $id );
 		$this->doing_ajax = isset( $_REQUEST['instagram_user'] );
 		// if a $userid was passed in, & no ajax $_REQUEST data we know we're doing a cron scheduled event
-		$this->doing_cron = $userid && !$this->doing_ajax ? true : false;
+		$this->doing_cron = $userid && ! $this->doing_ajax ? true : false;
 
 		// We need an id and access token to keep going
 		if ( ! ( isset( $user_opts['id'] ) && isset( $user_opts['access_token'] ) ) ) {
@@ -366,7 +366,7 @@ class DsgnWrksInstagram {
 		$time = date_i18n( 'l F jS, Y @ h:i:s A', strtotime( current_time('mysql') ) );
 
 		// if we're not doing cron or ajax, show our notice now
-		if ( !$userid ) {
+		if ( ! $userid ) {
 			if ( stripos( $notice, __( 'No new Instagram shots to import', 'dsgnwrks' ) ) === false )
 				$message_class .= ' instagram-import-message';
 
@@ -430,7 +430,7 @@ class DsgnWrksInstagram {
 	 */
 	public function do_import( $loop = false ) {
 
-		if ( ( $remove = $this->settings->get_option( 'remove_hashtags' ) ) && is_array( $remove ) ) {
+		if ( ( $remove = $this->get_option( 'remove_hashtags' ) ) && is_array( $remove ) ) {
 			foreach ( $remove as $filter => $value ) {
 				if ( $value ) {
 					add_filter( 'dsgnwrks_instagram_'.$filter, array( $this, 'remove_hashtags' ) );
@@ -447,7 +447,7 @@ class DsgnWrksInstagram {
 		}
 
 
-		$user = $this->settings->get_option( $this->settings->userid );
+		$user = $this->get_option( $this->settings->userid );
 
 		$this->api_url = isset( $this->next_url ) && $this->next_url ? $this->next_url : $this->instagram_api . $this->settings->user_option( 'id' ) .'/media/recent?access_token='. $this->settings->user_option( 'access_token' ) .'&count=2';
 
@@ -494,15 +494,16 @@ class DsgnWrksInstagram {
 
 		// wp_send_json_error( '<div id="message" class="error"><p><pre>$data'. htmlentities( print_r( $data, true ) ) .'</pre></p></div>' );
 
-		if ( !$this->importDebugCheck() )
+		if ( ! $this->importDebugCheck() ) {
 			$this->debugsend( 'import_messages', $this->settings->userid .' - $data', array(
 				'$api_url' => $api_url,
 				'$this->settings->userid' => $this->settings->userid,
 				'$response[headers]' => $response['headers'],
 				'json_decode( wp_remote_retrieve_body( $response ) )' => $data,
 				'$prevmessages' => $prevmessages,
-				'$settings' => $this->settings->get_option( $this->settings->userid )
+				'$settings' => $this->get_option( $this->settings->userid )
 			) );
+		}
 
 		// load WP files to use functions in them
 		require_once( ABSPATH .'wp-admin/includes/file.php' );
@@ -617,7 +618,7 @@ class DsgnWrksInstagram {
 		$import['post_type']     = $this->settings->user_option( 'post-type', 'post' );
 
 		// A filter so filter-savvy devs can modify the data before the post is created
-		$import                  = apply_filters( 'dsgnwrks_instagram_pre_save', $import, $p, $this->settings->get_option( $this->settings->userid ) );
+		$import                  = apply_filters( 'dsgnwrks_instagram_pre_save', $import, $p, $this->get_option( $this->settings->userid ) );
 
 		// and insert our new post
 		$import['post_id']       = $this->insertPost();
@@ -627,7 +628,7 @@ class DsgnWrksInstagram {
 			return $this->wp_error_message( $import['post_id'], false );
 
 		// an action to fire after each post is created.
-		do_action( 'dsgnwrks_instagram_post_save', $import['post_id'], $p, $import, $this->settings->get_option( $this->settings->userid ) );
+		do_action( 'dsgnwrks_instagram_post_save', $import['post_id'], $p, $import, $this->get_option( $this->settings->userid ) );
 
 		// Save terms from settings
 		$this->saveTerms();
@@ -1246,7 +1247,7 @@ class DsgnWrksInstagram {
 		// if we have an error or access token
 		if ( isset( $_GET['error'] ) || isset( $_GET['access_token'] ) )  {
 
-			$opts   = $this->settings->get_options();
+			$opts   = $this->get_options();
 			$users  = get_option( 'dsgnwrks_insta_users' );
 			$users  = ( !empty( $users ) ) ? $users : array();
 			$notice = array(
@@ -1305,7 +1306,7 @@ class DsgnWrksInstagram {
 		update_option( 'dsgnwrks_insta_users', $users );
 
 		// delete the user's data
-		$opts = $this->settings->get_options();
+		$opts = $this->get_options();
 		unset( $opts[urldecode( $_GET['delete-insta-user'] )] );
 		if ( isset( $opts['username'] ) && $opts['username'] == sanitize_title( urldecode( $_GET['delete-insta-user'] ) ) )
 		unset( $opts['username'] );
@@ -1359,52 +1360,8 @@ class DsgnWrksInstagram {
 		return $default;
 	}
 
-	/**
-	 * Checks if user has enabled Debug Mode
-	 * Requires DsgnWrks Instagram Debug plugin.
-	 * @since  1.2.1
-	 * @return bool debug on or off
-	 */
-	public function debugEnabled() {
-		return 'on' == $this->settings->get_option( 'debugmode' );
-	}
-
-	/**
-	 * Sets option stating user just sent an import debug (only want to send once!)
-	 * Requires DsgnWrks Instagram Debug plugin.
-	 * @since  1.2.1
-	 */
-	public function importDebugSet() {
-		if ( !$this->debugEnabled() )
-			return;
-		update_option( 'dsgnwrks-import-debug-sent', 'sent' );
-	}
-
-	/**
-	 * Checks if user sent an import debug already (only want to send once!)
-	 * Requires DsgnWrks Instagram Debug plugin.
-	 * @since  1.2.1
-	 * @return bool send debug
-	 */
-	public function importDebugCheck() {
-		if ( !$this->debugEnabled() )
-			return true;
-		return get_option( 'dsgnwrks-import-debug-sent' ) ? true : false;
-	}
-
-	/**
-	 * Sends me a debug report if Debug Mode is enabled
-	 * Requires DsgnWrks Instagram Debug plugin.
-	 * @since  1.2.1
-	 */
-	public function debugsend( $line, $title = false, $data = false ) {
-		if ( !$this->debugEnabled() )
-			return;
-		// default $data is options and users
-		$data  = !$data ? print_r( array( 'opts' => $this->settings->get_options(), 'users' => $this->get_users() ), true ) : print_r( $data, true );
-		// default title
-		$title = !$title ? 'no $opts[ $id ] - $opts & $users' : esc_attr( $title );
-		wp_mail( 'justin@dsgnwrks.pro', 'Instagram Debug - '. $title .' - line '. $line, $data );
+	public function get_option( $key ) {
+		return $this->settings->get_option( $key );
 	}
 
 	/**
@@ -1480,4 +1437,61 @@ function dw_get_instagram_image( $post_id = null, $size = 'post-thumbnail', $att
  */
 function dw_instagram_image( $size = 'post-thumbnail', $attr = '' ) {
 	echo dw_get_instagram_image( null, $size, $attr );
+}
+
+class DsgnWrksInstagram_Debug {
+
+	/**
+	 * Checks if user has enabled Debug Mode
+	 * Requires DsgnWrks Instagram Debug plugin.
+	 * @since  1.2.1
+	 * @return bool debug on or off
+	 */
+	protected function debugEnabled() {
+		return 'on' === $this->get_option( 'debugmode' );
+	}
+
+	/**
+	 * Sets option stating user just sent an import debug (only want to send once!)
+	 * Requires DsgnWrks Instagram Debug plugin.
+	 * @since  1.2.1
+	 */
+	protected function importDebugSet() {
+		if ( ! $this->debugEnabled() ) {
+			return true;
+		}
+
+		update_option( 'dsgnwrks-import-debug-sent', 'sent' );
+	}
+
+	/**
+	 * Checks if user sent an import debug already (only want to send once!)
+	 * Requires DsgnWrks Instagram Debug plugin.
+	 * @since  1.2.1
+	 * @return bool send debug
+	 */
+	protected function importDebugCheck() {
+		if ( ! $this->debugEnabled() ) {
+			return true;
+		}
+
+		return get_option( 'dsgnwrks-import-debug-sent' ) ? true : false;
+	}
+
+	/**
+	 * Sends me a debug report if Debug Mode is enabled
+	 * Requires DsgnWrks Instagram Debug plugin.
+	 * @since  1.2.1
+	 */
+	protected function debugsend( $line, $title = false, $data = false ) {
+		if ( ! $this->debugEnabled() ) {
+			return true;
+		}
+
+		// default $data is options and users
+		$data  = ! $data ? print_r( array( 'opts' => $this->get_options(), 'users' => $this->get_users() ), true ) : print_r( $data, true );
+		// default title
+		$title = ! $title ? 'no $opts[ $id ] - $opts & $users' : esc_attr( $title );
+		wp_mail( 'justin@dsgnwrks.pro', 'Instagram Debug - '. $title .' - line '. $line, $data );
+	}
 }

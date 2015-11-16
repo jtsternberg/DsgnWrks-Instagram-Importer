@@ -4,7 +4,7 @@
  * Handles settings page for DsgnWrks Instagram Importer
  * @since  1.3.0
  */
-class DsgnWrksInstagram_Settings {
+class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 
 	/**
 	 * @since 1.3.0
@@ -181,7 +181,7 @@ class DsgnWrksInstagram_Settings {
 
 		$update = false;
 
-		foreach ( $this->core->get_users() as $key => $user ) {
+		foreach ( $this->get_users() as $key => $user ) {
 
 			$remove_date_filter = $this->get_user_option( $user, 'remove-date-filter' );
 			if ( 'yes' == $remove_date_filter ) {
@@ -283,6 +283,10 @@ class DsgnWrksInstagram_Settings {
 		}
 
 		return $user_data;
+	}
+
+	public function get_users() {
+		return $this->core->get_users();
 	}
 
 }
