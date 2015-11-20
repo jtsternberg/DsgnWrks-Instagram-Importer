@@ -150,4 +150,8 @@ class Test_DsgnWrksInstagram extends DsgnWrksInstagram {
 		return parent::upload_media( $media_url, $filename, $attach_title, $size );
 	}
 
+	public function debugEnabled() {
+		return parent::debugEnabled();
+	}
+
 }
