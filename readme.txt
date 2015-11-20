@@ -36,6 +36,7 @@ Plugin is built with developers in mind and has many filters to manipulate the i
 * [photos.jkudish.com](http://photos.jkudish.com/)
 * [aaronrutley.com](http://www.aaronrutley.com/)
 * [photos.jtsternberg.com](http://photos.jtsternberg.com)
+* [bakersfieldvintage.com](http://bakersfieldvintage.com)
 
 (send me your site if you want to be featured here)
 
