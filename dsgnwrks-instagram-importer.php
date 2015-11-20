@@ -216,7 +216,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 */
 	public function instagram_oauth_redirect( $opts ) {
 		$return = add_query_arg( array( 'page' => $this->plugin_id ), admin_url( '/tools.php' ) );
-		$uri    = add_query_arg( 'return_uri', urlencode( $return ), 'http://dsgnwrks.pro/insta_oauth/' );
+		$uri    = add_query_arg( 'return_uri', urlencode( $return ), 'http://dsgnwrks.pro/insta_oauth' );
 		// Send them on with our redirect uri set.
 		wp_redirect( $uri );
 		exit;
@@ -1299,18 +1299,24 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 		// delete the user
 		$users = get_option( 'dsgnwrks_insta_users' );
+		$delete = false;
 		foreach ( $users as $key => $user ) {
-			if ( $user == urldecode( $_GET['delete-insta-user'] ) ) $delete = $key;
+			if ( $user == urldecode( $_GET['delete-insta-user'] ) ) {
+				$delete = $key;
+			}
 		}
-		unset( $users[ $delete ] );
-		update_option( 'dsgnwrks_insta_users', $users );
 
-		// delete the user's data
-		$opts = $this->get_options();
-		unset( $opts[urldecode( $_GET['delete-insta-user'] )] );
-		if ( isset( $opts['username'] ) && $opts['username'] == sanitize_title( urldecode( $_GET['delete-insta-user'] ) ) )
-		unset( $opts['username'] );
-		update_option( 'dsgnwrks_insta_options', $opts );
+		if ( $delete ) {
+			unset( $users[ $delete ] );
+			update_option( 'dsgnwrks_insta_users', $users );
+
+			// delete the user's data
+			$opts = $this->get_options();
+			unset( $opts[urldecode( $_GET['delete-insta-user'] )] );
+			if ( isset( $opts['username'] ) && $opts['username'] == sanitize_title( urldecode( $_GET['delete-insta-user'] ) ) )
+			unset( $opts['username'] );
+			update_option( 'dsgnwrks_insta_options', $opts );
+		}
 
 		// redirect to remove the query arg (to keep from repeat-deleting)
 		wp_redirect( remove_query_arg( 'delete-insta-user' ), 307 );
@@ -1370,6 +1376,10 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 	public function get_option( $key ) {
 		return $this->settings->get_option( $key );
+	}
+
+	public function get_options() {
+		return $this->settings->get_options();
 	}
 
 	/**
