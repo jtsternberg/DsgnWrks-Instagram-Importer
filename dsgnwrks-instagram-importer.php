@@ -410,11 +410,14 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 * Deletes all plugin options
 	 * @since 1.2.5
 	 */
-	static function delete_options() {
+	public static function delete_options() {
+		$deleted = false;
 		// delete options
-		delete_option( 'dsgnwrks_insta_options' );
-		delete_option( 'dsgnwrks_insta_users' );
-		delete_option( 'dsgnwrks-import-debug-sent' );
+		$deleted = delete_option( 'dsgnwrks_insta_options' ) ? $deleted : false;
+		$deleted = delete_option( 'dsgnwrks_insta_users' ) ? $deleted : false;
+		$deleted = delete_option( 'dsgnwrks-import-debug-sent' ) ? $deleted : false;
+
+		return $deleted;
 	}
 
 	/**
@@ -1371,7 +1374,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 			$opts   = $this->get_options();
 			$users  = get_option( 'dsgnwrks_insta_users' );
-			$users  = ( !empty( $users ) ) ? $users : array();
+			$users  = ( ! empty( $users ) ) ? $users : array();
 			$notice = array(
 				'notice' => false,
 				'class'  => 'updated',
@@ -1407,15 +1410,17 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 				}
 
 			}
+
 			// So notice isn't persistent past 60 seconds
 			set_transient( 'instagram_notification', true, 60 );
 			// redirect with notices
-			wp_redirect( add_query_arg( 'query_arg', 'updated', $this->plugin_page ), 307 );
+			wp_redirect( add_query_arg( $notice, $this->plugin_page ), 307 );
 			exit;
 		}
 
-		if ( !isset( $_GET['delete-insta-user'] ) )
+		if ( !isset( $_GET['delete-insta-user'] ) ) {
 			return;
+		}
 
 		// if we're requesting to delete a user
 

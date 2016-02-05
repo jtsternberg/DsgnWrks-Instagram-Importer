@@ -13,7 +13,6 @@ $current_user = $this->get_option( 'username' );
 	<h2>DsgnWrks <?php _e( 'Instagram Importer Options', 'dsgnwrks' ); ?></h2>
 	<div class="updated instagram-import-message hidden"><ol></ol><div class="spinner"></div></div>
 	<div id="dw-instagram-wrap" style="display: block; ">
-	<?php $this->display_notices(); ?>
 	<div class="clear"></div>
 
 		<div id="contextual-help-wrap" class="hidden" style="display: block; ">

@@ -72,6 +72,8 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 	public function fire_importer() {
 		if ( isset( $_GET['instaimport'] ) ) {
 			add_action( 'all_admin_notices', array( $this->core, 'import' ) );
+		} else {
+			add_action( 'all_admin_notices', array( $this, 'display_notices' ) );
 		}
 	}
 
@@ -109,7 +111,7 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 		}
 
 		if ( $notice ) {
-			echo '<div id="message" class="'. $class .'"><p>'. $notice .'</p></div>';
+			echo '<div id="message" class="'. sanitize_html_class( $_GET['class'] ) .'"><p>'. $notice .'</p></div>';
 		}
 
 	}
