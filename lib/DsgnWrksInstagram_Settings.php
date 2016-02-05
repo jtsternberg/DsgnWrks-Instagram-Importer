@@ -20,7 +20,7 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 	 */
 	public function settings() {
 		// create admin page
-		$plugin_page_hook = add_submenu_page( 'tools.php', $this->core->plugin_name, __( 'Instagram Importer', 'dsgnwrks' ), 'manage_options', $this->core->plugin_id, array( $this, 'settings_page' ) );
+		$plugin_page_hook = add_submenu_page( 'tools.php', $this->core->plugin_name, __( 'Instagram Importer', 'dsgnwrks' ), 'manage_options', $this->core->settings_slug, array( $this, 'settings_page' ) );
 		// enqueue styles
 		add_action( 'admin_print_styles-' . $plugin_page_hook, array( $this, 'styles' ) );
 		// enqueue scripts
@@ -82,7 +82,7 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 	 * @return string     Instagram importer options page with selected user
 	 */
 	protected function instimport_link( $id ) {
-		return add_query_arg( array( 'page' => $this->core->plugin_id, 'instaimport' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) );
+		return add_query_arg( array( 'page' => $this->core->settings_slug, 'instaimport' => urlencode( $id ) ), admin_url( $GLOBALS['pagenow'] ) );
 	}
 
 	/**

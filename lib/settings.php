@@ -113,7 +113,7 @@ $current_user = $this->get_option( 'username' );
 
 								<tr valign="top" class="info">
 								<th colspan="2">
-									<p><img class="alignleft" src="<?php echo esc_url( $this->user_option( 'profile_picture' ) ); ?>" width="66" height="66"/><?php _e( 'Successfully connected to Instagram' ); ?> &mdash; <span><a id="delete-<?php echo $user; ?>" class="delete-instagram-user" href="<?php echo add_query_arg( array( 'page' => $this->core->plugin_id, 'delete-insta-user' => urlencode( $user ) ), admin_url( $GLOBALS['pagenow'] ) ); ?>"><?php _e( 'Delete User?', 'dsgnwrks' ); ?></a></span></p>
+									<p><img class="alignleft" src="<?php echo esc_url( $this->user_option( 'profile_picture' ) ); ?>" width="66" height="66"/><?php _e( 'Successfully connected to Instagram' ); ?> &mdash; <span><a id="delete-<?php echo $user; ?>" class="delete-instagram-user" href="<?php echo add_query_arg( array( 'page' => $this->core->settings_slug, 'delete-insta-user' => urlencode( $user ) ), admin_url( $GLOBALS['pagenow'] ) ); ?>"><?php _e( 'Delete User?', 'dsgnwrks' ); ?></a></span></p>
 									<p>
 										<?php
 										printf( __( 'Please select the import filter options below. If none of the options are selected, all photos for %s will be imported.', 'dsgnwrks' ), '<strong id="full-username-'. $user .'">'. $this->user_option( 'full_username' ) .'</strong>' );

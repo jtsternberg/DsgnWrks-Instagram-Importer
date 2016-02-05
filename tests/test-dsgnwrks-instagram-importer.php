@@ -13,7 +13,7 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 
-		$this->importer = new Test_DsgnWrksInstagram;
+		$this->importer = Test_DsgnWrksInstagram::get_instance();
 		$this->post_id = $this->factory->post->create();
 	}
 
@@ -29,7 +29,7 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 		$this->assertTrue(
 			isset( $this->importer->plugin_version ) && $this->importer->plugin_version > 0
 			&& isset( $this->importer->plugin_name )
-			&& isset( $this->importer->plugin_id )
+			&& isset( $this->importer->settings_slug )
 		);
 	}
 
@@ -110,10 +110,16 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 
 		$result = $this->importer->upload_media( $media_urls, '1440878973' );
 
-		$expected = '<img width="50" height="50" src="http://example.org/wp-content/uploads/1440878973.jpg" class="attachment-50x50" alt="Test upload" /><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>';
+		$expected = version_compare( $GLOBALS['wp_version'], '4.4' ) < 0
+			? '<img width="50" height="50" src="http://example.org/wp-content/uploads/1440878973.jpg" class="attachment-50x50" alt="Test upload" /><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>'
+			: '<img width="50" height="50" src="http://example.org/wp-content/uploads/1440878973.jpg" class="attachment-50x50 size-50x50" alt="Test upload" srcset="http://example.org/wp-content/uploads/1440878973.jpg 150w, http://example.org/wp-content/uploads/1440878973-300x300.jpg 300w, http://example.org/wp-content/uploads/1440878973.jpg 640w" sizes="(max-width: 50px) 85vw, 50px" /><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>';
+
 		$this->assertEquals( $expected, str_replace( '-150x150.jpg', '.jpg', $result ) );
 
-		$expected = '<img width="640" height="640" src="http://example.org/wp-content/uploads/1440878973.jpg" class="insta-image" alt="Test upload" />';
+		$expected = version_compare( $GLOBALS['wp_version'], '4.4' ) < 0
+			? '<img width="640" height="640" src="http://example.org/wp-content/uploads/1440878973.jpg" class="insta-image" alt="Test upload" />'
+			: '<img width="640" height="640" src="http://example.org/wp-content/uploads/1440878973.jpg" class="insta-image" alt="Test upload" srcset="http://example.org/wp-content/uploads/1440878973-150x150.jpg 150w, http://example.org/wp-content/uploads/1440878973-300x300.jpg 300w, http://example.org/wp-content/uploads/1440878973.jpg 640w" sizes="(max-width: 709px) 85vw, (max-width: 909px) 67vw, (max-width: 984px) 61vw, (max-width: 1362px) 45vw, 600px" />';
+
 		$this->assertEquals( $expected, $this->importer->insta_image );
 
 		$this->assertEquals( 'http://example.org/wp-content/uploads/1440878973.jpg', $this->importer->img_src );
@@ -145,6 +151,25 @@ function deleteDirectory($dir) {
 }
 
 class Test_DsgnWrksInstagram extends DsgnWrksInstagram {
+
+	protected static $single_instance = null;
+
+	/**
+	 * Creates or returns an instance of this class.
+	 * @since  0.1.0
+	 * @return DsgnWrksInstagram A single instance of this class.
+	 */
+	public static function get_instance() {
+		if ( null === self::$single_instance ) {
+			self::$single_instance = new self();
+		}
+
+		return self::$single_instance;
+	}
+
+	protected function __construct() {
+		parent::__construct();
+	}
 
 	public function upload_media( $media_url = '', $filename = '', $attach_title = '', $size = '' ) {
 		return parent::upload_media( $media_url, $filename, $attach_title, $size );

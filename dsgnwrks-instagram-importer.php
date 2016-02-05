@@ -6,27 +6,146 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.3.6
+Version: 1.3.7
 */
 
 class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
-	public $plugin_version = '1.3.6';
-	public $plugin_id      = 'dsgnwrks-instagram-importer-settings';
-	public $pre            = 'dsgnwrks_instagram_';
+	/**
+	 * Plugin version string
+	 *
+	 * @var string
+	 */
+	public $plugin_version = '1.3.7';
+
+	/**
+	 * Plugin name
+	 *
+	 * @var string
+	 */
+	public $plugin_name = '';
+
+	/**
+	 * URL to plugin directory
+	 *
+	 * @var string
+	 */
+	public $plugin_url = '';
+
+	/**
+	 * Path to plugin directory
+	 *
+	 * @var string
+	 */
+	public $plugin_path = '';
+
+	/**
+	 * Plugin settings page slug
+	 *
+	 * @var string
+	 */
+	public $settings_slug = 'dsgnwrks-instagram-importer-settings';
+
+	/**
+	 * URL to plugin settings page
+	 *
+	 * @var string
+	 */
+	public $plugin_page = '';
+
+	/**
+	 * Whether a manual import has been initiated.
+	 *
+	 * @var boolean
+	 */
+	public $manual_import  = false;
+
+	/**
+	 * Plugin prefix
+	 *
+	 * @var string
+	 */
+	public $pre = 'dsgnwrks_instagram_';
+
+	/**
+	 * Instagram API URL
+	 *
+	 * @var string
+	 */
 	public $instagram_api  = 'https://api.instagram.com/v1/users/';
+
+	/**
+	 * Type of media being imported.
+	 *
+	 * @var string
+	 */
 	public $type           = 'image';
+
+	/**
+	 * wp_insert_post import array
+	 *
+	 * @var array
+	 */
 	public $import         = array();
-	public $plugin_page    = false;
+
+	/**
+	 * Whether current request is a cron request
+	 *
+	 * @var boolean
+	 */
 	public $doing_cron     = false;
+
+	/**
+	 * The instagram image markup
+	 *
+	 * @var string
+	 */
 	public $insta_image    = '';
+
+	/**
+	 * The instagram image URL src
+	 *
+	 * @var string
+	 */
 	public $img_src        = '';
-	public $defaults;
+
+	/**
+	 * Default setting values
+	 *
+	 * @var array
+	 */
+	public $defaults = array();
+
+	/**
+	 * @var DsgnWrksInstagram_Embed object
+	 */
+	public $embed;
+
+	/**
+	 * @var DsgnWrksInstagram_Settings object
+	 */
+	public $settings;
+
+	protected static $single_instance = null;
+
+	/**
+	 * Creates or returns an instance of this class.
+	 * @since  0.1.0
+	 * @return DsgnWrksInstagram A single instance of this class.
+	 */
+	public static function get_instance() {
+		if ( null === self::$single_instance ) {
+			self::$single_instance = new self();
+		}
+
+		return self::$single_instance;
+	}
+
 	/**
 	 * Sets up our plugin
 	 * @since  1.1.0
 	 */
-	function __construct() {
+	protected function __construct() {
 
 		// user option defaults
 		$this->defaults = array(
@@ -48,20 +167,22 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		$this->plugin_url    = plugins_url( '/', __FILE__ );
 		$this->plugin_path   = trailingslashit( plugin_dir_path( __FILE__ ) );
 		// Get the url for the plugin admin page
-		$this->plugin_page   = add_query_arg( 'page', $this->plugin_id, admin_url( '/tools.php' ) );
+		$this->plugin_page   = add_query_arg( 'page', $this->settings_slug, admin_url( '/tools.php' ) );
 		$this->manual_import = isset( $_GET['instaimport'] ) ? sanitize_title( urldecode( $_GET['instaimport'] ) ) : false;
 
 		require_once( $this->plugin_path . 'lib/DsgnWrksInstagram_Embed.php' );
 		$this->embed = new DsgnWrksInstagram_Embed( $this );
 		require_once( $this->plugin_path . 'lib/DsgnWrksInstagram_Settings.php' );
 		$this->settings = new DsgnWrksInstagram_Settings( $this );
+
+		$this->hooks();
 	}
 
 	/**
 	 * Holds the WordPress hooks
 	 * @since  1.3.0
 	 */
-	function hooks() {
+	protected function hooks() {
 		// i18n
 		load_plugin_textdomain( 'dsgnwrks', false, dirname( plugin_basename( __FILE__ ) ) );
 
@@ -215,7 +336,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 * @since  1.1.0
 	 */
 	public function instagram_oauth_redirect( $opts ) {
-		$return = add_query_arg( array( 'page' => $this->plugin_id ), admin_url( '/tools.php' ) );
+		$return = add_query_arg( array( 'page' => $this->settings_slug ), admin_url( '/tools.php' ) );
 		$uri    = add_query_arg( 'return_uri', urlencode( $return ), 'http://dsgnwrks.pro/insta_oauth' );
 		// Send them on with our redirect uri set.
 		wp_redirect( $uri );
@@ -239,16 +360,15 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 * @since 1.2.9
 	 */
 	public static function deactivate() {
-		global $DsgnWrksInstagram;
+		$instagram = DsgnWrksInstagram::get_instance();
 
-		if ( ! current_user_can( 'activate_plugins' ) || ! isset( $DsgnWrksInstagram->pre ) ) {
+		if ( ! current_user_can( 'activate_plugins' ) || ! isset( $instagram->pre ) ) {
 			return;
 		}
 
-
-		if ( $timestamp = wp_next_scheduled( $DsgnWrksInstagram->pre .'cron' ) ) {
-			$frequency = $DsgnWrksInstagram->settings->get_option( 'frequency' );
-			wp_unschedule_event( $timestamp, $frequency, $DsgnWrksInstagram->pre .'cron' );
+		if ( $timestamp = wp_next_scheduled( $instagram->pre .'cron' ) ) {
+			$frequency = $instagram->settings->get_option( 'frequency' );
+			wp_unschedule_event( $timestamp, $frequency, $instagram->pre .'cron' );
 		}
 	}
 
@@ -588,14 +708,16 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 * @since  1.1.0
 	 */
 	protected function save_img_post() {
-
 		global $user_ID;
 
-		$p                       = &$this->pic;
-		// init our $import settings array var
-		$import                  = &$this->import;
+		$p = &$this->pic;
+
+		// reset and init our $import settings array var
+		$this->import = array();
+		$import = &$this->import;
+
 		// check for a location saved
-		$this->loc               = ( isset( $p->location->name ) ) ? $p->location->name : '';
+		$this->loc = ( isset( $p->location->name ) ) ? $p->location->name : '';
 
 		// Update post title
 		$this->formatTitle();
@@ -1418,8 +1540,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 }
 
 // init our class
-$GLOBALS['DsgnWrksInstagram'] = new DsgnWrksInstagram;
-$GLOBALS['DsgnWrksInstagram']->hooks();
+DsgnWrksInstagram::get_instance();
 
 /**
  * Template tag that returns html markup for instagram imported image. Works like `get_the_post_thumbnail`
@@ -1501,7 +1622,7 @@ class DsgnWrksInstagram_Debug {
 	 * Requires DsgnWrks Instagram Debug plugin.
 	 * @since  1.2.1
 	 */
-	protected function debugsend( $line, $title = false, $data = false ) {
+	public function debugsend( $line, $title = false, $data = false ) {
 		if ( ! $this->debugEnabled() ) {
 			return true;
 		}

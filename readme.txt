@@ -11,7 +11,7 @@ Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 4.4
 Stable tag: 1.3.0
-Version: 1.3.6
+Version: 1.3.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -90,6 +90,10 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 2. After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.
 
 == Changelog ==
+
+= 1.3.7 =
+* Update: fix unit tests.
+* Update: Switch to a singleton for primary plugin class. (this helps address some issues with the debug plugin)
 
 = 1.3.6 =
 * Bug fix: Fix "Call to undefined method DsgnWrksInstagram::get_options()" error.
@@ -193,6 +197,10 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 == Upgrade Notice ==
+
+= 1.3.7 =
+* Update: fix unit tests.
+* Update: Switch to a singleton for primary plugin class. (this helps address some issues with the debug plugin)
 
 = 1.3.6 =
 * Bug fix: Fix "Call to undefined method DsgnWrksInstagram::get_options()" error.
