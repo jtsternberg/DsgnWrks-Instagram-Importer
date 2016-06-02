@@ -113,7 +113,8 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 		$expected_parts = array(
 			'<img ',
 			' src="',
-			'1440878973.jpg',
+			'1440878973',
+			'.jpg',
 			' class="attachment',
 			' alt="Test upload" ',
 			'/><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>',
@@ -137,6 +138,10 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 		);
 
 		foreach ( $expected_parts as $part ) {
+			if ( false === strpos( $result, $part ) ) {
+				// Just a way to see what part failed, and why.
+				$this->assertEquals( $result, $part );
+			}
 			$this->assertTrue( false !== strpos( $this->importer->insta_image, $part ) );
 		}
 
