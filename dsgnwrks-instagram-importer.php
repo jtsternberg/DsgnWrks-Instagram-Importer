@@ -695,8 +695,9 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 				continue;
 
 			// if the photo is already saved, move on
-			if ( $this->image_exists( $this->pic->created_time ) )
+			if ( $this->image_exists( $this->pic->created_time ) ) {
 				continue;
+			}
 
 			// if we've made it this far, let's save our post
 			$messages['messages'][] = $this->save_img_post();
@@ -1387,7 +1388,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 				// setup our user data and save it
 				if ( isset( $_GET['username'] ) && !in_array( $_GET['username'], $users ) ) {
-					$sanitized_user                           = sanitize_title( $_GET['username'] );
+					$sanitized_user                           = sanitize_text_field( $_GET['username'] );
 					$users[]                                  = $sanitized_user;
 					$opts[ $sanitized_user ]['access_token']    = $_GET['access_token'];
 					// $opts[ $sanitized_user ]['bio']             = isset( $_GET['bio'] ) ? $_GET['bio'] : ''; // more trouble than it's worth.
