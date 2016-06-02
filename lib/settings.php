@@ -45,7 +45,7 @@ $current_user = $this->get_option( 'username' );
 
 								?>
 								<li class="instagram-tab<?php echo $class; ?>" id="tab-instagram-user-<?php echo $user; ?>">
-									<a href="#instagram-user-<?php echo $user; ?>"><?php echo $this->user_option( 'full_username' ); ?></a>
+									<a href="#instagram-user-<?php echo sanitize_title( $user ); ?>"><?php echo $this->user_option( 'full_username' ); ?></a>
 								</li>
 								<?php
 							}
@@ -98,7 +98,7 @@ $current_user = $this->get_option( 'username' );
 						$complete_date = $this->user_option( 'mm' ) && $this->user_option( 'dd' ) && $this->user_option( 'yy' );
 
 						?>
-						<div id="instagram-user-<?php echo $user; ?>" class="help-tab-content<?php echo $active; ?>">
+						<div id="instagram-user-<?php echo sanitize_title( $user ); ?>" class="help-tab-content<?php echo $active; ?>">
 
 							<?php
 							if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] == 'true' ) {

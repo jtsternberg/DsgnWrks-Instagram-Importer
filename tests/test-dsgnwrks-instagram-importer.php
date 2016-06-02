@@ -120,6 +120,10 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 		);
 
 		foreach ( $expected_parts as $part ) {
+			if ( false === strpos( $result, $part ) ) {
+				// Just a way to see what part failed, and why.
+				$this->assertEquals( $result, $part );
+			}
 			$this->assertTrue( false !== strpos( $result, $part ) );
 		}
 

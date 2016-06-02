@@ -9,7 +9,7 @@
 **Donate link:** http://j.ustin.co/rYL89n 
 **Requires at least:** 3.1  
 **Tested up to:** 4.4  
-**Version:** 1.3.8  
+**Version:** 1.3.9  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -90,6 +90,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 ## Changelog ##
+
+### 1.3.9
+* Fix issues where Instagram usernames with certain characters could not show the settings panel.
 
 ### 1.3.8
 * Fix issues where Instagram usernames with certain characters could not import media.

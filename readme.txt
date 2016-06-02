@@ -11,7 +11,7 @@ Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 4.4
 Stable tag: 1.3.0
-Version: 1.3.8
+Version: 1.3.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -90,6 +90,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 2. After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.
 
 == Changelog ==
+
+= 1.3.9 =
+* Fix issues where Instagram usernames with certain characters could not show the settings panel.
 
 = 1.3.8 =
 * Fix issues where Instagram usernames with certain characters could not import media.
@@ -200,6 +203,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 == Upgrade Notice ==
+
+= 1.3.9 =
+* Fix issues where Instagram usernames with certain characters could not show the settings panel.
 
 = 1.3.8 =
 * Fix issues where Instagram usernames with certain characters could not import media.
