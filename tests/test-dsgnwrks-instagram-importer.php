@@ -123,9 +123,10 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 		foreach ( $expected_parts as $part ) {
 			if ( false === strpos( $result, $part ) ) {
 				// Just a way to see what part failed, and why.
-				$this->assertEquals( $result, $part );
+				$this->assertEquals( '$result: ' . $result, $part );
+			} else {
+				$this->assertTrue( false !== strpos( $result, $part ) );
 			}
-			$this->assertTrue( false !== strpos( $result, $part ) );
 		}
 
 		$expected_parts = array(
@@ -138,11 +139,12 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 		);
 
 		foreach ( $expected_parts as $part ) {
-			if ( false === strpos( $result, $part ) ) {
+			if ( false === strpos( $this->importer->insta_image, $part ) ) {
 				// Just a way to see what part failed, and why.
-				$this->assertEquals( $result, $part );
+				$this->assertEquals( '$this->importer->insta_image: ' . $this->importer->insta_image, $part );
+			} else {
+				$this->assertTrue( false !== strpos( $this->importer->insta_image, $part ) );
 			}
-			$this->assertTrue( false !== strpos( $this->importer->insta_image, $part ) );
 		}
 
 		$this->assertEquals( 'http://example.org/wp-content/uploads/1440878973.jpg', $this->importer->img_src );
