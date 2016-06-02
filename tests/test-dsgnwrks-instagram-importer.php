@@ -110,17 +110,31 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 
 		$result = $this->importer->upload_media( $media_urls, '1440878973' );
 
-		$expected = version_compare( $GLOBALS['wp_version'], '4.4' ) < 0
-			? '<img width="50" height="50" src="http://example.org/wp-content/uploads/1440878973.jpg" class="attachment-50x50" alt="Test upload" /><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>'
-			: '<img width="50" height="50" src="http://example.org/wp-content/uploads/1440878973.jpg" class="attachment-50x50 size-50x50" alt="Test upload" srcset="http://example.org/wp-content/uploads/1440878973.jpg 150w, http://example.org/wp-content/uploads/1440878973-300x300.jpg 300w, http://example.org/wp-content/uploads/1440878973.jpg 640w" sizes="(max-width: 50px) 85vw, 50px" /><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>';
+		$expected_parts = array(
+			'<img ',
+			' src="',
+			'1440878973.jpg',
+			' class="attachment',
+			' alt="Test upload" ',
+			'/><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>',
+		);
 
-		$this->assertEquals( $expected, str_replace( '-150x150.jpg', '.jpg', $result ) );
+		foreach ( $expected_parts as $part ) {
+			$this->assertTrue( false !== strpos( $result, $part ) );
+		}
 
-		$expected = version_compare( $GLOBALS['wp_version'], '4.4' ) < 0
-			? '<img width="640" height="640" src="http://example.org/wp-content/uploads/1440878973.jpg" class="insta-image" alt="Test upload" />'
-			: '<img width="640" height="640" src="http://example.org/wp-content/uploads/1440878973.jpg" class="insta-image" alt="Test upload" srcset="http://example.org/wp-content/uploads/1440878973-150x150.jpg 150w, http://example.org/wp-content/uploads/1440878973-300x300.jpg 300w, http://example.org/wp-content/uploads/1440878973.jpg 640w" sizes="(max-width: 709px) 85vw, (max-width: 909px) 67vw, (max-width: 984px) 61vw, (max-width: 1362px) 45vw, 600px" />';
+		$expected_parts = array(
+			'<img ',
+			' src="',
+			'1440878973.jpg',
+			' class="insta-image" ',
+			' alt="Test upload" ',
+			'/>',
+		);
 
-		$this->assertEquals( $expected, $this->importer->insta_image );
+		foreach ( $expected_parts as $part ) {
+			$this->assertTrue( false !== strpos( $this->importer->insta_image, $part ) );
+		}
 
 		$this->assertEquals( 'http://example.org/wp-content/uploads/1440878973.jpg', $this->importer->img_src );
 	}
