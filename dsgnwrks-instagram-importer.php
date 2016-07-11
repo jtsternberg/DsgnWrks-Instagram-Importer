@@ -1323,7 +1323,6 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 */
 	protected function message_wrap( $message_text ) {
 		return '<li>'. $message_text .'</li>';
-
 	}
 
 	/**
@@ -1339,9 +1338,11 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		$open  = '[if-'.$tag.']';
 		$close = '[/if-'.$tag.']';
 		$tag   = '**'.$tag.'**';
+		$pos1  = strpos( $content, $open );
+		$pos2  = strpos( $content, $close );
 
 		// if we have conditional markup
-		if ( ( $pos1 = strpos( $content, $open ) ) && ( $pos2 = strpos( $content, $close ) ) ) {
+		if ( false !== $pos1 && false !== $pos2 ) {
 
 			if ( !empty( $replace ) ) {
 				// replace tag with our photo data
@@ -1360,6 +1361,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		else {
 			$content = str_replace( $tag, $replace, $content );
 		}
+
 		// return our modified data
 		return apply_filters( 'dsgnwrks_instagram_'.$tag, $content, $replace );
 	}
