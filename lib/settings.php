@@ -20,9 +20,9 @@ $current_user = $this->get_option( 'username' );
 			<div id="contextual-help-columns">
 				<div class="contextual-help-tabs">
 					<?php if ( ! $this->get_options() ) { ?>
-						<h2>Get Started</h2>
+						<h2><?php esc_html_e( 'Get Started', 'dsgnwrks' ); ?></h2>
 					<?php } else { ?>
-						<h2>Users</h2>
+						<h2><?php esc_html_e( 'Users', 'dsgnwrks' ); ?></h2>
 					<?php } ?>
 
 					<ul>
@@ -250,9 +250,13 @@ $current_user = $this->get_option( 'username' );
 									<?php
 									$args = array(
 										'textarea_name' => 'dsgnwrks_insta_options['.$user.'][post_content]',
-										'editor_class' => 'post_text',
+										'editor_class'  => 'post_text',
 										'textarea_rows' => 6,
-										'wpautop' => false
+										'wpautop'       => false,
+										'media_buttons' => false,
+										'teeny'         => true,
+										'tinymce'       => false,
+										'quicktags'     => true,
 									);
 									wp_editor( $this->user_option( 'post_content', '' ), 'dsgnwrks_insta_options_'.$user.'_post_content', $args );
 									?>
