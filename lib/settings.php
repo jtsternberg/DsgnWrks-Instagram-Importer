@@ -415,7 +415,7 @@ $current_user = $this->get_option( 'username' );
 									}
 								}
 
-								$userdata = array( 'access_token', 'bio', 'website', 'profile_picture', 'full_name', 'id', 'full_username' ) ;
+								$userdata = array( 'access_token', 'id', 'full_username' ) ;
 								$trans = get_transient( $user .'-instaimportdone' );
 
 								?>
