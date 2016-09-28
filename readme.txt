@@ -11,7 +11,7 @@ Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 4.4
 Stable tag: 1.3.0
-Version: 1.3.9
+Version: 1.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -90,6 +90,14 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 2. After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.
 
 == Changelog ==
+
+= 1.4.0 =
+* Fix condition markup, if condition is the first bit in the content.
+* Allow deletion of users when the key is 0. hat-tip to Pablo de la Vega: [http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer/#comment-12208](http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer/#comment-12208)
+* Fix issue w/ cached user data not being stored to transient.
+* Delete user-data transient when deleting user.
+* Cleanup wysiwyg editor instance.
+* No longer need bio, website, fullname, and profile_picture from authentication callback as we fetch in a separate request (or data is not needed).
 
 = 1.3.9 =
 * Fix issues where Instagram usernames with certain characters could not show the settings panel.
@@ -203,6 +211,14 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+* Fix condition markup, if condition is the first bit in the content.
+* Allow deletion of users when the key is 0. hat-tip to Pablo de la Vega: [http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer/#comment-12208](http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer/#comment-12208)
+* Fix issue w/ cached user data not being stored to transient.
+* Delete user-data transient when deleting user.
+* Cleanup wysiwyg editor instance.
+* No longer need bio, website, fullname, and profile_picture from authentication callback as we fetch in a separate request (or data is not needed).
 
 = 1.3.9 =
 * Fix issues where Instagram usernames with certain characters could not show the settings panel.
