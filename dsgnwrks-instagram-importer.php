@@ -1429,22 +1429,26 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 		// delete the user
 		$users = get_option( 'dsgnwrks_insta_users' );
+		$user_to_delete = urldecode( $_GET['delete-insta-user'] );
+
 		$delete = false;
 		foreach ( $users as $key => $user ) {
-			if ( $user == urldecode( $_GET['delete-insta-user'] ) ) {
+			if ( $user == $user_to_delete ) {
 				$delete = $key;
 			}
 		}
 
-		if ( false === $delete ) {
+		if ( false !== $delete ) {
 			unset( $users[ $delete ] );
 			update_option( 'dsgnwrks_insta_users', $users );
 
 			// delete the user's data
 			$opts = $this->get_options();
-			unset( $opts[urldecode( $_GET['delete-insta-user'] )] );
-			if ( isset( $opts['username'] ) && $opts['username'] == sanitize_title( urldecode( $_GET['delete-insta-user'] ) ) )
-			unset( $opts['username'] );
+			delete_transient( 'dw_instauser_'. $opts[ $user_to_delete ]['id'] );
+			unset( $opts[ $user_to_delete ] );
+			if ( isset( $opts['username'] ) && $opts['username'] == sanitize_title( $user_to_delete ) ) {
+				unset( $opts['username'] );
+			}
 			update_option( 'dsgnwrks_insta_options', $opts );
 		}
 
