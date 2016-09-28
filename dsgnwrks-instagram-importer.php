@@ -1436,7 +1436,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			}
 		}
 
-		if ( $delete ) {
+		if ( false === $delete ) {
 			unset( $users[ $delete ] );
 			update_option( 'dsgnwrks_insta_users', $users );
 
