@@ -278,7 +278,7 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 		if ( $response ) {
 			$response = json_decode( $response );
 			if ( isset( $response->data ) ) {
-				$user_data = isset( $response->data );
+				$user_data = isset( $response->data ) ? $response->data : 0;
 				// Store to transient for a week.
 				set_transient( 'dw_instauser_'. $opts['id'], $user_data, WEEK_IN_SECONDS );
 			}
