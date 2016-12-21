@@ -9,7 +9,7 @@ Author URI: http://jtsternberg.com/about
 Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
-Tested up to: 4.4
+Tested up to: 4.7
 Stable tag: 1.3.0
 Version: 1.4.0
 License: GPLv2 or later
@@ -31,12 +31,12 @@ Plugin is built with developers in mind and has many filters to manipulate the i
 
 = Sites That Have Used the Importer =
 
-* [stevenfurtick.com](http://www.stevenfurtick.com/)
+* [bigredfro.com](http://bigredfro.com/category/funny-instagram-pictures/)
 * [instadre.com](http://instadre.com/)
 * [photos.jkudish.com](http://photos.jkudish.com/)
-* [aaronrutley.com](http://www.aaronrutley.com/)
 * [photos.jtsternberg.com](http://photos.jtsternberg.com)
-* [bakersfieldvintage.com](http://bakersfieldvintage.com)
+* [bakersfieldvintage.com](http://bakersfieldvintage.com/recent/)
+* [fernwehblues.de/category/momente](http://www.fernwehblues.de/category/momente)
 
 (send me your site if you want to be featured here)
 
