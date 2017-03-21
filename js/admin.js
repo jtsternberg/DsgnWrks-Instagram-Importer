@@ -2,6 +2,14 @@ window.dwinstagram = window.dwinstagram || {};
 
 jQuery(document).ready(function($) {
 	var dw = window.dwinstagram;
+	var spinner = $('.spinner-wrap, .spinner-wrap .spinner');
+	var strong = spinner.next('strong').hide();
+	var messagesDiv = $('.updated.instagram-import-message');
+	var msgSpinner = $('.spinner', messagesDiv);
+	var msgList = $('ol', messagesDiv);
+	var doingloop = false;
+	var import_continue = true;
+
 
 	var log = function() {
 		log.history = log.history || [];
@@ -114,30 +122,24 @@ jQuery(document).ready(function($) {
 		return false;
 	});
 
-	var spinner = $('.spinner-wrap, .spinner-wrap .spinner');
-	var strong = spinner.next('strong').hide();
-	var messagesDiv = $('.updated.instagram-import-message');
-	var msgSpinner = $('.spinner', messagesDiv);
-	var msgList = $('ol', messagesDiv);
-	var doingloop = false;
-	var import_continue = true;
-
-	// Stop button
-	$('#insta-import-stop').click(function() {
-		import_continue = false;
-		$(this).val('Stopping...');
-	});
-
 	// when clicking "import"
-	$( '#dw-instagram-wrap' ).on( 'click', '.button-secondary.import-button', function(event) {
+	$( document.body )
+	.on( 'click', '.button-secondary.import-button', function(event) {
 		event.preventDefault();
 
 		var data = $(this).data();
-
 		spinner.show();
+		import_continue = true;
 
 		// import our photos
 		instagramAjax(data.instagramuser, false, data.reimport);
+	})
+	// Stop button
+	.on( 'click', '#insta-import-stop', function( evt ) {
+		evt.preventDefault();
+		import_continue = false;
+
+		$(this).text( dw.stopping );
 	});
 
 	function instagramAjax(userid, next_url, reimport) {
@@ -169,59 +171,77 @@ jQuery(document).ready(function($) {
 			window.scrollTo(0, 0);
 		}
 
-		if ( response.success && import_continue ) {
+		if ( response.success ) {
 			var next_url = typeof response.data.next_url !== 'undefined' ? response.data.next_url : false;
 			var userid = typeof response.data.userid !== 'undefined' ? response.data.userid : false;
 			var reimport = typeof response.data.reimport !== 'undefined' ? response.data.reimport : false;
 
 			log('response.data.messages', response.data.messages);
+
 			msgList.append(response.data.messages);
 			messagesDiv.show();
 			messagesDiv.find( '.dw-all-done' ).remove();
 
+			if ( ! messagesDiv.find( '#insta-import-stop' ).length ) {
+				messagesDiv.append('<div class="clear"><a class="button" id="insta-import-stop" href="#">'+ dw.cancel_import +'</a></div>');
+			} else {
+				messagesDiv.find( '#insta-import-stop' ).show().text( dw.cancel_import );
+			}
+
 			// If we want to loop again
-			if ( next_url && userid ) {
+			if ( next_url && userid && import_continue ) {
 				log('we want to loop again');
 				msgSpinner.addClass( 'is-active' ).show();
 				doingloop = true;
 				return instagramAjax(userid, next_url, reimport);
+			} else if ( next_url && userid && ! import_continue ) {
+				dwAllDone();
 			} else {
 				window.scrollTo(0, 0);
 
 				// ok, we're done looping
 				msgSpinner.removeClass( 'is-active' ).hide();
+				messagesDiv.find( '#insta-import-stop' ).hide();
 
 				if ( ! $( '.instagram-import-message ol li' ).length ) {
 					$('#icon-tools + h2').after( '<div id="message" class="updated"><p>'+ dw.no_new_to_import +'</p></div>' );
 				}
 
 				if ( ! messagesDiv.find( '#instagram-remove-messages' ).length ) {
-					messagesDiv.show().append('<div class="clear"><a class="button" id="instagram-remove-messages" href="#">Hide</a></div>');
+					messagesDiv.show().append('<div class="clear"><a class="button" id="instagram-remove-messages" href="#">'+ dw.hide +'</a></div>');
 				}
 			}
 
 		}
 		else {
-			window.scrollTo(0, 0);
-
-			if ( doingloop ) {
-				// ok, we're done looping
-				msgSpinner.removeClass( 'is-active' ).hide();
-				if ( ! messagesDiv.find( '#instagram-remove-messages' ).length ) {
-					messagesDiv.append('<div class="clear"><a class="button" id="instagram-remove-messages" href="#">Hide</a><span class="dw-all-done">&nbsp;&nbsp;All done!</span></div>');
-				} else {
-
-					messagesDiv.find( '#instagram-remove-messages' ).after('<span class="dw-all-done">&nbsp;&nbsp;All done!</span>');
-				}
-
-			}
-			// Just a standard "no photos" response
-			else {
-
-				$('#icon-tools + h2').after( '<div id="message" class="updated"><p>'+ dw.no_new_to_import +'</p></div>' );
-			}
+			dwAllDone();
 		}
 	}
+
+	function dwAllDone() {
+		window.scrollTo(0, 0);
+
+		if ( doingloop ) {
+			// ok, we're done looping
+			msgSpinner.removeClass( 'is-active' ).hide();
+			messagesDiv.find( '#insta-import-stop' ).hide();
+			if ( ! messagesDiv.find( '#instagram-remove-messages' ).length ) {
+				messagesDiv.append('<div class="clear"><a class="button" id="instagram-remove-messages" href="#">'+ dw.hide +'</a><span class="dw-all-done">&nbsp;&nbsp;'+ dw.all_done +'</span></div>');
+			} else {
+
+				if ( ! messagesDiv.find( '#instagram-remove-messages + .dw-all-done' ).length ) {
+					messagesDiv.find( '#instagram-remove-messages' ).after('<span class="dw-all-done">&nbsp;&nbsp;'+ dw.all_done +'</span>');
+				}
+			}
+
+		}
+		// Just a standard "no photos" response
+		else {
+
+			$('#icon-tools + h2').after( '<div id="message" class="updated"><p>'+ dw.no_new_to_import +'</p></div>' );
+		}
+	}
+
 	// ajax error handler
 	function instagramError(xhr, ajaxOptions, thrownError) {
 		console.warn(xhr.status);

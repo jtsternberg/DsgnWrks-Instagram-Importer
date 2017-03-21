@@ -59,6 +59,10 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 			'delete_text'      => __( 'Are you sure you want to delete user', 'dsgnwrks' ),
 			'logout_text'      => __( 'Logging out of Instagram', 'dsgnwrks' ),
 			'no_new_to_import' => __( 'No new Instagram shots to import', 'dsgnwrks' ),
+			'cancel_import'    => __( 'Cancel', 'dsgnwrks' ),
+			'hide'             => __( 'Hide', 'dsgnwrks' ),
+			'stopping'         => __( 'Stopping...', 'dsgnwrks' ),
+			'all_done'         => __( 'All Done!', 'dsgnwrks' ),
 			'deleted'          => $deleted,
 			'debug'            => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
 		);
