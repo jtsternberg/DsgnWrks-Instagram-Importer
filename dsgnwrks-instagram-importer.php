@@ -1042,8 +1042,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 * @since 1.2.2
 	 */
 	protected function savePostmeta() {
-
-		foreach ( array(
+		$meta = apply_filters( 'dsgnwrks_instagram_post_meta_pre_save', array(
 			'dsgnwrks_instagram_likes'    => $this->pic->likes,
 			'dsgnwrks_instagram_comments' => $this->pic->comments,
 			'dsgnwrks_instagram_hashtags' => $this->pic->tags,
@@ -1061,7 +1060,9 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			'instagram_type'              => $this->pic->type,
 			'instagram_user'              => $this->pic->user,
 			'instagram_username'          => isset( $this->pic->user->username ) ? $this->pic->user->username : '',
-		) as $key => $value ) {
+		) );
+
+		foreach ( $meta as $key => $value ) {
 			update_post_meta( $this->import['post_id'], $key, $value );
 		}
 
