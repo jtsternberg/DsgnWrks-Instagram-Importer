@@ -286,15 +286,11 @@ jQuery(document).ready(function($) {
 		events : {
 			'click thead input' : 'toggleAll',
 			'change [type="checkbox"]' : 'maybeEnableButton',
-			'click tfoot button' : 'deleteAll'
+			'click tfoot button' : 'deleteMany'
 		},
 
 		initialize: function() {
-			var self = this;
-			// create a sub view for every model in the collection
-			this.collection.each( function( model ) {
-				self.rows.push( new dw.Views.Row({ model: model }) );
-			});
+			this.listenTo( this.collection, 'destroy', this.render );
 
 			this.$el.show();
 			this.render();
@@ -309,11 +305,12 @@ jQuery(document).ready(function($) {
 			this.$( 'td [type="checkbox"]' ).prop( 'checked', checked );
 		},
 
-		deleteAll: function( evt ) {
+		deleteMany: function( evt ) {
 			var self = this;
 			var $checked = this.$( '.deleted-blacklist-row [type="checkbox"]:checked' );
 
 			if ( $checked.length && confirm( $( evt.currentTarget ).data( 'confirm' ) ) ) {
+				var ids = {};
 				$checked.each( function() {
 					var id = $( this ).val();
 
@@ -321,21 +318,58 @@ jQuery(document).ready(function($) {
 						return model.get( 'id' ) === id;
 					} );
 
-					model.trigger( 'maybeDelete' );
+					if ( 1 === $checked.length ) {
+						model.doDelete();
+					} else {
+						ids[ id ] = model.get( 'nonce' );
+						model.trigger( 'hide' );
+					}
 				} );
+
+				if ( $checked.length > 1 ) {
+					$.post( window.ajaxurl, {
+						action: 'dw_insta_blacklist_remove_many',
+						ids: ids
+					} ).done( function( response ) {
+						if ( response && response.data ) {
+							if ( response.data.removed ) {
+								self.loopIdsAndTrigger( response.data.removed, 'destroy' );
+							}
+							if ( response.data.not_removed ) {
+								self.loopIdsAndTrigger( response.data.not_removed, 'show' );
+							}
+						}
+					});
+				}
 			}
+		},
+
+		loopIdsAndTrigger: function( ids, eventName ) {
+			var self = this;
+			_.each( ids, function( id ) {
+				var model = self.collection.find( function( model ) {
+					return model.get( 'id' ) === id;
+				} );
+
+				if ( model ) {
+					model.trigger( eventName, model );
+				}
+			} );
+
 		},
 
 		rowsHtml: function() {
 			var addedElements = document.createDocumentFragment();
-			_.each( this.rows, function( row ) {
-				addedElements.appendChild( row.render().el );
+			this.collection.each( function( model ) {
+				var view = new dw.Views.Row({ model: model });
+				addedElements.appendChild( view.render().el );
 			});
 
 			return addedElements;
 		},
 
 		render: function() {
+			console.warn('this.collection', this.collection.length);
 			this.$( 'tbody' ).html( this.rowsHtml() );
 		}
 	});
@@ -353,6 +387,8 @@ jQuery(document).ready(function($) {
 
 		initialize: function() {
 			this.listenTo( this.model, 'maybeDelete', this.doDelete );
+			this.listenTo( this.model, 'hide', this.hide );
+			this.listenTo( this.model, 'show', this.show );
 		},
 
 		// Render the row
@@ -378,7 +414,7 @@ jQuery(document).ready(function($) {
 			var destroyError = function( model, response ) {
 				log( 'destroyError response', response );
 				// whoops.. re-show row
-				self.$el.fadeIn( 300 );
+				self.show();
 			};
 
 			// Ajax success handler
@@ -394,11 +430,20 @@ jQuery(document).ready(function($) {
 			};
 
 			// Optimistically hide row
-			self.$el.fadeOut( 300 );
+			self.hide();
 
 			// Remove model and fire ajax event
 			this.model.destroy({ success: destroySuccess, error: destroyError, wait: true });
+		},
+
+		show: function() {
+			this.$el.fadeIn( 300 );
+		},
+
+		hide: function() {
+			this.$el.fadeOut( 300 );
 		}
+
 	});
 
 	dw.init = function() {

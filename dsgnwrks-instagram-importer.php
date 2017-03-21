@@ -205,6 +205,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . 'dsgnwrks-instagram-importer.php' ), array( $this, 'settings_link' ) );
 		add_action( 'before_delete_post', array( __CLASS__, 'maybe_add_to_deleted_ids' ) );
 		add_action( 'wp_ajax_dw_insta_blacklist', array( __CLASS__, 'ajax_remove_from_deleted_ids' ) );
+		add_action( 'wp_ajax_dw_insta_blacklist_remove_many', array( __CLASS__, 'ajax_remove_many_from_deleted_ids' ) );
 		add_action( 'current_screen', array( $this, 'redirects' ) );
 		add_filter( 'wp_default_editor', array( $this, 'html_default' ) );
 		add_action( 'all_admin_notices', array( $this, 'show_cron_notice' ) );
@@ -1490,6 +1491,31 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		}
 
 		wp_send_json_error();
+	}
+
+	public static function ajax_remove_many_from_deleted_ids() {
+		if ( empty( $_REQUEST['ids'] ) || ! is_array( $_REQUEST['ids'] ) ) {
+			wp_send_json_error();
+		}
+
+		$deleted = self::get_deleted_ids();
+		$ids = $_REQUEST['ids'];
+		$not_removed = array();
+
+		foreach ( $ids as $id => $nonce ) {
+			if ( isset( $deleted[ $id ] ) && wp_verify_nonce( $nonce, $id ) ) {
+				unset( $deleted[ $id ] );
+			} else {
+				$not_removed[] = $id;
+			}
+		}
+
+		$updated = update_option( 'dw_instagram_deleted_ids', $deleted, false );
+		if ( $updated ) {
+			wp_send_json_success( $not_removed );
+		} else {
+			wp_send_json_error( $not_removed );
+		}
 	}
 
 	/**
