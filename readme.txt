@@ -80,6 +80,12 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 * Yes, you can do so by adding this to your theme's functions.php file:
 `add_filter( 'dsgnwrks_instagram_post_excerpt', '__return_empty_string' );`
 
+= Is it possible to store the location data in the recommended WordPress GPS coordinates format/standard? =
+* Yes, use this gist: [https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1](https://https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1)
+
+= Is it possible to modify where the instagram meta data is stored? =
+* Yes, review this gist: [https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1](https://https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1)
+
 = ?? =
 * If you run into a problem or have a question, contact me ([contact form](http://j.ustin.co/scbo43) or [@jtsternberg on twitter](http://j.ustin.co/wUfBD3)). I'll add them here.
 
