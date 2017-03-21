@@ -21,6 +21,7 @@
 }
 .updated.instagram-import-message li {
 	min-height: 60px;
+	position: relative;
 }
 .updated.instagram-import-message strong {
 	display: block;
@@ -44,6 +45,12 @@
 	clear: both;
 	padding: 12px 0 0;
 	min-width: 130px;
+}
+
+.updated.instagram-import-message a.dashicons-trash {
+	position: absolute;
+	top: 8px;
+	right: 8px;
 }
 
 form.instagram-importer table {

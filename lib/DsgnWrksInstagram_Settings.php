@@ -63,6 +63,8 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 			'hide'             => __( 'Hide', 'dsgnwrks' ),
 			'stopping'         => __( 'Stopping...', 'dsgnwrks' ),
 			'all_done'         => __( 'All Done!', 'dsgnwrks' ),
+			'confirm_trash'    => __( 'Are you sure you would like to send this item to the trash?', 'dsgnwrks' ),
+			'failed_trash'     => __( 'Failed to send this item to the trash.', 'dsgnwrks' ),
 			'deleted'          => $deleted,
 			'debug'            => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
 		);
@@ -188,7 +190,7 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 					</td>
 				</tr>
 				<?php if ( ( $deleted = DsgnWrksInstagram::get_deleted_ids() ) && ! empty( $deleted ) ) : ?>
-					<?php add_action( 'admin_footer', array( $this, 'output_js_template' ) ); ?>
+					<?php add_action( 'admin_footer', array( $this, 'output_blacklist_js_template' ) ); ?>
 					<tr valign="top" class="deleted-blacklist-info info js-show">
 						<th colspan="2">
 							<p><strong><?php _e( 'Import Blacklist', 'dsgnwrks' ); ?></strong></p>
@@ -224,7 +226,7 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 		<?php
 	}
 
-	public function output_js_template() {
+	public function output_blacklist_js_template() {
 		?>
 		<script type="text/html" id="tmpl-dw-deleted-blacklist-row">
 			<th scope="row" class="check-column">

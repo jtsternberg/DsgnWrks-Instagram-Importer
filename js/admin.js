@@ -140,6 +140,19 @@ jQuery(document).ready(function($) {
 		import_continue = false;
 
 		$(this).text( dw.stopping );
+	})
+	.on( 'click', '.instagram-import-message a.dashicons-trash', function( evt ) {
+		evt.preventDefault();
+		var $this = $( this );
+		if ( confirm( dw.confirm_trash ) ) {
+			$this.parents( 'li' ).fadeOut( 300 );
+			$.get( $this.attr( 'href' ), function() {
+				$this.parents( 'li' ).remove();
+			} ).fail(function() {
+				$this.parents( 'li' ).fadeIn( 300 );
+				alert( dw.failed_trash );
+			} );
+		}
 	});
 
 	function instagramAjax(userid, next_url, reimport) {
@@ -245,7 +258,8 @@ jQuery(document).ready(function($) {
 	// ajax error handler
 	function instagramError(xhr, ajaxOptions, thrownError) {
 		console.warn(xhr.status);
-		console.warn(thrownError);
+		console.warn('thrownError', thrownError);
+		console.warn('ajaxOptions', ajaxOptions);
 		spinner.hide();
 		strong.show();
 		setTimeout( function(){
