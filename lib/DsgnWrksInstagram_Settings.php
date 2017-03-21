@@ -44,11 +44,22 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 	 * @since  1.1.0
 	 */
 	public function scripts() {
-		wp_enqueue_script( 'dsgnwrks-instagram-importer-admin', $this->core->plugin_url .'js/admin.js', array( 'jquery' ), $this->core->plugin_version );
+		wp_enqueue_script( 'dsgnwrks-instagram-importer-admin', $this->core->plugin_url .'js/admin.js', array( 'backbone', 'wp-util' ), $this->core->plugin_version );
 
+		$deleted_ids = DsgnWrksInstagram::get_deleted_ids();
+		$deleted = array();
+		if ( ! empty( $deleted_ids ) ) {
+			foreach ( $deleted_ids as $deleted_id => $deleted_data ) {
+				$deleted_data['id'] = $deleted_id;
+				$deleted_data['nonce'] = wp_create_nonce( $deleted_id );
+				$deleted[] = $deleted_data;
+			}
+		}
 		$data = array(
 			'delete_text' => __( 'Are you sure you want to delete user', 'dsgnwrks' ),
-			'logout_text' => __( 'Logging out of Instagram', 'dsgnwrks' )
+			'logout_text' => __( 'Logging out of Instagram', 'dsgnwrks' ),
+			'deleted'     => $deleted,
+			'debug'       => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
 		);
 		// get registered post-types
 		$cpts = get_post_types( array( 'public' => true ) );
@@ -171,11 +182,55 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 
 					</td>
 				</tr>
+				<?php if ( ( $deleted = DsgnWrksInstagram::get_deleted_ids() ) && ! empty( $deleted ) ) : ?>
+					<?php add_action( 'admin_footer', array( $this, 'output_js_template' ) ); ?>
+					<tr valign="top" class="deleted-blacklist-info info js-show">
+						<th colspan="2">
+							<p><strong><?php _e( 'Import Blacklist', 'dsgnwrks' ); ?></strong></p>
+							<p><?php _e( 'The below instagram posts have been deleted and will not be re-imported unless removed from this list.', 'dsgnwrks' ); ?></p>
+						</th>
+					</tr>
+					<tr valign="top" id="deleted-blacklist" class="deleted-blacklist" style="display:none;">
+						<td colspan="2">
+							<table class="widefat striped">
+								<thead>
+									<tr>
+										<th id="blacklist-check-toggle"><input id="dw-select-all-deleted" type="checkbox"></th>
+										<th><?php _e( 'Title', 'dsgnwrks' ); ?></th>
+									</tr>
+								</thead>
+								<tbody></tbody>
+								<tfoot>
+									<tr>
+										<td colspan="2">
+											<button disabled class="button-secondary" type="button" data-confirm="<?php esc_attr_e( 'Are you sure you want to allow these items to be imported again?', 'dsgnwrks' ); ?>"><?php _e( 'Remove selected from blacklist', 'dsgnwrks' ); ?></button>
+										</td>
+									</tr>
+								</tfoot>
+							</table>
+						</td>
+					</tr>
+				<?php endif; ?>
 			</tbody>
 		</table>
 		<p class="submit">
 			<input type="submit" name="save" class="button-primary save" value="<?php _e( 'Save', 'dsgnwrks' ) ?>" />
 		</p>
+		<?php
+	}
+
+	public function output_js_template() {
+		?>
+		<script type="text/html" id="tmpl-dw-deleted-blacklist-row">
+			<th scope="row" class="check-column">
+				<label class="screen-reader-text" for="cb-select-{{ data.id }}"><?php printf( __( 'Select %s', 'dsgnwrks' ), '{{ data.title }}' ); ?></label>
+				<input id="cb-select-{{ data.id }}" type="checkbox" name="deleted[]" value="{{ data.id }}">
+			</th>
+			<td>
+				<a href="{{ data.url }}" target="_blank">{{ data.title }}</a>
+				<a href="#" title="<?php esc_attr_e( 'Remove from import blacklist', 'dsgnwrks' ); ?>" class="dashicons dashicons-trash delete-from-blacklist" data-confirm="<?php esc_attr_e( 'Are you sure you want to allow this item to be imported again?', 'dsgnwrks' ); ?>"></a>
+			</td>
+		</script>
 		<?php
 	}
 

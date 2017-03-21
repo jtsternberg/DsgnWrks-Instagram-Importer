@@ -1,10 +1,21 @@
-jQuery(document).ready(function($) {
+window.dwinstagram = window.dwinstagram || {};
 
-	if (window.dwinstagram.cpts !== undefined) {
+jQuery(document).ready(function($) {
+	var dw = window.dwinstagram;
+
+	var log = function() {
+		log.history = log.history || [];
+		log.history.push( arguments );
+		if ( dw.debug && window.console && window.console.log ) {
+			window.console.log( Array.prototype.slice.call(arguments) );
+		}
+	};
+
+	if ( window.dwinstagram.cpts !== undefined) {
 
 		show_tax_blocks_init();
 
-		$('.instagram-tab a').click(function() {
+		$('.instagram-tab a').click( function() {
 			show_tax_blocks_init($(this).text());
 		});
 
@@ -19,7 +30,7 @@ jQuery(document).ready(function($) {
 		cpts = dwinstagram.cpts;
 
 		if (user !== undefined) {
-			select = $('#instagram-post-type-'+user),
+			select = $('#instagram-post-type-'+user);
 			curr_cpt = $('#instagram-post-type-'+user).val();
 		}
 
@@ -31,7 +42,7 @@ jQuery(document).ready(function($) {
 		});
 	}
 
-	if ( !( $('.instagram-tab.active').length > 0 ) ) {
+	if ( ! $('.instagram-tab.active').length ) {
 		$('.instagram-tab:first, .help-tab-content:first').addClass('active');
 	}
 
@@ -149,7 +160,6 @@ jQuery(document).ready(function($) {
 
 	// ajax success handler
 	function instagramSuccess(response) {
-		// console.log(response);
 		spinner.hide();
 
 		$('#message').remove();
@@ -160,13 +170,13 @@ jQuery(document).ready(function($) {
 			var next_url = typeof response.data.next_url !== 'undefined' ? response.data.next_url : false;
 			var userid = typeof response.data.userid !== 'undefined' ? response.data.userid : false;
 
-			console.log(response.data.messages);
+			log(response.data.messages);
 			messagesDiv.show();
 			msgList.append(response.data.messages);
 
 			// If we want to loop again
 			if ( next_url && userid ) {
-				console.log('we want to loop again');
+				log('we want to loop again');
 				msgSpinner.show();
 				doingloop = true;
 				return instagramAjax(userid, next_url);
@@ -208,3 +218,164 @@ jQuery(document).ready(function($) {
 	});
 
 });
+
+( function( window, document, $, dw, undefined ) {
+	'use strict';
+
+	dw.Model = Backbone.Model.extend({
+		defaults: {
+			id    : 0,
+			url   : '',
+			title : '',
+			nonce : ''
+		},
+
+		url: function() {
+			// add query vars to our ajax url
+			return window.ajaxurl +'?action=dw_insta_blacklist&id='+ encodeURIComponent( this.get( 'id' ) ) +'&nonce=' + encodeURIComponent( this.get( 'nonce' ) );
+		}
+	} );
+
+	dw.Collection = Backbone.Collection.extend({ model : dw.Model });
+
+	dw.Views = {};
+	dw.Views.Table = Backbone.View.extend({
+		rows: [],
+		events : {
+			'click thead input' : 'toggleAll',
+			'change [type="checkbox"]' : 'maybeEnableButton',
+			'click tfoot button' : 'deleteAll'
+		},
+
+		initialize: function() {
+			var self = this;
+			// create a sub view for every model in the collection
+			this.collection.each( function( model ) {
+				self.rows.push( new dw.Views.Row({ model: model }) );
+			});
+
+			this.$el.show();
+			this.render();
+		},
+
+		maybeEnableButton: function( evt ) {
+			this.$( 'tfoot button' ).prop( 'disabled', ! this.$( '.deleted-blacklist-row [type="checkbox"]:checked' ).length );
+		},
+
+		toggleAll: function( evt ) {
+			var checked = $( evt.currentTarget ).is( ':checked' );
+			this.$( 'td [type="checkbox"]' ).prop( 'checked', checked );
+		},
+
+		deleteAll: function( evt ) {
+			var self = this;
+			var $checked = this.$( '.deleted-blacklist-row [type="checkbox"]:checked' );
+
+			if ( $checked.length && confirm( $( evt.currentTarget ).data( 'confirm' ) ) ) {
+				$checked.each( function() {
+					var id = $( this ).val();
+
+					var model = self.collection.find( function( model ) {
+						return model.get( 'id' ) === id;
+					} );
+
+					model.trigger( 'maybeDelete' );
+				} );
+			}
+		},
+
+		rowsHtml: function() {
+			var addedElements = document.createDocumentFragment();
+			_.each( this.rows, function( row ) {
+				addedElements.appendChild( row.render().el );
+			});
+
+			return addedElements;
+		},
+
+		render: function() {
+			this.$( 'tbody' ).html( this.rowsHtml() );
+		}
+	});
+
+	dw.Views.Row = Backbone.View.extend({
+		tagName : 'tr',
+		className : 'deleted-blacklist-row',
+		id : function() {
+			return 'blacklist-item-' + this.model.get( 'id' );
+		},
+		template : wp.template( 'dw-deleted-blacklist-row' ),
+		events : {
+			'click a.delete-from-blacklist' : 'deleteIt'
+		},
+
+		initialize: function() {
+			this.listenTo( this.model, 'maybeDelete', this.doDelete );
+		},
+
+		// Render the row
+		render: function() {
+			var html = this.template( this.model.toJSON() );
+			this.$el.html( html );
+			return this;
+		},
+
+		// Perform the Denial
+		deleteIt: function( evt ) {
+			evt.preventDefault();
+			if ( confirm( $( evt.currentTarget ).data( 'confirm' ) ) ) {
+				this.doDelete();
+			}
+		},
+
+		// Perform the Denial
+		doDelete: function() {
+			var self = this;
+
+			// Ajax error handler
+			var destroyError = function( model, response ) {
+				log( 'destroyError response', response );
+				// whoops.. re-show row
+				self.$el.fadeIn( 300 );
+			};
+
+			// Ajax success handler
+			var destroySuccess = function( model, response ) {
+				// If our response reports success
+				if ( response.success ) {
+					// remove our row completely
+					self.$el.remove();
+				} else {
+					// whoops, error
+					destroyError( model, response );
+				}
+			};
+
+			// Optimistically hide row
+			self.$el.fadeOut( 300 );
+
+			// Remove model and fire ajax event
+			this.model.destroy({ success: destroySuccess, error: destroyError, wait: true });
+		}
+	});
+
+	dw.init = function() {
+		var $table = $( document.getElementById( 'deleted-blacklist' ) );
+		if ( ! $table.length ) {
+			return;
+		}
+
+		// Get our attachment model data from the dom, and initiate the collection
+		var collection = new dw.Collection( dw.deleted );
+
+		// Send the model data to our table view
+		dw.collectionView = new dw.Views.Table({
+			collection: collection,
+			el: $table
+		});
+
+	};
+
+	$( dw.init );
+
+} )( window, document, jQuery, window.dwinstagram );

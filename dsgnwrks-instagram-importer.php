@@ -196,8 +196,8 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		register_deactivation_hook( __FILE__, array( __CLASS__, 'deactivate' ) );
 		// Load the plugin settings link shortcut.
 		add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . 'dsgnwrks-instagram-importer.php' ), array( $this, 'settings_link' ) );
-		// @TODO
-		// add_action( 'before_delete_post', array( $this, 'save_id_on_delete' ), 10, 1 );
+		add_action( 'before_delete_post', array( __CLASS__, 'maybe_add_to_deleted_ids' ) );
+		add_action( 'wp_ajax_dw_insta_blacklist', array( __CLASS__, 'ajax_remove_from_deleted_ids' ) );
 		add_action( 'current_screen', array( $this, 'redirects' ) );
 		add_filter( 'wp_default_editor', array( $this, 'html_default' ) );
 		add_action( 'all_admin_notices', array( $this, 'show_cron_notice' ) );
@@ -607,6 +607,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 		// get instagram feed
 		$response = wp_remote_get( $api_url, array( 'sslverify' => false ) );
+
 		// if feed causes a wp_error object, send the error back
 		if ( is_wp_error( $response ) ) {
 			return $this->wp_error_message( $response );
@@ -696,6 +697,10 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 			// if the photo is already saved, move on
 			if ( $this->image_exists( $this->pic->created_time ) ) {
+				continue;
+			}
+
+			if ( self::is_in_deleted_blacklist( $this->pic->id ) ) {
 				continue;
 			}
 
@@ -1036,7 +1041,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			'instagram_location_long'     => isset( $this->pic->location->longitude ) ? $this->pic->location->longitude : '',
 			'instagram_location_name'     => isset( $this->pic->location->name ) ? $this->pic->location->name : '',
 			'instagram_users_in_photo'    => $this->pic->users_in_photo,
-			'instagram_link'              => esc_url( $this->pic->link ),
+			'instagram_link'              => esc_url_raw( $this->pic->link ),
 			'instagram_embed_code'        => $this->embed->instagram_embed( array( 'src' => $this->pic->link, 'type' => $this->type ) ),
 			'instagram_type'              => $this->pic->type,
 			'instagram_user'              => $this->pic->user,
@@ -1461,11 +1466,64 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 */
 	public function max_quality($arg) { return 100; }
 
+	public static function ajax_remove_from_deleted_ids() {
+		if ( empty( $_REQUEST['id'] ) || empty( $_REQUEST['nonce'] ) || ! wp_verify_nonce( $_REQUEST['nonce'], $_REQUEST['id'] ) ) {
+			wp_send_json_error();
+		}
+
+		if ( self::remove_from_deleted_ids( sanitize_text_field( $_REQUEST['id'] ) ) ) {
+			wp_send_json_success();
+		}
+
+		wp_send_json_error();
+	}
+
 	/**
-	 * @TODO When deleteing a post, importer should not import them again
+	 * When deleteing a post, importer should not import them again, so store in blacklist.
 	 */
-	public function save_id_on_delete( $post_id ) {
-		// get_post_meta( $post_id, 'instagram_created_time', true );
+	public static function maybe_add_to_deleted_ids( $post_id ) {
+		$insta_id = get_post_meta( $post_id, 'dsgnwrks_instagram_id', 1 );
+		if ( ! empty( $insta_id ) ) {
+			self::add_to_deleted_ids( $insta_id, array(
+				'title' => wp_trim_words( get_the_title( $post_id ), 8 ),
+				'url'   => get_post_meta( $post_id, 'instagram_link', 1 ),
+			) );
+		}
+	}
+
+	public static function get_deleted_ids() {
+		$deleted = get_option( 'dw_instagram_deleted_ids' );
+		if ( ! is_array( $deleted ) ) {
+			$deleted = array();
+		}
+
+		return $deleted;
+	}
+
+	public static function is_in_deleted_blacklist( $insta_id ) {
+		$deleted = self::get_deleted_ids();
+		return isset( $deleted[ $insta_id ] );
+	}
+
+	public static function add_to_deleted_ids( $insta_id, $args ) {
+		$deleted = self::get_deleted_ids();
+		$args = wp_parse_args( $args, array(
+			'title' => $insta_id,
+			'url'   => '',
+			'time'  => time(),
+		) );
+		$deleted[ $insta_id ] = $args;
+		return update_option( 'dw_instagram_deleted_ids', $deleted, false );
+	}
+
+	public static function remove_from_deleted_ids( $insta_id ) {
+		$deleted = self::get_deleted_ids();
+		if ( ! isset( $deleted[ $insta_id ] ) ) {
+			return false;
+		}
+		unset( $deleted[ $insta_id ] );
+
+		return update_option( 'dw_instagram_deleted_ids', $deleted, false );
 	}
 
 	public function getter( $property ) {

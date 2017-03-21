@@ -70,9 +70,28 @@ form.instagram-importer table {
 #universal-options .form-table th {
 	width: 360px;
 }
-#universal-options .form-table td {
-	max-width: 280px;
+#universal-options .form-table th {
+	width: 360px;
 }
+#universal-options #deleted-blacklist th {
+	width: auto;
+	padding: 11px 0 0 3px;
+}
+#universal-options #deleted-blacklist th, #universal-options #deleted-blacklist td {
+	background: #fff;
+	padding-bottom: 11px;
+}
+#universal-options #deleted-blacklist .striped tbody > :nth-child(odd) th,
+#universal-options #deleted-blacklist .striped tbody > :nth-child(odd) td {
+	background: #f6fbfd;
+}
+#universal-options #deleted-blacklist > td {
+	padding: 0;
+}
+#deleted-blacklist table {
+	border-spacing: 0;
+}
+
 .instagram-importer .form-table td {
 	max-width: 230px;
 	margin-bottom: 9px;
