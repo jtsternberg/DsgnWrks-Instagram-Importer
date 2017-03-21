@@ -1215,6 +1215,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		add_filter( 'wp_get_attachment_image_attributes', array( $this, 'cb_store_img_src' ) );
 		$img_element = wp_get_attachment_image( $attach_id, $imgsize, false, array(
 			'class' => 'insta-image',
+			'alt'   => esc_attr( get_the_title( $attach_id ) ),
 		) );
 		remove_filter( 'wp_get_attachment_image_attributes', array( $this, 'cb_store_img_src' ) );
 

@@ -112,8 +112,8 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 			'1440878973',
 			'.jpg',
 			' class="attachment',
-			' alt="Test upload" ',
-			'/><strong>&ldquo;Test upload&rdquo;</strong> <em> imported and created successfully.</em>',
+			'&ldquo;Test upload&rdquo;</a>',
+			'imported and created successfully.',
 		);
 
 		foreach ( $expected_parts as $part ) {
@@ -128,7 +128,7 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 		$expected_parts = array(
 			'<img ',
 			' src="',
-			'1440878973.jpg',
+			'1440878973',
 			' class="insta-image" ',
 			' alt="Test upload" ',
 			'/>',
@@ -143,7 +143,7 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertEquals( 'http://example.org/wp-content/uploads/1440878973.jpg', $this->importer->img_src );
+		$this->assertRegExp( '~example.org\/wp-content\/uploads\/1440878973(.*?).jpg~', $this->importer->img_src );
 	}
 
 }
