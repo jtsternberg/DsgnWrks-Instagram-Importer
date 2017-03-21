@@ -1040,7 +1040,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			'instagram_type'              => $this->pic->type,
 			'instagram_user'              => $this->pic->user,
 			'instagram_username'          => isset( $this->pic->user->username ) ? $this->pic->user->username : '',
-		) );
+		), $this->pic );
 
 		foreach ( $meta as $key => $value ) {
 			update_post_meta( $this->import['post_id'], $key, $value );
