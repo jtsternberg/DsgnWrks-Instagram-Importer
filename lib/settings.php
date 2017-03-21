@@ -442,6 +442,7 @@ $current_user = $this->get_option( 'username' );
 							<p class="submit">
 								<input type="submit" id="save-<?php echo sanitize_title( $user ); ?>" name="save" class="button-primary save" value="<?php _e( 'Save' ) ?>" />
 								<a href="<?php echo $this->instimport_link( $this->user_option( 'full_username' ) ); ?>" class="button-secondary import-button" id="import-<?php echo $user; ?>" data-instagramuser="<?php echo urlencode( $this->user_option( 'full_username' ) ); ?>"><?php _e( 'Import', 'dsgnwrks' ); ?></a>
+								<a href="<?php echo $this->instimport_link( $this->user_option( 'full_username' ) ); ?>&reimport=1" class="button-secondary import-button alignright" id="reimport-<?php echo $user; ?>" data-instagramuser="<?php echo urlencode( $this->user_option( 'full_username' ) ); ?>" data-reimport="1"><?php _e( 'Check for missing imports', 'dsgnwrks' ); ?></a>
 								<p class="spinner-wrap hidden"><?php _e( '...Importing. This could take a while.', 'dsgnwrks' ); ?><span class="spinner"></span></p><strong class="warning hidden"><?php _e( 'ERROR!', 'dsgnwrks' ); ?></strong>
 							</p>
 						</div>

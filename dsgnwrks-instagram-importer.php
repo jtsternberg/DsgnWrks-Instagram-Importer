@@ -96,6 +96,13 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	public $doing_cron     = false;
 
 	/**
+	 * Whether to reimport from the beginning.
+	 *
+	 * @var boolean
+	 */
+	public $reimport     = false;
+
+	/**
 	 * The instagram image markup
 	 *
 	 * @var string
@@ -281,10 +288,10 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			$this->next_url = $_REQUEST['next_url'];
 		}
 
-		$notices = $this->import( $_REQUEST['instagram_user'] );
+		$notices = $this->import( $_REQUEST['instagram_user'], ! empty( $_REQUEST['reimport'] ) );
 
 		if ( ! $notices ) {
-			wp_send_json_error( '<div id="message" class="updated"><p>'. __( 'No new Instagram shots to import', 'dsgnwrks' ) .'</p></div>' );
+			wp_send_json_error();
 		}
 
 		$next_url = false;
@@ -298,12 +305,15 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			$messages .= $notice['notice'];
 		}
 
-		// send back the messages
-		wp_send_json_success( array(
-			'messages' => $messages,
+		$data = array(
+			'messages' => false === stripos( $messages, __( 'No new Instagram shots to import', 'dsgnwrks' ) ) ? $messages : '',
 			'next_url' => $next_url,
 			'userid'   => $_REQUEST['instagram_user'],
-		) );
+			'reimport' => $this->reimport,
+		);
+
+		// send back the messages
+		wp_send_json_success( $data );
 	}
 
 	/**
@@ -423,29 +433,33 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	/**
 	 * Do not publicize imported posts
 	 * @since  1.1.0
-	 * @param  string $userid Instagram user id
+	 * @param  string $userid   Instagram user id
+	 * @param  bool   $reimport Whether to loop through all photos to import.
 	 */
-	public function import( $userid = false ) {
+	public function import( $userid = false, $reimport = false ) {
 
 		// If filtered to be true, do not bypass publicize
 		if ( apply_filters( 'dsgnwrks_instagram_jetpack_publicize', false ) ) {
-			return $this->_import( $userid );
+			return $this->_import( $userid, $reimport );
 		}
 
 		// Do not publicize these posts (Jetpack)
 		add_filter( 'wpas_submit_post?', '__return_false' );
 
-		return $this->_import( $userid );
+		$return = $this->_import( $userid, $reimport );
 
 		remove_filter( 'wpas_submit_post?', '__return_false' );
+
+		return $return;
 	}
 
 	/**
 	 * Start the engine. begins our import and generates feedback messages
 	 * @since  1.1.0
 	 * @param  string $userid Instagram user id
+	 * @param  bool   $reimport Whether to loop through all photos to import.
 	 */
-	public function _import( $userid = false ) {
+	public function _import( $userid = false, $reimport = false ) {
 
 		// Only import if the correct flags have been set
 		if ( ! $userid && ! $this->manual_import ) {
@@ -459,6 +473,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		$this->doing_ajax = isset( $_REQUEST['instagram_user'] );
 		// if a $userid was passed in, & no ajax $_REQUEST data we know we're doing a cron scheduled event
 		$this->doing_cron = $userid && ! $this->doing_ajax ? true : false;
+		$this->reimport   = ! empty( $reimport );
 
 		// We need an id and access token to keep going
 		if ( ! ( isset( $user_opts['id'] ) && isset( $user_opts['access_token'] ) ) ) {
@@ -490,13 +505,14 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 		// if we're not doing cron or ajax, show our notice now
 		if ( ! $userid ) {
-			if ( stripos( $notice, __( 'No new Instagram shots to import', 'dsgnwrks' ) ) === false )
+			if ( stripos( $notice, __( 'No new Instagram shots to import', 'dsgnwrks' ) ) === false ) {
 				$message_class .= ' instagram-import-message';
+			}
 
 			echo '<div id="message" class="'. $message_class .'"><ol>'. $notice .'</ol></div>';
 		}
 		// otherwise...
-		elseif ( stripos( $notice, __( 'No new Instagram shots to import', 'dsgnwrks' ) ) === false ) {
+		elseif ( false === stripos( $notice, __( 'No new Instagram shots to import', 'dsgnwrks' ) ) || $this->reimport ) {
 
 			// if we're doing ajax, we'll send the messages back now
 			if ( $this->doing_ajax ) {
@@ -505,13 +521,10 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 				if ( !empty( $messages['next_url'] ) ) {
 					$notices['next_url'] = $messages['next_url'];
-					set_transient( 'get_option', $messages['next_url'] );
+					// set_transient( 'get_option', $messages['next_url'] );
 				}
 
-				if ( $this->doing_ajax ) {
-					return $notices;
-				}
-
+				return $notices;
 			}
 			// otherwise we're doing a cron job,
 			// so save our imported photo notices to an option
@@ -576,6 +589,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 		// ok, let's access instagram's api
 		$messages = $this->import_messages( $this->api_url );
+
 		// if the api gave us a "next" url, let's loop through till we've hit all pages
 		// while ( !empty( $messages['next_url'] ) && $loop ) {
 		if ( ! empty( $messages['next_url'] ) ) {

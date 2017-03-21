@@ -222,17 +222,6 @@ img.alignleft {
 
 .tools_page_dsgnwrks-instagram-importer-settings .spinner-wrap {
 	margin-top: 0;
-	/*display: block !important;*/
-}
-.tools_page_dsgnwrks-instagram-importer-settings .spinner {
-	margin-bottom: -4px;
-	line-height: 1;
-	opacity: 1;
-	width: 220px;
-	height: 10px;
-	background: url(../images/loading.gif) no-repeat top right;
-	background-size: 220px 10px;
-	/*display: block !important;*/
 }
 
 .instagram-importer .warning.hidden {

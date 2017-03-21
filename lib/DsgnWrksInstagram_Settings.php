@@ -56,10 +56,11 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 			}
 		}
 		$data = array(
-			'delete_text' => __( 'Are you sure you want to delete user', 'dsgnwrks' ),
-			'logout_text' => __( 'Logging out of Instagram', 'dsgnwrks' ),
-			'deleted'     => $deleted,
-			'debug'       => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
+			'delete_text'      => __( 'Are you sure you want to delete user', 'dsgnwrks' ),
+			'logout_text'      => __( 'Logging out of Instagram', 'dsgnwrks' ),
+			'no_new_to_import' => __( 'No new Instagram shots to import', 'dsgnwrks' ),
+			'deleted'          => $deleted,
+			'debug'            => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
 		);
 		// get registered post-types
 		$cpts = get_post_types( array( 'public' => true ) );
