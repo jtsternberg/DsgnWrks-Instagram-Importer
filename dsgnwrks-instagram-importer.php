@@ -1160,9 +1160,12 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			return $this->upload_error( __LINE__, $media_url );
 		}
 
-		// return a success message
-		return dw_get_instagram_image( $import['post_id'], array( 50, 50 ) ) .'<strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em>';
+		$excerpted_title = wp_trim_words( $import['post_title'], 22 );
+		$edit_link       = get_edit_post_link( $import['post_id'] );
+		$trash_link      = get_delete_post_link( $import['post_id'] );
 
+		// return a success message
+		return '<li id="imported-'. $import['post_id'] .'" title="'. esc_attr( sprintf( __( '&ldquo;%s&rdquo;imported and created successfully.', 'dsgnwrks' ), $import['post_title'] ) ) .'">' . dw_get_instagram_image( $import['post_id'], array( 50, 50 ) ) .'<strong><a target="_blank" href="'. esc_url( $edit_link ) .'">&ldquo;'. $excerpted_title .'&rdquo;</a></strong><a title="'. esc_attr__( 'Move to Trash' ) .'" href="'. esc_url( $trash_link ) .'" class="dashicons dashicons-trash"><span class="screen-reader-text">'. esc_html__( 'Move to Trash' ) .'</span></a></li>';
 	}
 
 	/**
@@ -1286,8 +1289,12 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		), $replace, $import['post_content'] );
 
 
+		$excerpted_title = wp_trim_words( $import['post_title'], 22 );
+		$edit_link       = get_edit_post_link( $import['post_id'] );
+		$trash_link      = get_delete_post_link( $import['post_id'] );
+
 		// return an image upload error message
-		return '<div><strong>&ldquo;'. $import['post_title'] .'&rdquo;</strong> <em class="warning">'. sprintf( __( 'created successfully but there was an error with the image upload. Line: %d', 'dsgnwrks' ), $line ) .'</em></div>';
+		return '<li id="imported-'. $import['post_id'] .'" title="'. esc_attr( sprintf( __( '&ldquo;%s&rdquo;imported but encountered an image upload error.', 'dsgnwrks' ), $import['post_title'] ) ) .'"><strong><a target="_blank" href="'. esc_url( $edit_link ) .'">&ldquo;'. $excerpted_title .'&rdquo;</a></strong> <em class="warning">'. sprintf( __( 'created successfully but there was an error with the image upload. Line: %d', 'dsgnwrks' ), $line ) .'</em><a title="'. esc_attr__( 'Move to Trash' ) .'" href="'. esc_url( $trash_link ) .'" class="dashicons dashicons-trash"><span class="screen-reader-text">'. esc_html__( 'Move to Trash' ) .'</span></a></li>';
 	}
 
 	/**
@@ -1335,13 +1342,13 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	}
 
 	/**
-	 * Returns error message contained within wp_error
+	 * Returns message in html wrap
 	 * @since  1.2.6
-	 * @param  string $message_text
-	 * @return string               Message text wrapped in li markup
+	 * @param  string $message
+	 * @return string          Message text wrapped in li markup
 	 */
 	protected function message_wrap( $message_text ) {
-		return '<li>'. $message_text .'</li>';
+		return 0 !== strpos( $message_text, '<li' ) ? '<li>'. $message_text .'</li>' : $message_text;
 	}
 
 	/**
