@@ -345,6 +345,8 @@ jQuery(document).ready(function($) {
 						action: 'dw_insta_blacklist_remove_many',
 						ids: ids
 					} ).done( function( response ) {
+						log( 'dw_insta_blacklist_remove_many response', response );
+
 						if ( response && response.data ) {
 							if ( response.data.removed ) {
 								self.loopIdsAndTrigger( response.data.removed, 'destroy' );
@@ -403,6 +405,7 @@ jQuery(document).ready(function($) {
 			this.listenTo( this.model, 'maybeDelete', this.doDelete );
 			this.listenTo( this.model, 'hide', this.hide );
 			this.listenTo( this.model, 'show', this.show );
+			this.listenTo( this.model, 'destroy', this.destroy );
 		},
 
 		// Render the row
@@ -436,7 +439,7 @@ jQuery(document).ready(function($) {
 				// If our response reports success
 				if ( response.success ) {
 					// remove our row completely
-					self.$el.remove();
+					self.destroy();
 				} else {
 					// whoops, error
 					destroyError( model, response );
@@ -448,6 +451,13 @@ jQuery(document).ready(function($) {
 
 			// Remove model and fire ajax event
 			this.model.destroy({ success: destroySuccess, error: destroyError, wait: true });
+		},
+
+		destroy: function () {
+			this.undelegateEvents();
+			this.$el.removeData().unbind();
+
+			this.remove();
 		},
 
 		show: function() {

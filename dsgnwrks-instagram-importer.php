@@ -1507,11 +1507,12 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 		$deleted = self::get_deleted_ids();
 		$ids = $_REQUEST['ids'];
-		$not_removed = array();
+		$not_removed = $removed =array();
 
 		foreach ( $ids as $id => $nonce ) {
 			if ( isset( $deleted[ $id ] ) && wp_verify_nonce( $nonce, $id ) ) {
 				unset( $deleted[ $id ] );
+				$removed[] = $id;
 			} else {
 				$not_removed[] = $id;
 			}
@@ -1519,9 +1520,9 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 		$updated = update_option( 'dw_instagram_deleted_ids', $deleted, false );
 		if ( $updated ) {
-			wp_send_json_success( $not_removed );
+			wp_send_json_success( compact( 'removed', 'not_removed' ) );
 		} else {
-			wp_send_json_error( $not_removed );
+			wp_send_json_error( compact( 'removed', 'not_removed' ) );
 		}
 	}
 
