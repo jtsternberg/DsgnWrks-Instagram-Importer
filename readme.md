@@ -50,7 +50,7 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 ## Frequently Asked Questions ##
 
 ### How do I use these snippets?
-* Below are some common requests, and some helper snippets to accomplish them. To install these gists, download the gist from github, unzip, and copy the `.php` file inside to your site's `wp-content/mu-plugins` directory. If you do not have the `mu-plugins` directory, simply create it.
+* Below are some common requests, and some helper snippets to accomplish them. To install these gists, download the gist from github, unzip, and copy the `.php` file inside to your site's `wp-content/mu-plugins` directory. If you do not have the `mu-plugins` directory, simply create it. For more information, [read this post](https://gregrickaby.com/2013/10/create-mu-plugin-for-wordpress/).
 
 ### Is it possible to set the default image display size in a post?
 * If you're importing as the featured image and your theme supports featured images, that is the size that will be used. If you're instead importing the image to the post, there is a filter in the plugin for overriding the image size. If you wanted to instead use the "medium" image size created by WordPress, you can use this snippet: [https://gist.github.com/jtsternberg/1c6b332b2db6da7e38226b88dff5c6a0](https://gist.github.com/jtsternberg/1c6b332b2db6da7e38226b88dff5c6a0).
