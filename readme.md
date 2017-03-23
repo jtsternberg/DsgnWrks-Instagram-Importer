@@ -49,44 +49,36 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 ## Frequently Asked Questions ##
 
-### Plugin gives me an error! help? ###
-* Please install the [DsgnWrks Instagram Importer Debug](http://wordpress.org/extend/plugins/dsgnwrks-instagram-importer-debug/) plugin.
+### How do I use these snippets?
+Below are some common requests, and some helper snippets to accomplish them. To install these gists, download the gist from github, unzip, and copy the `.php` file inside to your site's `wp-content/mu-plugins` directory. If you do not have the `mu-plugins` directory, simply create it.
 
-### Is it possible to set the default image display size in a post? ###
-* If you're importing as the featured image and your theme supports featured images, that is the size that will be used. If you're instead importing the image to the post, there is a filter in the plugin for overriding the image size. If you wanted to instead use the "medium" image size created by WordPress, you would filter the image size like this:
-```php
-add_filter( 'dsgnwrks_instagram_image_size', 'YOURPREFIX_instagram_img_size' );
-function YOURPREFIX_instagram_img_size( $size ) {
-
-	return 'medium';
-}
-```
+### Is it possible to set the default image display size in a post?
+* If you're importing as the featured image and your theme supports featured images, that is the size that will be used. If you're instead importing the image to the post, there is a filter in the plugin for overriding the image size. If you wanted to instead use the "medium" image size created by WordPress, you can use this snippet: [https://gist.github.com/jtsternberg/1c6b332b2db6da7e38226b88dff5c6a0](https://gist.github.com/jtsternberg/1c6b332b2db6da7e38226b88dff5c6a0).
 
 That is a filter on the $size parameter passed to `wp_get_attachment_image_src()` so you can use any values you would use there. `wp_get_attachment_image_src()` on the codex: http://codex.wordpress.org/Function_Reference/wp_get_attachment_image_src
 
-### Is it possible to limit the length of the imported posts? ###
-* Yes, use this gist: [gist.github.com/jtsternberg/6148635](https://gist.github.com/jtsternberg/6148635)
+### Is it possible to limit the length of the imported posts?
+* Yes, use this snippet: [gist.github.com/jtsternberg/6148635](https://gist.github.com/jtsternberg/6148635)
 
-### Is it possible to set the title of the imported posts to the date of the image? ###
-* Yes, use this gist: [gist.github.com/jtsternberg/1b83e43348cfe4ec08a3](https://gist.github.com/jtsternberg/1b83e43348cfe4ec08a3)
+### Is it possible to set the title of the imported posts to the date of the image?
+* Yes, use this snippet: [gist.github.com/jtsternberg/1b83e43348cfe4ec08a3](https://gist.github.com/jtsternberg/1b83e43348cfe4ec08a3)
 
-### Can I save my own post-meta fields for each post? ###
-* Yes, use this gist: [gist.github.com/jtsternberg/f784e8d0e8c2da371702](https://gist.github.com/jtsternberg/f784e8d0e8c2da371702)
+### Can I save my own post-meta fields for each post?
+* Yes, use this snippet: [gist.github.com/jtsternberg/f784e8d0e8c2da371702](https://gist.github.com/jtsternberg/f784e8d0e8c2da371702)
 
-### Is it possible to automatically center align the imported images? ###
-* Yes, use this gist: [gist.github.com/jtsternberg/60e201662691ec9d4a8e](https://gist.github.com/jtsternberg/60e201662691ec9d4a8e) (will only work if your theme supports the 'aligncenter' class)
+### Is it possible to automatically center align the imported images?
+* Yes, use this snippet: [gist.github.com/jtsternberg/60e201662691ec9d4a8e](https://gist.github.com/jtsternberg/60e201662691ec9d4a8e) (will only work if your theme supports the 'aligncenter' class)
 
 ### Can I remove the text from the excerpt field?
-* Yes, you can do so by adding this to your theme's functions.php file:
-`add_filter( 'dsgnwrks_instagram_post_excerpt', '__return_empty_string' );`
+* Yes, use this snippet: [https://gist.github.com/jtsternberg/2797bf20ac6e5cf09417d22098e65c1d](https://https://gist.github.com/jtsternberg/2797bf20ac6e5cf09417d22098e65c1d)
 
 ### Is it possible to store the location data in the recommended WordPress GPS coordinates format/standard?
-* Yes, use this gist: [https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1](https://https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1)
+* Yes, use this snippet: [https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1](https://https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1)
 
 ### Is it possible to modify where the instagram meta data is stored?
-* Yes, review this gist: [https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1](https://https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1)
+* Yes, review/use this snippet: [https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1](https://https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1)
 
-### ?? ###
+### ??
 * If you run into a problem or have a question, contact me ([contact form](http://j.ustin.co/scbo43) or [@jtsternberg on twitter](http://j.ustin.co/wUfBD3)). I'll add them here.
 
 
