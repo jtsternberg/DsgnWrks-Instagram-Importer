@@ -1373,6 +1373,10 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 * @since  1.1.0
 	 */
 	public function redirects() {
+		// Only handle updates when on our settings page.
+		if ( ! is_admin() || ! isset( $_GET['page'] ) || $this->settings_slug !== $_GET['page'] ) {
+			return;
+		}
 
 		// if we have an error or access token
 		if ( isset( $_GET['error'] ) || isset( $_GET['access_token'] ) )  {
@@ -1419,7 +1423,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			exit;
 		}
 
-		if ( !isset( $_GET['delete-insta-user'] ) ) {
+		if ( ! isset( $_GET['delete-insta-user'] ) ) {
 			return;
 		}
 
