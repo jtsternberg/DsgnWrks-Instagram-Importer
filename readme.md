@@ -8,8 +8,8 @@
 **Author:** Jtsternberg  
 **Donate link:** http://j.ustin.co/rYL89n 
 **Requires at least:** 3.1  
-**Tested up to:** 4.7  
-**Version:** 1.4.0  
+**Tested up to:** 4.7.3  
+**Version:** 1.4.1  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -91,6 +91,11 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 ## Changelog ##
+
+### 1.4.1
+* Add `dsgnwrks_instagram_post_meta_pre_save` filter to allow saving meta to user-defined keys. Fixes [#29](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/29).
+* Add `alt` attribute to instagram image.
+* Fix bug where other instagram plugin's settings would redirect to our plugin setting page ([forum post](https://wordpress.org/support/topic/get-token-issue-with-other-ig-plugins/#post-9037260)).
 
 ### 1.4.0
 * Fix condition markup, if condition is the first bit in the content.
