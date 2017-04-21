@@ -112,7 +112,7 @@ class WP_Test_Instagram_Importer extends WP_UnitTestCase {
 			'1440878973',
 			'.jpg',
 			' class="attachment',
-			'&ldquo;Test upload&rdquo;</a>',
+			'&ldquo;Test upload&rdquo;',
 			'imported and created successfully.',
 		);
 
