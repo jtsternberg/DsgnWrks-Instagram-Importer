@@ -77,6 +77,9 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 ### Is it possible to modify where the instagram meta data is stored?
 * Yes, review/use this snippet: [https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1](https://https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1)
 
+### Is it possible to embed the imported videos with WordPress native video player, instead of the Instagram embed?
+* Yes, review/use this snippet: [https://gist.github.com/jtsternberg/b7c3b5371c6f639693b8f086859ad129](https://https://gist.github.com/jtsternberg/b7c3b5371c6f639693b8f086859ad129)
+
 ### ??
 * If you run into a problem or have a question, contact me ([contact form](http://j.ustin.co/scbo43) or [@jtsternberg on twitter](http://j.ustin.co/wUfBD3)). I'll add them here.
 
