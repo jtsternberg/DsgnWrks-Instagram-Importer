@@ -645,6 +645,11 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		// merge previous messages
 		$messages = ( isset( $messages['messages'] ) ) ? array_merge( $prevmessages, $messages['messages'] ) : $prevmessages;
 
+		// This is a (temporary) hack to keep going back in time searching for posts to import.
+		// if ( empty( $messages ) ) {
+		// 	$messages[] = '<p>Nope, nothing, try again...</p>';
+		// }
+
 		// Remove our max quality filter
 		remove_filter( 'wp_editor_set_quality', array( $this, 'max_quality' ) );
 		remove_filter( 'jpeg_quality', array( $this, 'max_quality' ) );
