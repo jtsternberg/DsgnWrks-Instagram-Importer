@@ -71,7 +71,7 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 * Yes, use this snippet: [gist.github.com/jtsternberg/60e201662691ec9d4a8e](https://gist.github.com/jtsternberg/60e201662691ec9d4a8e) (will only work if your theme supports the 'aligncenter' class)
 
 = Can I remove the text from the excerpt field? =
-* Yes, use this snippet: [https://gist.github.com/jtsternberg/2797bf20ac6e5cf09417d22098e65c1d](https://https://gist.github.com/jtsternberg/2797bf20ac6e5cf09417d22098e65c1d)
+* Yes, use this snippet: [https://gist.github.com/jtsternberg/2797bf20ac6e5cf09417d22098e65c1d](https://gist.github.com/jtsternberg/2797bf20ac6e5cf09417d22098e65c1d)
 
 = Is it possible to store the location data in the recommended WordPress GPS coordinates format/standard? =
 * Yes, use this snippet: [https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1](https://https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1)
