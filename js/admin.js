@@ -333,7 +333,7 @@ jQuery(document).ready(function($) {
 					} );
 
 					if ( 1 === $checked.length ) {
-						model.doDelete();
+						model.trigger( 'maybeDelete' );
 					} else {
 						ids[ id ] = model.get( 'nonce' );
 						model.trigger( 'hide' );
@@ -385,7 +385,7 @@ jQuery(document).ready(function($) {
 		},
 
 		render: function() {
-			console.warn('this.collection', this.collection.length);
+			// console.log('this.collection', this.collection.length);
 			this.$( 'tbody' ).html( this.rowsHtml() );
 		}
 	});
