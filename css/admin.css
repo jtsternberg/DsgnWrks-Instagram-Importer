@@ -34,6 +34,21 @@
 	vertical-align: middle;
 	float: left;
 }
+.updated.instagram-import-message .carousel-item {
+	clear: both;
+	padding: 8px 0 0 10px;
+	display: block;
+}
+.updated.instagram-import-message .carousel-item:after {
+	content: '';
+	clear: both;
+	display: block;
+	width: 100%;
+}
+.updated.instagram-import-message .carousel-item img {
+	width: 40px;
+	height: 40px;
+}
 .updated.instagram-import-message .spinner {
 	clear: both;
 	float: left;
