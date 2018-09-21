@@ -26,7 +26,8 @@ env:
 
 matrix:
   fast_finish: true
-  exclude:
+  allow_failures:
+    - php: nightly
   include:
     # WP 3.8 requires mysql_connect() which was removed in PHP 7
     - php: 5.4
