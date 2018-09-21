@@ -4,10 +4,14 @@
 language: php
 
 # Versions of PHP to test against
+# see https://wordpress.org/about/stats/ and https://wordpress.org/about/requirements/
 php:
     - 5.4
     - 5.5
     - 5.6
+    - 7.0
+    - 7.1
+    - 7.2
     - hhvm
     - nightly
 
