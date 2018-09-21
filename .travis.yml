@@ -5,7 +5,6 @@ language: php
 
 # Versions of PHP to test against
 php:
-    - 5.3
     - 5.4
     - 5.5
     - 5.6
@@ -30,7 +29,27 @@ matrix:
       php: nightly
     - env: WP_VERSION=3.8 WP_MULTISITE=1
       php: nightly
-
+   # PHP 5.3 is only available on precise (but hhvm is only on trusty)
+  include:
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=latest WP_MULTISITE=0
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=latest WP_MULTISITE=1
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=4.0 WP_MULTISITE=0
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=4.0 WP_MULTISITE=1
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=3.8 WP_MULTISITE=0
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=3.8 WP_MULTISITE=1
+        
 # Grab the setup script and execute
 before_script: # Make PHP 7 test work. https://github.com/WebDevStudios/CMB2/pull/885
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
