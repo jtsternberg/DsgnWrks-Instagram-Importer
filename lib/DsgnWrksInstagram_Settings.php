@@ -50,6 +50,7 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 		$deleted = array();
 		if ( ! empty( $deleted_ids ) ) {
 			foreach ( $deleted_ids as $deleted_id => $deleted_data ) {
+				$deleted_data['title'] = html_entity_decode( $deleted_data['title'] );
 				$deleted_data['id'] = $deleted_id;
 				$deleted_data['nonce'] = wp_create_nonce( $deleted_id );
 				$deleted[] = $deleted_data;
