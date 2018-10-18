@@ -61,13 +61,6 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	public $manual_import  = false;
 
 	/**
-	 * Plugin prefix
-	 *
-	 * @var string
-	 */
-	public $pre = 'dsgnwrks_instagram_';
-
-	/**
 	 * Instagram API URL
 	 *
 	 * @var string
@@ -196,7 +189,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'schedule_frequency' ) );
 		add_action( 'wp_ajax_dsgnwrks_instagram_import', array( $this, 'ajax_import' ) );
-		add_action( $this->pre .'cron', array( $this, 'cron_import' ) );
+		add_action( 'dsgnwrks_instagram_cron', array( $this, 'cron_import' ) );
 		add_action( 'init', array( $this->embed, 'hook_shortcode' ) );
 		add_action( 'admin_menu', array( $this->settings, 'settings' ) );
 		register_uninstall_hook( __FILE__, array( __CLASS__, 'uninstall' ) );
@@ -227,13 +220,13 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 		// A pseudo setting. redirects to instagram oauth
 		register_setting(
-			$this->pre .'importer_users',
+			'dsgnwrks_instagram_importer_users',
 			'dsgnwrks_insta_registration',
 			array( $this, 'instagram_oauth_redirect' )
 		);
 		// validate user options settings
 		register_setting(
-			$this->pre .'importer_settings',
+			'dsgnwrks_instagram_importer_settings',
 			'dsgnwrks_insta_options',
 			array( $this, 'settings_validate' )
 		);
@@ -249,9 +242,9 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		$frequency = $this->get_option( 'frequency' );
 
 		// if a auto-import frequency interval was saved,
-		if ( $frequency && 'never' !== $frequency && ! wp_next_scheduled( $this->pre .'cron' ) ) {
+		if ( $frequency && 'never' !== $frequency && ! wp_next_scheduled( 'dsgnwrks_instagram_cron' ) ) {
 			// schedule a cron to pull updates from instagram
-			wp_schedule_event( time(), $frequency, $this->pre .'cron' );
+			wp_schedule_event( time(), $frequency, 'dsgnwrks_instagram_cron' );
 		}
 	}
 
@@ -373,13 +366,13 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	public static function deactivate() {
 		$instagram = DsgnWrksInstagram::get_instance();
 
-		if ( ! current_user_can( 'activate_plugins' ) || ! isset( $instagram->pre ) ) {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
 			return;
 		}
 
-		if ( $timestamp = wp_next_scheduled( $instagram->pre .'cron' ) ) {
+		if ( $timestamp = wp_next_scheduled( 'dsgnwrks_instagram_cron' ) ) {
 			$frequency = $instagram->settings->get_option( 'frequency' );
-			wp_unschedule_event( $timestamp, $frequency, $instagram->pre .'cron' );
+			wp_unschedule_event( $timestamp, $frequency, 'dsgnwrks_instagram_cron' );
 		}
 	}
 
