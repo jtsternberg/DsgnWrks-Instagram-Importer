@@ -235,6 +235,7 @@ jQuery(document).ready(function($) {
 		window.scrollTo(0, 0);
 
 		if ( doingloop ) {
+			doingloop = false;
 			// ok, we're done looping
 			msgSpinner.removeClass( 'is-active' ).hide();
 			messagesDiv.find( '#insta-import-stop' ).hide();
