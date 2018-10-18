@@ -34,18 +34,18 @@
 	vertical-align: middle;
 	float: left;
 }
-.updated.instagram-import-message .carousel-item {
+.updated.instagram-import-message .insta-sub-item {
 	clear: both;
 	padding: 8px 0 0 10px;
 	display: block;
 }
-.updated.instagram-import-message .carousel-item:after {
+.updated.instagram-import-message .insta-sub-item:after {
 	content: '';
 	clear: both;
 	display: block;
 	width: 100%;
 }
-.updated.instagram-import-message .carousel-item img {
+.updated.instagram-import-message .insta-sub-item img {
 	width: 40px;
 	height: 40px;
 }
