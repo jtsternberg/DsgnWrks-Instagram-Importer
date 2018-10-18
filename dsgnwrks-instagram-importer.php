@@ -798,7 +798,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 					switch ( $img_item->type ) {
 						case 'video':
-							$sub_items[] = $this->upload_video_media( $p, ' - ' . ++$index );
+							$sub_items[] = $this->upload_video_media( $p, ' ' . ++$index );
 							break;
 
 						default:
@@ -1212,7 +1212,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 				update_post_meta( $import['post_id'], 'instagram_video_url_'. $size, $video_url );
 			}
 
-			return '<em> '. sprintf( __( '%s imported.', 'dsgnwrks' ), '<b>'. $attach_title .'</b>' ) .'</em>';
+			return '<em> '. sprintf( __( '%s imported.', 'dsgnwrks' ), '<b>'. $filename .'</b>' ) .'</em>';
 
 		} elseif ( 'carousel_image' === $this->type ) {
 
@@ -1221,7 +1221,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 
 			$html = wp_get_attachment_image( $attach_id, array( 50, 50 ) );
 
-			return $html .'<strong>&ldquo;'. $attach_title .'&rdquo;</strong> <em> '. __( 'imported and created successfully.', 'dsgnwrks' ) .'</em>';
+			return $html .'<strong>&ldquo;'. wp_trim_words( $attach_title, 5, '...' ) .'&rdquo;</strong> <em> '. __( 'imported.', 'dsgnwrks' ) .'</em>';
 
 		}
 
@@ -1253,12 +1253,12 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		 */
 		$this->insta_image = (string) apply_filters( 'dsgnwrks_instagram_insta_image', $img_element, $attach_id, $import['post_id'] );
 
-		$excerpted_title = wp_trim_words( $import['post_title'], 22 );
+		$excerpted_title = wp_trim_words( $import['post_title'], 10 );
 		$edit_link       = get_edit_post_link( $import['post_id'] );
 		$trash_link      = get_delete_post_link( $import['post_id'] );
 
 		// return a success message
-		return '<li id="imported-'. $import['post_id'] .'" title="'. esc_attr( sprintf( __( '&ldquo;%s&rdquo;imported and created successfully.', 'dsgnwrks' ), $import['post_title'] ) ) .'">' . dw_get_instagram_image( $import['post_id'], array( 50, 50 ) ) .'<strong><a target="_blank" href="'. esc_url( $edit_link ) .'">&ldquo;'. $excerpted_title .'&rdquo;</a></strong><a title="'. esc_attr__( 'Move to Trash' ) .'" href="'. esc_url( $trash_link ) .'" class="dashicons dashicons-trash"><span class="screen-reader-text">'. esc_html__( 'Move to Trash' ) .'</span></a></li>';
+		return '<li id="imported-'. $import['post_id'] .'" title="'. esc_attr( sprintf( __( '&ldquo;%s&rdquo; imported and created successfully.', 'dsgnwrks' ), $import['post_title'] ) ) .'">' . dw_get_instagram_image( $import['post_id'], array( 50, 50 ) ) .'<strong><a target="_blank" href="'. esc_url( $edit_link ) .'">&ldquo;'. $excerpted_title .'&rdquo;</a></strong><a title="'. esc_attr__( 'Move to Trash' ) .'" href="'. esc_url( $trash_link ) .'" class="dashicons dashicons-trash"><span class="screen-reader-text">'. esc_html__( 'Move to Trash' ) .'</span></a></li>';
 	}
 
 	/**
