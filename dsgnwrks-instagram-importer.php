@@ -198,6 +198,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . 'dsgnwrks-instagram-importer.php' ), array( $this, 'settings_link' ) );
 		add_action( 'before_delete_post', array( __CLASS__, 'maybe_add_to_deleted_ids' ) );
 		add_action( 'wp_ajax_dw_insta_blacklist', array( __CLASS__, 'ajax_remove_from_deleted_ids' ) );
+		add_action( 'wp_ajax_dw_insta_get_blacklist', array( __CLASS__, 'ajax_get_deleted_js_data' ) );
 		add_action( 'wp_ajax_dw_insta_blacklist_remove_many', array( __CLASS__, 'ajax_remove_many_from_deleted_ids' ) );
 		add_action( 'current_screen', array( $this, 'redirects' ) );
 		add_filter( 'wp_default_editor', array( $this, 'html_default' ) );
@@ -1622,6 +1623,10 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		}
 	}
 
+	public static function ajax_get_deleted_js_data() {
+		wp_send_json_success( self::get_deleted_js_data() );
+	}
+
 	/**
 	 * When deleteing a post, importer should not import them again, so store in blacklist.
 	 */
@@ -1639,6 +1644,21 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		$deleted = get_option( 'dw_instagram_deleted_ids' );
 		if ( ! is_array( $deleted ) ) {
 			$deleted = array();
+		}
+
+		return $deleted;
+	}
+
+	public static function get_deleted_js_data() {
+		$deleted_ids = self::get_deleted_ids();
+		$deleted = array();
+		if ( ! empty( $deleted_ids ) ) {
+			foreach ( $deleted_ids as $deleted_id => $deleted_data ) {
+				$deleted_data['title'] = html_entity_decode( $deleted_data['title'] );
+				$deleted_data['id'] = $deleted_id;
+				$deleted_data['nonce'] = wp_create_nonce( $deleted_id );
+				$deleted[] = $deleted_data;
+			}
 		}
 
 		return $deleted;

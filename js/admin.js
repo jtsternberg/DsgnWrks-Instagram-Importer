@@ -279,7 +279,7 @@ jQuery(document).ready(function($) {
 ( function( window, document, $, dw, undefined ) {
 	'use strict';
 
-	dw.Model = Backbone.Model.extend({
+	var Item = Backbone.Model.extend({
 		defaults: {
 			id    : 0,
 			url   : '',
@@ -293,105 +293,7 @@ jQuery(document).ready(function($) {
 		}
 	} );
 
-	dw.Collection = Backbone.Collection.extend({ model : dw.Model });
-
-	dw.Views = {};
-	dw.Views.Table = Backbone.View.extend({
-		rows: [],
-		events : {
-			'click thead input' : 'toggleAll',
-			'change [type="checkbox"]' : 'maybeEnableButton',
-			'click tfoot button' : 'deleteMany'
-		},
-
-		initialize: function() {
-			this.listenTo( this.collection, 'destroy', this.render );
-
-			this.$el.show();
-			this.render();
-		},
-
-		maybeEnableButton: function( evt ) {
-			this.$( 'tfoot button' ).prop( 'disabled', ! this.$( '.deleted-blacklist-row [type="checkbox"]:checked' ).length );
-		},
-
-		toggleAll: function( evt ) {
-			var checked = $( evt.currentTarget ).is( ':checked' );
-			this.$( 'td [type="checkbox"]' ).prop( 'checked', checked );
-		},
-
-		deleteMany: function( evt ) {
-			var self = this;
-			var $checked = this.$( '.deleted-blacklist-row [type="checkbox"]:checked' );
-
-			if ( $checked.length && confirm( $( evt.currentTarget ).data( 'confirm' ) ) ) {
-				var ids = {};
-				$checked.each( function() {
-					var id = $( this ).val();
-
-					var model = self.collection.find( function( model ) {
-						return model.get( 'id' ) === id;
-					} );
-
-					if ( 1 === $checked.length ) {
-						model.trigger( 'maybeDelete' );
-					} else {
-						ids[ id ] = model.get( 'nonce' );
-						model.trigger( 'hide' );
-					}
-				} );
-
-				if ( $checked.length > 1 ) {
-					$.post( window.ajaxurl, {
-						action: 'dw_insta_blacklist_remove_many',
-						ids: ids
-					} ).done( function( response ) {
-						dw.log( 'dw_insta_blacklist_remove_many response', response );
-
-						if ( response && response.data ) {
-							if ( response.data.removed ) {
-								self.loopIdsAndTrigger( response.data.removed, 'destroy' );
-							}
-							if ( response.data.not_removed ) {
-								self.loopIdsAndTrigger( response.data.not_removed, 'show' );
-							}
-						}
-					});
-				}
-			}
-		},
-
-		loopIdsAndTrigger: function( ids, eventName ) {
-			var self = this;
-			_.each( ids, function( id ) {
-				var model = self.collection.find( function( model ) {
-					return model.get( 'id' ) === id;
-				} );
-
-				if ( model ) {
-					model.trigger( eventName, model );
-				}
-			} );
-
-		},
-
-		rowsHtml: function() {
-			var addedElements = document.createDocumentFragment();
-			this.collection.each( function( model ) {
-				var view = new dw.Views.Row({ model: model });
-				addedElements.appendChild( view.render().el );
-			});
-
-			return addedElements;
-		},
-
-		render: function() {
-			// console.log('this.collection', this.collection.length);
-			this.$( 'tbody' ).html( this.rowsHtml() );
-		}
-	});
-
-	dw.Views.Row = Backbone.View.extend({
+	var ItemRow = Backbone.View.extend({
 		tagName : 'tr',
 		className : 'deleted-blacklist-row',
 		id : function() {
@@ -471,21 +373,150 @@ jQuery(document).ready(function($) {
 
 	});
 
-	dw.init = function() {
-		var $table = $( document.getElementById( 'deleted-blacklist' ) );
-		if ( ! $table.length ) {
-			return;
+	var BlacklistTableView = Backbone.View.extend({
+		$info: {},
+		rows: [],
+		events : {
+			'click thead input' : 'toggleAll',
+			'change [type="checkbox"]' : 'maybeEnableButton',
+			'click tfoot button' : 'deleteMany'
+		},
+
+		initialize: function() {
+			this.listenTo( this.collection, 'destroy reset', this.render );
+			this.listenTo( this.collection, 'loading', this.renderLoading );
+
+			this.$info = $( document.getElementById( 'deleted-blacklist-info' ) );
+			this.render();
+		},
+
+		maybeEnableButton: function( evt ) {
+			this.$( 'tfoot button' ).prop( 'disabled', ! this.$( '.deleted-blacklist-row [type="checkbox"]:checked' ).length );
+		},
+
+		toggleAll: function( evt ) {
+			var checked = $( evt.currentTarget ).is( ':checked' );
+			this.$( 'td [type="checkbox"]' ).prop( 'checked', checked );
+		},
+
+		deleteMany: function( evt ) {
+			var self = this;
+			var $checked = this.$( '.deleted-blacklist-row [type="checkbox"]:checked' );
+
+			if ( $checked.length && confirm( $( evt.currentTarget ).data( 'confirm' ) ) ) {
+				var ids = {};
+				$checked.each( function() {
+					var id = $( this ).val();
+
+					var model = self.collection.find( function( model ) {
+						return model.get( 'id' ) === id;
+					} );
+
+					if ( 1 === $checked.length ) {
+						model.trigger( 'maybeDelete' );
+					} else {
+						ids[ id ] = model.get( 'nonce' );
+						model.trigger( 'hide' );
+					}
+				} );
+
+				if ( $checked.length > 1 ) {
+					$.post( window.ajaxurl, {
+						action: 'dw_insta_blacklist_remove_many',
+						ids: ids
+					} ).done( function( response ) {
+						dw.log( 'dw_insta_blacklist_remove_many response', response );
+
+						if ( response && response.data ) {
+							if ( response.data.removed ) {
+								self.loopIdsAndTrigger( response.data.removed, 'destroy' );
+							}
+							if ( response.data.not_removed ) {
+								self.loopIdsAndTrigger( response.data.not_removed, 'show' );
+							}
+						}
+					});
+				}
+			}
+		},
+
+		loopIdsAndTrigger: function( ids, eventName ) {
+			var self = this;
+			_.each( ids, function( id ) {
+				var model = self.collection.find( function( model ) {
+					return model.get( 'id' ) === id;
+				} );
+
+				if ( model ) {
+					model.trigger( eventName, model );
+				}
+			} );
+
+		},
+
+		rowsHtml: function() {
+			var addedElements = document.createDocumentFragment();
+			this.collection.each( function( model ) {
+				var view = new ItemRow({ model: model });
+				addedElements.appendChild( view.render().el );
+			});
+
+			return addedElements;
+		},
+
+		render: function() {
+			this.$( 'tbody' ).html( this.rowsHtml() );
+
+			if ( this.collection.length ) {
+				this.$info.show();
+				this.$el.show();
+			} else {
+				this.$info.hide();
+				this.$el.hide();
+			}
+		},
+
+		renderLoading: function() {
+			this.$( 'tbody' ).html( '<tr><td colspan="2" style="background:#fff"><div class="spinner is-active"></div>'+ window.dwinstagram.loading_text +'</td></tr>' );
 		}
+	});
 
-		// Get our attachment model data from the dom, and initiate the collection
-		var collection = new dw.Collection( dw.deleted );
+	dw.refreshBlacklist = function() {
+		dw.blacklistView.renderLoading();
 
-		// Send the model data to our table view
-		dw.collectionView = new dw.Views.Table({
-			collection: collection,
-			el: $table
+		$.post( window.ajaxurl, {
+			action: 'dw_insta_get_blacklist',
+		} ).done( function( response ) {
+			if ( response && response.success && response.data ) {
+				dw.initBlacklist( response.data );
+			}
 		});
+	};
 
+	dw.initBlacklist = function( data ) {
+		if ( ! dw.blacklistView ) {
+			var Collection = Backbone.Collection.extend({ model : Item });
+
+			// Initiate the collection, and the collection view.
+			dw.blacklistView = new BlacklistTableView({
+				collection : new Collection( data ),
+				el         : $( document.getElementById( 'deleted-blacklist' ) )
+			});
+		} else {
+			// Already exists, so simply reset the data.
+			dw.blacklistView.collection.reset( data );
+		}
+	};
+
+	dw.init = function() {
+		dw.initBlacklist( dw.deleted );
+
+		// When changing to the tab w/ the blacklist, refresh the blacklist.
+		$('.contextual-help-tabs a').on( 'click', function(e) {
+			if ( '#universal-options' === $(this).attr('href') ) {
+				dw.refreshBlacklist();
+			}
+		});
 	};
 
 	$( dw.init );

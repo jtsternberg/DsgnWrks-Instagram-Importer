@@ -19,14 +19,19 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 	 * @since  1.1.0
 	 */
 	public function settings() {
+
 		// create admin page
 		$plugin_page_hook = add_submenu_page( 'tools.php', $this->core->plugin_name, __( 'Instagram Importer', 'dsgnwrks' ), 'manage_options', $this->core->settings_slug, array( $this, 'settings_page' ) );
+
 		// enqueue styles
 		add_action( 'admin_print_styles-' . $plugin_page_hook, array( $this, 'styles' ) );
+
 		// enqueue scripts
 		add_action( 'admin_print_scripts-' . $plugin_page_hook, array( $this, 'scripts' ) );
+
 		// run our importer only on our admin page when clicking "import"
 		add_action( 'admin_head-'. $plugin_page_hook, array( $this, 'fire_importer' ) );
+
 		// run our importer only on our admin page when clicking "import"
 		add_action( 'dsgnwrks_instagram_univeral_options', array( $this, 'universal_options_form' ) );
 	}
@@ -46,16 +51,6 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 	public function scripts() {
 		wp_enqueue_script( 'dsgnwrks-instagram-importer-admin', $this->core->plugin_url .'js/admin.js', array( 'backbone', 'wp-util' ), $this->core->plugin_version );
 
-		$deleted_ids = DsgnWrksInstagram::get_deleted_ids();
-		$deleted = array();
-		if ( ! empty( $deleted_ids ) ) {
-			foreach ( $deleted_ids as $deleted_id => $deleted_data ) {
-				$deleted_data['title'] = html_entity_decode( $deleted_data['title'] );
-				$deleted_data['id'] = $deleted_id;
-				$deleted_data['nonce'] = wp_create_nonce( $deleted_id );
-				$deleted[] = $deleted_data;
-			}
-		}
 		$data = array(
 			'delete_text'      => __( 'Are you sure you want to delete user', 'dsgnwrks' ),
 			'logout_text'      => __( 'Logging out of Instagram', 'dsgnwrks' ),
@@ -65,23 +60,24 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 			'stopping'         => __( 'Stopping...', 'dsgnwrks' ),
 			'all_done'         => __( 'All Done!', 'dsgnwrks' ),
 			'confirm_trash'    => __( 'Are you sure you would like to send this item to the trash?', 'dsgnwrks' ),
+			'loading_text'     => __( 'Loading, please wait...', 'dsgnwrks' ),
 			'failed_trash'     => __( 'Failed to send this item to the trash.', 'dsgnwrks' ),
-			'deleted'          => $deleted,
+			'deleted'          => DsgnWrksInstagram::get_deleted_js_data(),
 			'debug'            => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
 		);
-		// get registered post-types
-		$cpts = get_post_types( array( 'public' => true ) );
-		foreach ( $cpts as $key => $cpt ) {
-			// get registered taxonomies
+
+		// Loop registered post-types
+		foreach ( get_post_types( array( 'public' => true ) ) as $key => $cpt ) {
+
+			// Get registered taxonomies
 			$taxes = get_object_taxonomies( $cpt );
 			if ( ! empty( $taxes ) ) {
 				$data['cpts'][ $cpt ][] = $taxes;
 			}
 		}
-		// and save that data for use in our script
-		if ( ! empty( $data ) ) {
-			wp_localize_script( 'dsgnwrks-instagram-importer-admin', 'dwinstagram', $data );
-		}
+
+		// Send that data for use in our script
+		wp_localize_script( 'dsgnwrks-instagram-importer-admin', 'dwinstagram', $data );
 	}
 
 	/**
@@ -158,6 +154,9 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 	 * Form element for setting universal plugin options (auto-import frequency, debug mode)
 	 */
 	public function universal_options_form() {
+		if ( ( $deleted = DsgnWrksInstagram::get_deleted_ids() ) && ! empty( $deleted ) ) {
+			add_action( 'admin_footer', array( $this, 'output_blacklist_js_template' ) );
+		}
 		$remove_hashtags = $this->get_option( 'remove_hashtags' );
 		?>
 		<table class="form-table">
@@ -190,35 +189,32 @@ class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {
 
 					</td>
 				</tr>
-				<?php if ( ( $deleted = DsgnWrksInstagram::get_deleted_ids() ) && ! empty( $deleted ) ) : ?>
-					<?php add_action( 'admin_footer', array( $this, 'output_blacklist_js_template' ) ); ?>
-					<tr valign="top" class="deleted-blacklist-info info js-show">
-						<th colspan="2">
-							<p><strong><?php _e( 'Import Blacklist', 'dsgnwrks' ); ?></strong></p>
-							<p><?php _e( 'The below instagram posts have been deleted and will not be re-imported unless removed from this list.', 'dsgnwrks' ); ?></p>
-						</th>
-					</tr>
-					<tr valign="top" id="deleted-blacklist" class="deleted-blacklist" style="display:none;">
-						<td colspan="2">
-							<table class="widefat striped">
-								<thead>
-									<tr>
-										<th id="blacklist-check-toggle"><input id="dw-select-all-deleted" type="checkbox"></th>
-										<th><?php _e( 'Title', 'dsgnwrks' ); ?></th>
-									</tr>
-								</thead>
-								<tbody></tbody>
-								<tfoot>
-									<tr>
-										<td colspan="2">
-											<button disabled class="button-secondary" type="button" data-confirm="<?php esc_attr_e( 'Are you sure you want to allow these items to be imported again?', 'dsgnwrks' ); ?>"><?php _e( 'Remove selected from blacklist', 'dsgnwrks' ); ?></button>
-										</td>
-									</tr>
-								</tfoot>
-							</table>
-						</td>
-					</tr>
-				<?php endif; ?>
+				<tr valign="top" id="deleted-blacklist-info" class="deleted-blacklist-info info" style="display:none;">
+					<th colspan="2">
+						<p><strong><?php _e( 'Import Blacklist', 'dsgnwrks' ); ?></strong></p>
+						<p><?php _e( 'The below instagram posts have been deleted and will not be re-imported unless removed from this list.', 'dsgnwrks' ); ?></p>
+					</th>
+				</tr>
+				<tr valign="top" id="deleted-blacklist" class="deleted-blacklist" style="display:none;">
+					<td colspan="2">
+						<table class="widefat striped">
+							<thead>
+								<tr>
+									<th id="blacklist-check-toggle"><input id="dw-select-all-deleted" type="checkbox"></th>
+									<th><?php _e( 'Title', 'dsgnwrks' ); ?></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+							<tfoot>
+								<tr>
+									<td colspan="2">
+										<button disabled class="button-secondary" type="button" data-confirm="<?php esc_attr_e( 'Are you sure you want to allow these items to be imported again?', 'dsgnwrks' ); ?>"><?php _e( 'Remove selected from blacklist', 'dsgnwrks' ); ?></button>
+									</td>
+								</tr>
+							</tfoot>
+						</table>
+					</td>
+				</tr>
 			</tbody>
 		</table>
 		<p class="submit">
