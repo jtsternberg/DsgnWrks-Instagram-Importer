@@ -27,6 +27,8 @@ Version 1.2.6 introduced many new features for Instagram video. Your videos will
 
 Plugin is built with developers in mind and has many filters to manipulate the imported posts.
 
+[See Wiki](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/wiki) for more help.
+
 --------------------------
 
 = Sites That Have Used the Importer =
