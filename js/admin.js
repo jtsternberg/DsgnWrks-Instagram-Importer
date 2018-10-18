@@ -11,9 +11,9 @@ jQuery(document).ready(function($) {
 	var import_continue = true;
 
 
-	var log = function() {
-		log.history = log.history || [];
-		log.history.push( arguments );
+	dw.log = function() {
+		dw.log.history = dw.log.history || [];
+		dw.log.history.push( arguments );
 		if ( dw.debug && window.console && window.console.log ) {
 			window.console.log( Array.prototype.slice.call(arguments) );
 		}
@@ -189,7 +189,7 @@ jQuery(document).ready(function($) {
 			var userid = typeof response.data.userid !== 'undefined' ? response.data.userid : false;
 			var reimport = typeof response.data.reimport !== 'undefined' ? response.data.reimport : false;
 
-			log('response.data.messages', response.data.messages);
+			dw.log('response.data.messages', response.data.messages);
 
 			msgList.append(response.data.messages);
 			messagesDiv.show();
@@ -203,7 +203,7 @@ jQuery(document).ready(function($) {
 
 			// If we want to loop again
 			if ( next_url && userid && import_continue ) {
-				log('we want to loop again');
+				dw.log('we want to loop again');
 				msgSpinner.addClass( 'is-active' ).show();
 				doingloop = true;
 				return instagramAjax(userid, next_url, reimport);
@@ -345,7 +345,7 @@ jQuery(document).ready(function($) {
 						action: 'dw_insta_blacklist_remove_many',
 						ids: ids
 					} ).done( function( response ) {
-						log( 'dw_insta_blacklist_remove_many response', response );
+						dw.log( 'dw_insta_blacklist_remove_many response', response );
 
 						if ( response && response.data ) {
 							if ( response.data.removed ) {
@@ -429,7 +429,7 @@ jQuery(document).ready(function($) {
 
 			// Ajax error handler
 			var destroyError = function( model, response ) {
-				log( 'destroyError response', response );
+				dw.log( 'destroyError response', response );
 				// whoops.. re-show row
 				self.show();
 			};
