@@ -51,43 +51,7 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 ## Frequently Asked Questions ##
 
-### How do I use these snippets?
-* Below are some common requests, and some helper snippets to accomplish them. To install these gists, download the gist from github, unzip, and copy the `.php` file inside to your site's `wp-content/mu-plugins` directory. If you do not have the `mu-plugins` directory, simply create it. For more information, [read this post](https://gregrickaby.com/2013/10/create-mu-plugin-for-wordpress/).
-
-### Is it possible to set the default image display size in a post?
-* If you're importing as the featured image and your theme supports featured images, that is the size that will be used. If you're instead importing the image to the post, there is a filter in the plugin for overriding the image size. If you wanted to instead use the "medium" image size created by WordPress, you can use this snippet: [https://gist.github.com/jtsternberg/1c6b332b2db6da7e38226b88dff5c6a0](https://gist.github.com/jtsternberg/1c6b332b2db6da7e38226b88dff5c6a0).
-That is a filter on the $size parameter passed to `wp_get_attachment_image_src()` so you can use any values you would use there. `wp_get_attachment_image_src()` on the codex: http://codex.wordpress.org/Function_Reference/wp_get_attachment_image_src
-
-### Is it possible to limit the length of the imported posts?
-* Yes, use this snippet: [gist.github.com/jtsternberg/6148635](https://gist.github.com/jtsternberg/6148635)
-
-### Is it possible to set the title of the imported posts to the date of the image?
-* Yes, use this snippet: [gist.github.com/jtsternberg/1b83e43348cfe4ec08a3](https://gist.github.com/jtsternberg/1b83e43348cfe4ec08a3)
-
-### Can I save my own post-meta fields for each post?
-* Yes, use this snippet: [gist.github.com/jtsternberg/f784e8d0e8c2da371702](https://gist.github.com/jtsternberg/f784e8d0e8c2da371702)
-
-### Is it possible to automatically center align the imported images?
-* Yes, use this snippet: [gist.github.com/jtsternberg/60e201662691ec9d4a8e](https://gist.github.com/jtsternberg/60e201662691ec9d4a8e) (will only work if your theme supports the 'aligncenter' class)
-
-### Can I remove the text from the excerpt field?
-* Yes, use this snippet: [https://gist.github.com/jtsternberg/2797bf20ac6e5cf09417d22098e65c1d](https://gist.github.com/jtsternberg/2797bf20ac6e5cf09417d22098e65c1d)
-
-### Is it possible to store the location data in the recommended WordPress GPS coordinates format/standard?
-* Yes, use this snippet: [https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1](https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1)
-
-### Is it possible to modify where the instagram meta data is stored?
-* Yes, review/use this snippet: [https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1](https://gist.github.com/jtsternberg/a5914ac04198a57ebfca38567cc382e1)
-
-### Is it possible to embed the imported videos with WordPress native video player, instead of the Instagram embed?
-* Yes, review/use this snippet: [https://gist.github.com/jtsternberg/b7c3b5371c6f639693b8f086859ad129](https://gist.github.com/jtsternberg/b7c3b5371c6f639693b8f086859ad129)
-
-### I created a user & the options disappear on saving?
-* This isn't exactly a "frequently" asked question, but if it's something you are experiencing, you may want to try to remove the "&rarr;" from the default content field. See [https://wordpress.org/support/topic/created-user-options-disappear-on-saving/](https://wordpress.org/support/topic/created-user-options-disappear-on-saving/).
-
-### ??
-* If you run into a problem or have a question, contact me ([contact form](http://j.ustin.co/scbo43) or [@jtsternberg on twitter](http://j.ustin.co/wUfBD3)). I'll add them here.
-
+[See Wiki FAQ](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/wiki/Frequently-Asked-Questions).
 
 ## Screenshots ##
 
