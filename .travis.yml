@@ -4,11 +4,14 @@
 language: php
 
 # Versions of PHP to test against
+# see https://wordpress.org/about/stats/ and https://wordpress.org/about/requirements/
 php:
-    - 5.3
     - 5.4
     - 5.5
     - 5.6
+    - 7.0
+    - 7.1
+    - 7.2
     - hhvm
     - nightly
 
@@ -20,17 +23,45 @@ env:
     - WP_VERSION=latest WP_MULTISITE=1
     - WP_VERSION=4.0 WP_MULTISITE=0
     - WP_VERSION=4.0 WP_MULTISITE=1
-    - WP_VERSION=3.8 WP_MULTISITE=0
-    - WP_VERSION=3.8 WP_MULTISITE=1
 
 matrix:
   fast_finish: true
   allow_failures:
-    - env: WP_VERSION=3.8 WP_MULTISITE=0
-      php: nightly
-    - env: WP_VERSION=3.8 WP_MULTISITE=1
-      php: nightly
-
+    - php: nightly
+  include:
+    # WP 3.8 requires mysql_connect() which was removed in PHP 7
+    - php: 5.4
+      env: WP_VERSION=3.8 WP_MULTISITE=0
+    - php: 5.4
+      env: WP_VERSION=3.8 WP_MULTISITE=1
+    - php: 5.5
+      env: WP_VERSION=3.8 WP_MULTISITE=0
+    - php: 5.5
+      env: WP_VERSION=3.8 WP_MULTISITE=1
+    - php: 5.6
+      env: WP_VERSION=3.8 WP_MULTISITE=0
+    - php: 5.6
+      env: WP_VERSION=3.8 WP_MULTISITE=1
+    # PHP 5.3 is only available on precise (but hhvm is only on trusty)
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=latest WP_MULTISITE=0
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=latest WP_MULTISITE=1
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=4.0 WP_MULTISITE=0
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=4.0 WP_MULTISITE=1
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=3.8 WP_MULTISITE=0
+    - dist: precise
+      php: 5.3
+      env: WP_VERSION=3.8 WP_MULTISITE=1
+        
 # Grab the setup script and execute
 before_script: # Make PHP 7 test work. https://github.com/WebDevStudios/CMB2/pull/885
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
