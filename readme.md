@@ -8,8 +8,8 @@
 **Author:** Jtsternberg  
 **Donate link:** http://j.ustin.co/rYL89n 
 **Requires at least:** 3.1  
-**Tested up to:** 4.7.3  
-**Version:** 1.4.1  
+**Tested up to:** 4.9.8  
+**Version:** 2.0.0  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -53,6 +53,10 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 
 [See Wiki FAQ](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/wiki/Frequently-Asked-Questions).
 
+## Changelog ##
+
+**[View CHANGELOG](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/blob/master/CHANGELOG.md)**
+
 ## Screenshots ##
 
 1. Welcome Panel.
@@ -61,7 +65,3 @@ Like this plugin? Checkout the [DsgnWrks Twitter Importer](http://j.ustin.co/QbM
 2. After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.
 ![After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer-WordPress-Plugin/raw/master/screenshot-2.jpg)
 
-
-## Changelog ##
-
-**[View CHANGELOG](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/blob/master/CHANGELOG.md)**

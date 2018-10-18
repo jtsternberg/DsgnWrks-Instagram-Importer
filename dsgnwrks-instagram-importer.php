@@ -6,7 +6,7 @@ Description: Allows you to backup your instagram photos while allowing you to ha
 Author URI: http://dsgnwrks.pro
 Author: DsgnWrks
 Donate link: http://dsgnwrks.pro/give/
-Version: 1.4.1
+Version: 2.0.0
 */
 
 class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
@@ -16,7 +16,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 *
 	 * @var string
 	 */
-	public $plugin_version = '1.4.1';
+	public $plugin_version = '2.0.0';
 
 	/**
 	 * Plugin name
