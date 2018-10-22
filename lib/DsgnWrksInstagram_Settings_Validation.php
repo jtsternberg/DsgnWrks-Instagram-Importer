@@ -119,7 +119,7 @@ class DsgnWrksInstagram_Settings_Validation {
 		// and if our newly saved 'frequency' is different
 		// clear the previously scheduled hook
 		if ( ! isset( $this->old_options['frequency'] ) || $this->validate_opts[ $user ] != $this->old_options['frequency'] ) {
-			wp_clear_scheduled_hook( $this->core->getter( 'pre' ) .'cron' );
+			wp_clear_scheduled_hook( 'dsgnwrks_instagram_cron' );
 		}
 	}
 
