@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 	* Added `<li>` title attribute for "imported & created successfully"
 	* Fix formatting of imported item output for videos
 * Fix issue where it looks like we are still looping and no-new-to-import does not show
-* Fix issue with log function not being available in some instances
+* Fix issue with javascript log function not working in some instances
 * Enable importing instagram carousel posts. Fixes [#43](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/43) and [#30](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/30) TODO: enable gallery settings, etc
 * Update/fix Travis CI configuration for better testing. Props [Nathan Friedly](https://github.com/nfriedly)
 * Fix issue with `access_token` query var being used by other plugins
