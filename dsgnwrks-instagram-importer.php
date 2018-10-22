@@ -1587,6 +1587,13 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 */
 	public function max_quality($arg) { return 100; }
 
+	/**
+	 * Ajax callback handler to remove an id from the blacklist.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @return void
+	 */
 	public static function ajax_remove_from_deleted_ids() {
 		if ( empty( $_REQUEST['id'] ) || empty( $_REQUEST['nonce'] ) || ! wp_verify_nonce( $_REQUEST['nonce'], $_REQUEST['id'] ) ) {
 			wp_send_json_error();
@@ -1599,6 +1606,13 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		wp_send_json_error();
 	}
 
+	/**
+	 * Ajax callback handler to remove multiple ids from the blacklist.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @return void
+	 */
 	public static function ajax_remove_many_from_deleted_ids() {
 		if ( empty( $_REQUEST['ids'] ) || ! is_array( $_REQUEST['ids'] ) ) {
 			wp_send_json_error();
@@ -1625,12 +1639,26 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		}
 	}
 
+	/**
+	 * Ajax callback to get the data for the JS models for the blacklist items.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @return void
+	 */
 	public static function ajax_get_deleted_js_data() {
 		wp_send_json_success( self::get_deleted_js_data() );
 	}
 
 	/**
-	 * When deleteing a post, importer should not import them again, so store in blacklist.
+	 * When deleteing a post, importer should not import them again,
+	 * so store the instagram id in the blacklist.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @param  int $post_id The post id to add to the blacklist.
+	 *
+	 * @return void
 	 */
 	public static function maybe_add_to_deleted_ids( $post_id ) {
 		$insta_id = get_post_meta( $post_id, 'dsgnwrks_instagram_id', 1 );
@@ -1642,6 +1670,13 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		}
 	}
 
+	/**
+	 * Get the array of deleted instagram ids (the blacklist).
+	 *
+	 * @since  2.0.0
+	 *
+	 * @return array
+	 */
 	public static function get_deleted_ids() {
 		$deleted = get_option( 'dw_instagram_deleted_ids' );
 		if ( ! is_array( $deleted ) ) {
@@ -1651,6 +1686,13 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		return $deleted;
 	}
 
+	/**
+	 * Get the data for the JS models for the blacklist items.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @return array
+	 */
 	public static function get_deleted_js_data() {
 		$deleted_ids = self::get_deleted_ids();
 		$deleted = array();
@@ -1666,11 +1708,28 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		return $deleted;
 	}
 
+	/**
+	 * Check if given instagram id is in our blacklist.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @param  mixed $insta_id The instagram id.
+	 *
+	 * @return boolean
+	 */
 	public static function is_in_deleted_blacklist( $insta_id ) {
 		$deleted = self::get_deleted_ids();
 		return isset( $deleted[ $insta_id ] );
 	}
 
+	/**
+	 * Add an instagram id to the blacklist.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param mixed  $insta_id Instagram Id.
+	 * @param array  $args     The associated args for the instagram id (title, url, time).
+	 */
 	public static function add_to_deleted_ids( $insta_id, $args ) {
 		$deleted = self::get_deleted_ids();
 		$args = wp_parse_args( $args, array(
@@ -1682,6 +1741,15 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		return update_option( 'dw_instagram_deleted_ids', $deleted, false );
 	}
 
+	/**
+	 * Remove an instagram id from the blacklist.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @param mixed $insta_id Instagram Id.
+	 *
+	 * @return mixed Whether update_option call was successful.
+	 */
 	public static function remove_from_deleted_ids( $insta_id ) {
 		$deleted = self::get_deleted_ids();
 		if ( ! isset( $deleted[ $insta_id ] ) ) {
@@ -1692,12 +1760,28 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		return update_option( 'dw_instagram_deleted_ids', $deleted, false );
 	}
 
+	/**
+	 * Get a property from this object.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @param  string  $property The object property name.
+	 *
+	 * @return mixed
+	 */
 	public function getter( $property ) {
 		if ( isset( $this->$property ) ) {
 			return $this->$property;
 		}
 	}
 
+	/**
+	 * Get the users data.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @return array
+	 */
 	public function get_users() {
 		if ( isset( $this->users ) ) {
 			return $this->users;
@@ -1728,10 +1812,26 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		return $default;
 	}
 
+	/**
+	 * Get one of our settings options.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @param  string  $key Option key.
+	 *
+	 * @return mixed
+	 */
 	public function get_option( $key ) {
 		return $this->settings->get_option( $key );
 	}
 
+	/**
+	 * Get all of our settings options.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @return array
+	 */
 	public function get_options() {
 		return $this->settings->get_options();
 	}
