@@ -99,7 +99,6 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 == Changelog ==
 
 = 2.0.0 =
-
 * Provide filter (`dsgnwrks_instagram_video_import_resolutions`) for specifying which video resolutions to import.
 * Improved imported items display, including:
 	* Excerpted title in case they get super long
@@ -245,6 +244,27 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 == Upgrade Notice ==
+
+= 2.0.0 =
+* Provide filter (`dsgnwrks_instagram_video_import_resolutions`) for specifying which video resolutions to import.
+* Improved imported items display, including:
+	* Excerpted title in case they get super long
+	* Update titles for imported video items
+	* Trash link for instantly curating
+	* Edit link for getting to the image quickly
+	* Added `<li>` title attribute for "imported & created successfully"
+	* Fix formatting of imported item output for videos
+* Fix issue where it looks like we are still looping and no-new-to-import does not show
+* Fix issue with log function not being available in some instances
+* Enable importing instagram carousel posts. Fixes [#43](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/43) and [#30](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/30) TODO: enable gallery settings, etc
+* Update/fix Travis CI configuration for better testing. Props [Nathan Friedly](https://github.com/nfriedly)
+* Fix issue with `access_token` query var being used by other plugins
+* Fixed several issues with unit tests
+* Added `dsgnwrks_instagram_post_meta_pre_save` filter to allow changing meta keys. Fixes [#29](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/29).
+* Add the ability to reimport missed photos. Fixes [#32](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/32), and [#37](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/37)
+* Cleaned up broken bits of UI.
+* Store deleted instagram-imported posts to blacklist, to keep from reimporting intentionally deleted items.
+* Add a UI for editing the blacklist in the settings.
 
 = 1.4.1 =
 * Add `dsgnwrks_instagram_post_meta_pre_save` filter to allow saving meta to user-defined keys. Fixes [Issue 29](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/29).
