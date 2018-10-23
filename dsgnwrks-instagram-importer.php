@@ -777,7 +777,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		$this->type = 'image';
 
 		// sideload image
-		$message = $this->upload_img_media( $p );
+		$message = $this->upload_img_media( $p, $import['post_title'] );
 
 		$sub_items = array();
 
