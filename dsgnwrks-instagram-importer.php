@@ -157,7 +157,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			'dd'           => date( 'd', strtotime( '-1 month' ) ),
 			'yy'           => date( 'Y', strtotime( '-1 month' ) ),
 			'post-title'   => '**insta-text**',
-			'post_content' => '[if-insta-type-image]<p><a href="**insta-link**" target="_blank">**insta-image**</a></p>[/if-insta-type-image][if-insta-type-carousel][gallery link="file" size="large"][/if-insta-type-carousel]'."\n".'<p>'. __( 'Instagram filter used:', 'dsgnwrks' ) .' **insta-filter**</p>'."\n".'[if-insta-location]<p>'. __( 'Photo taken at:', 'dsgnwrks' ) .' **insta-location**</p>[/if-insta-location]'."\n".'<p><a href="**insta-link**" target="_blank">'. __( 'View in Instagram', 'dsgnwrks' ) .' &rArr;</a></p>',
+			'post_content' => '[if-insta-type-image]<p><a href="**insta-link**" target="_blank">**insta-image**</a></p>[/if-insta-type-image][if-insta-type-carousel][gallery link="file" size="large"][/if-insta-type-carousel][if-insta-type-video]**insta-embed-video**[/if-insta-type-video]'."\n".'<p>'. __( 'Instagram filter used:', 'dsgnwrks' ) .' **insta-filter**</p>'."\n".'[if-insta-location]<p>'. __( 'Photo taken at:', 'dsgnwrks' ) .' **insta-location**</p>[/if-insta-location]'."\n".'<p><a href="**insta-link**" target="_blank">'. __( 'View in Instagram', 'dsgnwrks' ) .' &rArr;</a></p>',
 			'post-type'    => 'post',
 			'draft'        => 'draft',
 		);
@@ -1022,12 +1022,20 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			$imgurl = $this->pic->images->standard_resolution->url;
 
 			// We'll add some default content
-			if ( 'image' === $this->pic->type ) {
-				$c  = '<p><a href="'. $this->pic->link .'" target="_blank"><img src="'. $imgurl .'"/></a></p>'."\n";
+			$c = '';
 
-			} elseif ( 'carousel' === $this->pic->type ) {
-				$c .= '[gallery link="file" size="large"]';
+			switch ( $this->pic->type ) {
+				case 'image':
+					$c .= '<p><a href="'. $this->pic->link .'" target="_blank"><img src="'. $imgurl .'"/></a></p>'."\n";
+					break;
+				case 'carousel':
+					$c .= '[gallery link="file" size="large"]';
+					break;
+				case 'video':
+					$c .= '**insta-embed-video**';
+					break;
 			}
+
 			$c .= '<p>'. $this->import['post_excerpt'];
 			if ( !empty( $this->loc ) ) {
 				$c .= sprintf( __( ' (Taken with Instagram at %s)', 'dsgnwrks' ), $this->loc );
