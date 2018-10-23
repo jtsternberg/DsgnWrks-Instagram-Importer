@@ -1,17 +1,17 @@
 # DsgnWrks Instagram Importer #
 
-**Contributors:** jtsternberg  
-**Plugin Name:** DsgnWrks Instagram Importer  
-**Plugin URI:** http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer  
-**Tags:** instagram, import, backup, photo, photos, importer  
-**Author URI:** http://jtsternberg.com/about  
-**Author:** Jtsternberg  
-**Donate link:** http://j.ustin.co/rYL89n 
-**Requires at least:** 3.1  
-**Tested up to:** 4.9.8  
-**Version:** 2.0.0  
-**License:** GPLv2 or later  
-**License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
+**Contributors:** jtsternberg
+**Plugin Name:** DsgnWrks Instagram Importer
+**Plugin URI:** http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer
+**Tags:** instagram, import, backup, photo, photos, importer
+**Author URI:** http://jtsternberg.com/about
+**Author:** Jtsternberg
+**Donate link:** http://j.ustin.co/rYL89n
+**Requires at least:** 3.1
+**Tested up to:** 4.9.8
+**Version:** 2.1.0
+**License:** GPLv2 or later
+**License URI:** http://www.gnu.org/licenses/gpl-2.0.html
 
 Backup your instagram photos & display your instagram archive. Supports importing to custom post-types & adding custom taxonomies.
 

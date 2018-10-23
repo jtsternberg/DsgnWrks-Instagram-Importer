@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 *
 
+## 2.1.0
+
+* Add [media-type conditions](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/wiki/Formatting-Tags#condtionally-add-markup-based-on-the-instagram-media-type) to output different things depending on the type of media from instagram. Fixes: [#44](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/44)
+* Better media file-names. Default to using excerpted title, falling back to the created time.
+* Keep from double-importing the first image for carousel media items.
+
 ## 2.0.0
 
 * Provide filter (`dsgnwrks_instagram_video_import_resolutions`) for specifying which video resolutions to import.

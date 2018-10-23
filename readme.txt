@@ -10,8 +10,8 @@ Author: Jtsternberg
 Donate link: http://j.ustin.co/rYL89n
 Requires at least: 3.1
 Tested up to: 4.9.8
-Stable tag: 2.0.0
-Version: 2.0.0
+Stable tag: 2.1.0
+Version: 2.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,6 +97,12 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 2. After authenticating a user, this is the options panel you'll be presented with. If you select a custom post-type in the post-type selector, the options may change based on the post-type's supports, as well as any custom taxonomies.
 
 == Changelog ==
+
+= 2.1.0 =
+
+* Add [media-type conditions](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/wiki/Formatting-Tags#condtionally-add-markup-based-on-the-instagram-media-type) to output different things depending on the type of media from instagram. Fixes: [#44](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/44)
+* Better media file-names. Default to using excerpted title, falling back to the created time.
+* Keep from double-importing the first image for carousel media items.
 
 = 2.0.0 =
 * Provide filter (`dsgnwrks_instagram_video_import_resolutions`) for specifying which video resolutions to import.
@@ -244,6 +250,12 @@ That is a filter on the $size parameter passed to `wp_get_attachment_image_src()
 
 
 == Upgrade Notice ==
+
+= 2.1.0 =
+
+* Add [media-type conditions](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/wiki/Formatting-Tags#condtionally-add-markup-based-on-the-instagram-media-type) to output different things depending on the type of media from instagram. Fixes: [#44](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/44)
+* Better media file-names. Default to using excerpted title, falling back to the created time.
+* Keep from double-importing the first image for carousel media items.
 
 = 2.0.0 =
 * Provide filter (`dsgnwrks_instagram_video_import_resolutions`) for specifying which video resolutions to import.
