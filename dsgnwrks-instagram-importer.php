@@ -157,7 +157,7 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 			'dd'           => date( 'd', strtotime( '-1 month' ) ),
 			'yy'           => date( 'Y', strtotime( '-1 month' ) ),
 			'post-title'   => '**insta-text**',
-			'post_content' => '<p><a href="**insta-link**" target="_blank">**insta-image**</a></p>'."\n".'<p>'. __( 'Instagram filter used:', 'dsgnwrks' ) .' **insta-filter**</p>'."\n".'[if-insta-location]<p>'. __( 'Photo taken at:', 'dsgnwrks' ) .' **insta-location**</p>[/if-insta-location]'."\n".'<p><a href="**insta-link**" target="_blank">'. __( 'View in Instagram', 'dsgnwrks' ) .' &rArr;</a></p>',
+			'post_content' => '[if-insta-type-image]<p><a href="**insta-link**" target="_blank">**insta-image**</a></p>[/if-insta-type-image][if-insta-type-carousel][gallery link="file" size="large"][/if-insta-type-carousel]'."\n".'<p>'. __( 'Instagram filter used:', 'dsgnwrks' ) .' **insta-filter**</p>'."\n".'[if-insta-location]<p>'. __( 'Photo taken at:', 'dsgnwrks' ) .' **insta-location**</p>[/if-insta-location]'."\n".'<p><a href="**insta-link**" target="_blank">'. __( 'View in Instagram', 'dsgnwrks' ) .' &rArr;</a></p>',
 			'post-type'    => 'post',
 			'draft'        => 'draft',
 		);
@@ -992,10 +992,18 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		if ( ! $this->settings->user_option( 'post-title' ) ) {
 			return;
 		}
+
 		// check for insta-text conditionals
 		$t = $this->conditional( 'insta-text', $this->settings->user_option( 'post-title' ), $this->import['post_title'] );
+
 		// check for insta-location conditionals
 		$t = $this->conditional( 'insta-location', $t, $this->loc );
+
+		// check for insta-type conditionals
+		$t = $this->conditional( 'insta-type-image', $t, 'image' === $this->pic->type ? 'image' : '' );
+		$t = $this->conditional( 'insta-type-video', $t, 'video' === $this->pic->type ? 'video' : '' );
+		$t = $this->conditional( 'insta-type-carousel', $t, 'carousel' === $this->pic->type ? 'carousel' : '' );
+
 		// Add the instagram filter name if requested
 		$t = str_replace( '**insta-filter**', $this->pic->filter, $t );
 
@@ -1007,28 +1015,47 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 * @since 1.2.2
 	 */
 	protected function formatContent() {
-		// if our user's post-content option is NOT saved
+
+		// If our user's post-content option is NOT saved
 		if ( ! $this->settings->user_option( 'post_content' ) ) {
 
 			$imgurl = $this->pic->images->standard_resolution->url;
-			// we'll add some default content
-			$c  = '<p><a href="'. $imgurl .'" target="_blank"><img src="'. $imgurl .'"/></a></p>'."\n";
+
+			// We'll add some default content
+			if ( 'image' === $this->pic->type ) {
+				$c  = '<p><a href="'. $this->pic->link .'" target="_blank"><img src="'. $imgurl .'"/></a></p>'."\n";
+
+			} elseif ( 'carousel' === $this->pic->type ) {
+				$c .= '[gallery link="file" size="large"]';
+			}
 			$c .= '<p>'. $this->import['post_excerpt'];
-			if ( !empty( $this->loc ) )
+			if ( !empty( $this->loc ) ) {
 				$c .= sprintf( __( ' (Taken with Instagram at %s)', 'dsgnwrks' ), $this->loc );
+			}
 			$c .= '</p>'."\n";
 			$c .= '<p>'. __( 'Instagram filter used:', 'dsgnwrks' ) .' '. $this->pic->filter .'</p>'."\n";
 			$c .= '<p><a href="'. $this->pic->link .'" target="_blank">'. __( 'View in Instagram', 'dsgnwrks' ) .' &rArr;</a></p>'."\n";
 		}
-		// if our user's post-content option is saved
+
+		// If our user's post-content option is saved
 		else {
 			$c = $this->settings->user_option( 'post_content' );
+
 			// Add the instagram photo url if requested
 			$c = str_replace( '**insta-link**', $this->pic->link, $c );
-			// check for insta-text conditionals
+
+			// Check for insta-text conditionals
 			$c = $this->conditional( 'insta-text', $c, $this->insta_title );
-			// check for insta-location conditionals
+
+			// Check for insta-location conditionals
 			$c = $this->conditional( 'insta-location', $c, $this->loc );
+
+			// check for insta-type conditionals
+			$c = $this->conditional( 'insta-type-image', $c, 'image' === $this->pic->type ? 'image' : '' );
+			$c = $this->conditional( 'insta-type-video', $c, 'video' === $this->pic->type ? 'video' : '' );
+			$c = $this->conditional( 'insta-type-carousel', $c, 'carousel' === $this->pic->type ? 'carousel' : '' );
+
+
 			// Add the instagram filter name if requested
 			$c = str_replace( '**insta-filter**', $this->pic->filter, $c );
 		}
