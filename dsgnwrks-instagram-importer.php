@@ -802,6 +802,13 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 							break;
 
 						default:
+
+							// Keep from double-importing the first image.
+							if ( $p->images->standard_resolution->url === $img_item->images->standard_resolution->url ) {
+								++$index;
+								break;
+							}
+
 							$sub_items[] = $this->upload_img_media( $img_item, wp_trim_words( $import['post_title'], 5, '...' ) . ' - ' . ++$index );
 							break;
 					}
