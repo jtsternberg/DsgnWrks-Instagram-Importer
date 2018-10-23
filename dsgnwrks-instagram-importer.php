@@ -837,11 +837,13 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 	 * @param  string       $title The optional file/attachment title.
 	 */
 	public function upload_img_media( $p, $title = '' ) {
-		$attach_title = ! empty( $p->created_time ) ? $p->created_time : $title;
+		$attach_title = ! empty( $title )
+			? $title
+			: ( ! empty( $p->created_time ) ? $p->created_time : time() );
 
 		return $this->upload_media(
 			array( $p->images->thumbnail->url, $p->images->standard_resolution->url ),
-			wp_trim_words( $attach_title, 5, '...' ),
+			wp_trim_words( $attach_title, 5, '' ),
 			$title
 		);
 	}
