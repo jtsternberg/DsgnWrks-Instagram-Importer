@@ -1,5 +1,15 @@
 {
-    "require-dev": {
-        "phpunit/phpunit": "5.7.*"
+  "name": "jtsternberg/dsgnwrks-instagram-importer",
+  "authors": [
+    {
+      "name":  "Justin Sternberg",
+      "email": "justin@dsgnwrks.pro"
     }
+  ],
+  "require-dev": {
+    "phpunit/phpunit": "5.7.*"
+  },
+  "config": {
+    "bin-dir": "tests/bin"
+  }
 }
