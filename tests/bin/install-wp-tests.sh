@@ -97,7 +97,7 @@ install_test_suite() {
 
 	download https://develop.svn.wordpress.org/"${WP_TESTS_TAG}"/wp-tests-config-sample.php $CONFIG
 	sed $ioption "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR':" $CONFIG
-	sed $ioption "s:define( 'WP_DEBUG', true );:define( 'WP_DEBUG', true ); define( 'WP_DEBUG_DISPLAY', false ); define( 'WP_DEBUG_LOG', true );:" "$WP_TESTS_DIR"/wp-tests-config.php
+	sed $ioption "s:define( 'WP_DEBUG', true );:define( 'WP_DEBUG', true ); define( 'WP_DEBUG_DISPLAY', false ); define( 'WP_DEBUG_LOG', true );:" $CONFIG
 	sed $ioption "s/youremptytestdbnamehere/$DB_NAME/" $CONFIG
 	sed $ioption "s/yourusernamehere/$DB_USER/" $CONFIG
 	sed $ioption "s/yourpasswordhere/$DB_PASS/" $CONFIG
@@ -126,9 +126,6 @@ install_db() {
 
 	# create database
 	mysqladmin create $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA
-
-	# Increase the max allowed packet size.
-	mysql --user="$DB_USER" --password="$DB_PASS"$EXTRA -e "set global net_buffer_length=1000000;set global max_allowed_packet=1000000000;"
 }
 
 install_wp
