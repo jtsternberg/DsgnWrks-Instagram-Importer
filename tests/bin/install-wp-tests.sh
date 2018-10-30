@@ -47,7 +47,7 @@ set -ex
 install_wp() {
 
 	# delete existing
-	if [ $WP_CORE_DIR == '' ]; then
+	if [ -d "$WP_CORE_DIR" ]; then
 		rm -rf $WP_CORE_DIR
 	fi
 
@@ -79,13 +79,14 @@ install_test_suite() {
 	fi
 
 	# delete existing
-	if [ $WP_TESTS_DIR == '' ]; then
+	if [ -d "$WP_TESTS_DIR" ]; then
 		rm -rf $WP_TESTS_DIR
 	fi
 
 
-	if [ -d $WP_TESTS_DIR/includes ]; then
-		rm -rf $WP_TESTS_DIR/includes
+	if [ -d "$WP_TESTS_DIR/includes" ]; then
+
+		rm -rf "$WP_TESTS_DIR/includes"
 	fi
 
 	# set up testing suite
