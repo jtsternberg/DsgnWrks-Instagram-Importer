@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 *
 
+## 2.1.1
+
+* Use new hack to get full resolution image for import. See https://stackoverflow.com/a/48296606/1883421
+
 ## 2.1.0
 
 * Add [media-type conditions](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/wiki/Formatting-Tags#condtionally-add-markup-based-on-the-instagram-media-type) to output different things depending on the type of media from instagram. Fixes: [#44](https://github.com/jtsternberg/DsgnWrks-Instagram-Importer/issues/44)
