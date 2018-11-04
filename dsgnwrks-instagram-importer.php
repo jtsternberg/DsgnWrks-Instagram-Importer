@@ -1327,16 +1327,18 @@ class DsgnWrksInstagram extends DsgnWrksInstagram_Debug {
 		list( $thumb_url, $instagram_url ) = $instagram_urls;
 
 		// Attempt to get full-resolution, non-square images.. this is a hack as it's not in the API
-		$parts = parse_url( $thumb_url );
-		if ( isset( $parts['scheme'], $parts['host'], $parts['path'] ) ) {
+		if ( ! empty( $this->pic->link ) ) {
 
-			$full_url = trailingslashit( $parts['scheme'] . '://' . $parts['host'] );
-			$parts = array_filter( explode( '/', $parts['path'] ) );
-			$full_url .= trailingslashit( array_shift( $parts ) );
-			$full_url .= array_pop( $parts );
+			// Use hack to get full-resolution image.
+			// https://stackoverflow.com/a/48296606/1883421
+			$api_url = add_query_arg( '__a', '1', $this->pic->link );
+			$result = json_decode( wp_remote_retrieve_body( wp_remote_get( $api_url ) ) );
 
-			if ( $instagram_url != $full_url ) {
-				$tmp = download_url( $full_url );
+			if (
+				! empty( $result->graphql->shortcode_media->display_url )
+				&& $instagram_url != $result->graphql->shortcode_media->display_url
+			) {
+				$tmp = download_url( $result->graphql->shortcode_media->display_url );
 			}
 		}
 
