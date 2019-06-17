@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Settings Validation class for DsgnWrks Instagram Importer
+ * Settings Validation class for DsgnWrks Importer for Instagram
  * @since  1.3.0
  */
 class DsgnWrksInstagram_Settings_Validation {

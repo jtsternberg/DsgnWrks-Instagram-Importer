@@ -10,7 +10,7 @@ $current_user = $this->get_option( 'username' );
 ?>
 <div class="wrap">
 	<div id="icon-tools" class="icon32"><br></div>
-	<h2>DsgnWrks <?php _e( 'Instagram Importer Options', 'dsgnwrks' ); ?></h2>
+	<h2>DsgnWrks <?php _e( 'Importer for Instagram Options', 'dsgnwrks' ); ?></h2>
 	<div class="updated instagram-import-message hidden"><ol></ol><div class="spinner"></div></div>
 	<div id="dw-instagram-wrap" style="display: block; ">
 	<div class="clear"></div>
@@ -456,7 +456,7 @@ $current_user = $this->get_option( 'username' );
 					</form>
 					<?php
 				} else {
-					$message = '<p>'. __( 'Welcome to the Instagram Importer! Click to be taken to Instagram\'s site to securely authorize this plugin for use with your account.', 'dsgnwrks' ) .'</p>';
+					$message = '<p>'. __( 'Welcome to the Importer for Instagram! Click to be taken to Instagram\'s site to securely authorize this plugin for use with your account.', 'dsgnwrks' ) .'</p>';
 					$this->settings_user_form( $users, $message );
 				}
 

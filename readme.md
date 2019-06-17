@@ -1,14 +1,14 @@
-# DsgnWrks Instagram Importer #
+# DsgnWrks Importer for Instagram #
 
 **Contributors:** jtsternberg
-**Plugin Name:** DsgnWrks Instagram Importer
+**Plugin Name:** DsgnWrks Importer for Instagram
 **Plugin URI:** http://dsgnwrks.pro/plugins/dsgnwrks-instagram-importer
 **Tags:** instagram, import, backup, photo, photos, importer
 **Author URI:** http://jtsternberg.com/about
 **Author:** Jtsternberg
 **Donate link:** http://j.ustin.co/rYL89n
 **Requires at least:** 3.1
-**Tested up to:** 4.9.8
+**Tested up to:** 5.2
 **Version:** 2.1.1
 **License:** GPLv2 or later
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html

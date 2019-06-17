@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Handles settings page for DsgnWrks Instagram Importer
+ * Handles settings page for DsgnWrks Importer for Instagram
  * @since  1.3.0
  */
 class DsgnWrksInstagram_Settings extends DsgnWrksInstagram_Debug {

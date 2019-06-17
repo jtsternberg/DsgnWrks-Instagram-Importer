@@ -1,8 +1,8 @@
-# Copyright (C) 2013 DsgnWrks Instagram Importer
-# This file is distributed under the same license as the DsgnWrks Instagram Importer package.
+# Copyright (C) 2013 DsgnWrks Importer for Instagram
+# This file is distributed under the same license as the DsgnWrks Importer for Instagram package.
 msgid ""
 msgstr ""
-"Project-Id-Version: DsgnWrks Instagram Importer 1.2.5\n"
+"Project-Id-Version: DsgnWrks Importer for Instagram 1.2.5\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/dsgnwrks-instagram-importer\n"
 "POT-Creation-Date: 2013-04-29 04:49:26+00:00\n"
 "MIME-Version: 1.0\n"
@@ -25,7 +25,7 @@ msgid "View in Instagram"
 msgstr ""
 
 #: dsgnwrks-instagram-importer.php:66 dsgnwrks-instagram-importer.php:298
-msgid "Instagram Importer"
+msgid "Importer for Instagram"
 msgstr ""
 
 #: dsgnwrks-instagram-importer.php:84
@@ -126,7 +126,7 @@ msgid "There was an authorization error. Try again?"
 msgstr ""
 
 #: settings.php:59
-msgid "Instagram Importer Options"
+msgid "Importer for Instagram Options"
 msgstr ""
 
 #: settings.php:112
@@ -339,7 +339,7 @@ msgstr ""
 
 #: settings.php:499
 msgid ""
-"Welcome to the Instagram Importer! Click to be taken to Instagram's site to "
+"Welcome to the Importer for Instagram! Click to be taken to Instagram's site to "
 "securely authorize this plugin for use with your account."
 msgstr ""
 
@@ -356,7 +356,7 @@ msgid "Contact Me"
 msgstr ""
 
 #. Plugin Name of the plugin/theme
-msgid "DsgnWrks Instagram Importer"
+msgid "DsgnWrks Importer for Instagram"
 msgstr ""
 
 #. Plugin URI of the plugin/theme

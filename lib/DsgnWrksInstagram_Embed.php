@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Handles embed markup and shortcode for DsgnWrks Instagram Importer
+ * Handles embed markup and shortcode for DsgnWrks Importer for Instagram
  * @since  1.3.0
  */
 class DsgnWrksInstagram_Embed {
